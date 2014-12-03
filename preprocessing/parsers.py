@@ -3,7 +3,7 @@
 
 # A parser takes some input, and returns a list of contexts in the format:  { 'token': <token>, index: <idx>, 'source': [<source toks>]', 'target': [<target toks>], 'tag': <tag>}
 # return a context object from an iterable of contexts, and a set of interesting tokens
-from word_level.util.simple_corpus import SimpleCorpus
+from marmot.util.simple_corpus import SimpleCorpus
 from collections import defaultdict
 from subprocess import Popen, call
 from nltk import word_tokenize

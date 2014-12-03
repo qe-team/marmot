@@ -5,8 +5,8 @@ import unittest, os, tempfile, sys
 import glob
 from subprocess import call
 #from word_level.preprocessing.parsers import parse_back_translation, parse_corpus_contexts, extract_important_tokens, parse_wmt14_data, parse_semeval, create_new_instance_additional, parse_corpus_contexts_additional, get_pos_tagging
-from word_level.preprocessing.parsers import *
-from word_level.util.simple_corpus import SimpleCorpus
+from marmot.preprocessing.parsers import *
+from marmot.util.simple_corpus import SimpleCorpus
 
 
 class BackTransParseTests( unittest.TestCase ):

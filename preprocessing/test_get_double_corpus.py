@@ -4,7 +4,7 @@
 import unittest
 import os, re
 from subprocess import call
-from word_level.preprocessing.get_double_corpus import get_double_string, get_double_corpus
+from marmot.preprocessing.get_double_corpus import get_double_string, get_double_corpus
 
 
 class GetDoubleCorpusTests(unittest.TestCase):

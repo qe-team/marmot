@@ -3,8 +3,8 @@ from subprocess import check_call
 import argparse
 from collections import defaultdict
 
-from word_level.preprocessing.parse_xml import parse_line
-from word_level.preprocessing.get_double_corpus import get_double_corpus
+from parse_xml import parse_line
+from get_double_corpus import get_double_corpus
 
 #naming
 #input WMT - <wmt>

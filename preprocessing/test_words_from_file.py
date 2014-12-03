@@ -1,5 +1,5 @@
 import unittest, os
-from word_level.preprocessing.words_from_file import get_tokens
+from marmot.preprocessing.words_from_file import get_tokens
 
 class WordsFromFileTests( unittest.TestCase ):
     def setUp(self):
