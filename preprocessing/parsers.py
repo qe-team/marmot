@@ -7,7 +7,7 @@ from marmot.util.simple_corpus import SimpleCorpus
 from collections import defaultdict
 from subprocess import Popen, call
 from nltk import word_tokenize
-from word_level.util.force_align import Aligner
+from marmot.util.force_align import Aligner
 import time
 import os, sys
 
