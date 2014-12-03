@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 import numpy as np
-from word_level.features.feature_extractor import FeatureExtractor
+from marmot.features.feature_extractor import FeatureExtractor
 
 
 class TokenCountFeatureExtractor(FeatureExtractor):
