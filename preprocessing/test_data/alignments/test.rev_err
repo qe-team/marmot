@@ -1,0 +1,68 @@
+ITERATION 1
+expected target length = source length * 0.924541
+  log_e likelihood: -300881
+  log_2 likelihood: -434080
+     cross entropy: 29.8974
+        perplexity: 1e+09
+      posterior p0: 0.08
+ posterior al-feat: -0.165607
+       size counts: 341
+ITERATION 2
+  log_e likelihood: -116957
+  log_2 likelihood: -168733
+     cross entropy: 11.6215
+        perplexity: 3150.89
+      posterior p0: 0.159239
+ posterior al-feat: -0.113048
+       size counts: 341
+  1  model al-feat: -0.186721 (tension=4)
+  2  model al-feat: -0.151951 (tension=5.47347)
+  3  model al-feat: -0.137768 (tension=6.25153)
+  4  model al-feat: -0.129931 (tension=6.74592)
+  5  model al-feat: -0.125031 (tension=7.08357)
+  6  model al-feat: -0.121756 (tension=7.32324)
+  7  model al-feat: -0.119475 (tension=7.4974)
+  8  model al-feat: -0.117842 (tension=7.62593)
+     final tension: 7.7218
+ITERATION 3
+  log_e likelihood: -75457.2
+  log_2 likelihood: -108862
+     cross entropy: 7.49788
+        perplexity: 180.754
+      posterior p0: 0.100892
+ posterior al-feat: -0.0842321
+       size counts: 341
+  1  model al-feat: -0.11665 (tension=7.7218)
+  2  model al-feat: -0.109155 (tension=8.37017)
+  3  model al-feat: -0.103988 (tension=8.86862)
+  4  model al-feat: -0.100214 (tension=9.26374)
+  5  model al-feat: -0.0973483 (tension=9.58338)
+  6  model al-feat: -0.0951121 (tension=9.8457)
+  7  model al-feat: -0.0933312 (tension=10.0633)
+  8  model al-feat: -0.0918906 (tension=10.2453)
+     final tension: 10.3985
+ITERATION 4
+  log_e likelihood: -68809.8
+  log_2 likelihood: -99271.5
+     cross entropy: 6.83735
+        perplexity: 114.353
+      posterior p0: 0.0906451
+ posterior al-feat: -0.0754841
+       size counts: 341
+  1  model al-feat: -0.0907112 (tension=10.3985)
+  2  model al-feat: -0.0884513 (tension=10.703)
+  3  model al-feat: -0.0866115 (tension=10.9623)
+  4  model al-feat: -0.0850911 (tension=11.1849)
+  5  model al-feat: -0.0838196 (tension=11.377)
+  6  model al-feat: -0.0827461 (tension=11.5437)
+  7  model al-feat: -0.0818325 (tension=11.689)
+  8  model al-feat: -0.0810498 (tension=11.8159)
+     final tension: 11.9273
+ITERATION 5 (FINAL)
+  log_e likelihood: -67170.8
+  log_2 likelihood: -96907
+     cross entropy: 6.6745
+        perplexity: 102.147
+      posterior p0: 0
+ posterior al-feat: 0
+       size counts: 341
