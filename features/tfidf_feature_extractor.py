@@ -1,0 +1,1 @@
+# build a tfidf index in def __init__(corpus_file_name)
