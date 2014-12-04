@@ -118,7 +118,7 @@ class TestAdditionalRepresentations(unittest.TestCase):
             call(['rm', a_file])
 
         # alignment
-        (label_align, alignments) = get_alignments(self.src_corpus_path, self.tg_corpus_path, align_model = None, src_train=self.src_corpus_path, tg_train=self.tg_corpus_path, label='alignments')
+        (label_align, alignments) = get_alignments(self.src_corpus_path, self.tg_corpus_path, trained_model = None, src_train=self.src_corpus_path, tg_train=self.tg_corpus_path, align_model = 'align_model', label='alignments')
         self.assertTrue(label_align == 'alignments')
         for src, tg, align in zip(open(self.src_corpus_path), open(self.tg_corpus_path), alignments):
             src_words = src[:-1].split()

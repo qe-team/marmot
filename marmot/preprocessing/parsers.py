@@ -8,6 +8,7 @@ from collections import defaultdict
 from subprocess import Popen, call
 from nltk import word_tokenize
 from marmot.util.force_align import Aligner
+from marmot.util.train_alignments import train_alignments
 import time
 import os, sys
 
@@ -119,57 +120,9 @@ def get_pos_tagging( src_file, tagger, par_file, label ):
     return (label, output)
 
 
-# force alignment with fastalign
-# if no alignment model provided, builds the alignment model first
-# <align_model> - path to alignment model such that <align_model>.frd_params, .rev_params, .fwd_err, .rev_err exist
-# <src_file>, <tg_file> - files to be aligned
-# returns: list of lists of possible alignments for every target word:
-#    [ [ [0], [1,2], [], [3,4], [3,4], [7], [6], [] ... ]
-#      [ ....                                           ]
-#        ....
-#      [ ....                                           ] ]
-def get_alignments(src_file, tg_file, align_model = None, src_train='', tg_train='', label='alignments'):
+def force_alignments(src_file, tg_file, trained_model):
     alignments = []
-    print "Get alignments"
-    if align_model == None:
-        print "Train an alignment model"
-        cdec = os.environ['CDEC_HOME']
-        if cdec == '':
-            sys.stderr.write('No CDEC_HOME variable found. Please install cdec and/or set the variable\n')
-            return []
-        if src_train == '' or tg_train == '':
-            sys.stderr.write('No parallel corpus for training\n')
-            return []
-        # join source and target files
-        joint_name = os.path.basename(src_train)+'_'+os.path.basename(tg_train)
-        src_tg_file=open(joint_name, 'w')
-        get_corp = Popen([cdec+'/corpus/paste-files.pl', src_train, tg_train], stdout=src_tg_file)
-        get_corp.wait()
-        src_tg_file.close()
-
-        src_tg_clean = open(joint_name+'.clean', 'w')
-        clean_corp = Popen([cdec+'/corpus/filter-length.pl', joint_name], stdout=src_tg_clean)
-        clean_corp.wait()
-        src_tg_clean.close()
-
-        # train the alignment model
-        align_model = 'align_model'
-        fwd_align = open('align_model.fwd_align', 'w')
-        rev_align = open('align_model.rev_align', 'w')
-        fwd_err = open('align_model.fwd_err', 'w')
-        rev_err = open('align_model.rev_err', 'w')
-     
-        fwd = Popen([cdec+'/word-aligner/fast_align', '-i'+joint_name+'.clean', '-d', '-v', '-o', '-palign_model.fwd_params'], stdout=fwd_align, stderr=fwd_err )
-        rev = Popen([cdec+'/word-aligner/fast_align', '-i'+joint_name+'.clean', '-r', '-d', '-v', '-o', '-palign_model.rev_params'], stdout=rev_align, stderr=rev_err)
-        fwd.wait()
-        rev.wait()
-        
-        fwd_align.close()
-        rev_align.close()
-        fwd_err.close()
-        rev_err.close()
-
-    aligner = Aligner(align_model+'.fwd_params',align_model+'.fwd_err',align_model+'.rev_params',align_model+'.rev_err')
+    aligner = Aligner(trained_model+'.fwd_params',trained_model+'.fwd_err',trained_model+'.rev_params',trained_model+'.rev_err')
     src = open(src_file)
     tg = open(tg_file)
     for src_line, tg_line in zip(src, tg):
@@ -183,6 +136,31 @@ def get_alignments(src_file, tg_file, align_model = None, src_train='', tg_train
     tg.close()
     
     aligner.close()
+
+    return alignments
+ 
+
+# force alignment with fastalign
+# if no alignment model provided, builds the alignment model first
+# <align_model> - path to alignment model such that <align_model>.frd_params, .rev_params, .fwd_err, .rev_err exist
+# <src_file>, <tg_file> - files to be aligned
+# returns: list of lists of possible alignments for every target word:
+#    [ [ [0], [1,2], [], [3,4], [3,4], [7], [6], [] ... ]
+#      [ ....                                           ]
+#        ....
+#      [ ....                                           ] ]
+def get_alignments(src_file, tg_file, trained_model = None, src_train='', tg_train='', align_model = 'align_model', label='alignments'):
+    alignments = []
+    print "Get alignments"
+    if trained_model == None: 
+        trained_model = train_alignments(src_train, tg_train, align_model)
+        if trained_model == '':
+            sys.stderr.write('No alignment model trained\n')
+            return []
+
+    print 'Trained model: ', trained_model
+    alignments = force_alignments( src_file, tg_file, trained_model )
+
     return (label, alignments)
 
 
