@@ -18,14 +18,13 @@ class TokenCountFeatureExtractorTests(unittest.TestCase):
 
     def test_get_features(self):
         # { 'token': <token>, index: <idx>, 'source': [<source toks>]', 'target': [<target toks>], 'tag': <tag>}
-        (left3, right3) = self.lm3Extractor.get_features( {'token':'a', 'index':2, 'source':[u'c',u'\'',u'est',u'un',u'garçon'], 'target':[u'this',u'is',u'a',u'boy',u'.'], 'tag':'G'})
-        (left5, right5) = self.lm3Extractor.get_features( {'token':'a', 'index':2, 'source':[u'c',u'\'',u'est',u'un',u'garçon'], 'target':[u'this',u'is',u'a',u'boy',u'.'], 'tag':'G'})
+        (left3, right3) = self.lm3Extractor.get_features( {'token':'for', 'index':6, 'source':[u'c',u'\'',u'est',u'un',u'garçon'], 'target':[u'It', u'becomes', u'more', u'and', u'more', u'difficult', u'for', u'us', u'to', u'protect', u'her', u'brands', u'in', u'China', '.'], 'tag':'G'})
+        (left5, right5) = self.lm3Extractor.get_features( {'token':'for', 'index':6, 'source':[u'c',u'\'',u'est',u'un',u'garçon'], 'target':[u'It', u'becomes', u'more', u'and', u'more', u'difficult', u'for', u'us', u'to', u'protect', u'her', u'brands', u'in', u'China', '.'], 'tag':'G'})
         # TODO: this is not a test
-        print left3, right3, left5, right5
-#        self.assertEqual(len(vector), 3)
-        #self.assertEqual(vector[0], 5.0)
-        #self.assertEqual(vector[1], 5.0)
-        #self.assertEqual(vector[2], 1.0)
+        self.assertTrue(left3, 3)
+        self.assertTrue(right3, 2)
+        self.assertTrue(left5, 5)
+        self.assertTrue(right5, 2)
 
 
 if __name__ == '__main__':
