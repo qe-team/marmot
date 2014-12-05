@@ -1,6 +1,8 @@
 import os
 from subprocess import Popen
 
+from marmot.util.force_align import Aligner
+
 def train_alignments(src_train, tg_train, align_model='align_model'):
     cdec = os.environ['CDEC_HOME']
     if cdec == '':
@@ -39,3 +41,15 @@ def train_alignments(src_train, tg_train, align_model='align_model'):
 
     return align_model
 
+
+def align_sentence(src_line, tg_line, align_model):
+    cur_alignments = [ [] for i in range(len(tg_line)) ]
+
+    aligner = Aligner(self.model+'.fwd_params',self.model+'.fwd_err',self.model+'.rev_params',self.model+'.rev_err')
+    align_str = aligner.align( ' '.join(src_line)+u' ||| '+' '.join(tg_line) )
+    for pair in align_str.split():
+        pair = pair.split('-')
+        cur_alignments[int(pair[1])].append( pair[0] )
+    aligner.close()
+
+   return cur_alignments
