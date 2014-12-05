@@ -7,7 +7,7 @@ from marmot.features.lm_feature_extractor import LMFeatureExtractor
 
 
 # test a class which extracts source and target token count features, and the source/target token count ratio
-class TokenCountFeatureExtractorTests(unittest.TestCase):
+class LMFeatureExtractorTests(unittest.TestCase):
 
     def setUp(self):
         module_path = os.path.dirname(os.path.realpath(__file__))

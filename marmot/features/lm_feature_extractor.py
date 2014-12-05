@@ -2,7 +2,6 @@ from nltk import ngrams, word_tokenize
 #from nltk.model import NgramModel
 
 from marmot.features.feature_extractor import FeatureExtractor
-from marmot.util.simple_corpus import SimpleCorpus
 
 
 # Class that extracts various LM features 
