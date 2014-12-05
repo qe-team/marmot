@@ -1,4 +1,4 @@
-import os
+import os, sys
 from subprocess import Popen, PIPE
 
 from marmot.features.feature_extractor import FeatureExtractor
@@ -28,18 +28,18 @@ class POSFeatureExtractor(FeatureExtractor):
 
 
   def get_features(self, context_obj):
-    if not context_obj.has_key('target_pos'):
+    if not context_obj.has_key('target_pos') and context_obj.has_key('target'):
       context_obj['target_pos'] = self._call_tagger(context_obj['target'])
-    if not context_obj.has_key('source_pos') and context_obj.has_key['source']:
+    if not context_obj.has_key('source_pos') and context_obj.has_key('source'):
       context_obj['source_pos'] = self._call_tagger(context_obj['source'], lang='src')
 
     #extract POS features:
     # - target POS
     # - source POS (may be more than 1)
     # - something else?
-    tg_pos = context_obj['target_pos'][context_obj['index']]
-    src_pos = ''
-    if context_obj.has_key('source_pos') and context_obj.has_key('alignments'):
-      src_pos = [ context_obj['source_pos'][i] for i in context_obj['alignments'][context_obj['index']] ]
+    tg_pos = context_obj['target_pos'][context_obj['index']] if context_obj['target_pos'] != [] else ''
+    src_pos = []
+    if context_obj.has_key('source_pos') and context_obj['source_pos'] != [] and context_obj.has_key('alignments'):
+        src_pos = [ context_obj['source_pos'][i] for i in context_obj['alignments'][context_obj['index']] ]
 
     return (tg_pos, src_pos)
