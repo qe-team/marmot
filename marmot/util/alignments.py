@@ -45,11 +45,11 @@ def train_alignments(src_train, tg_train, align_model='align_model'):
 def align_sentence(src_line, tg_line, align_model):
     cur_alignments = [ [] for i in range(len(tg_line)) ]
 
-    aligner = Aligner(self.model+'.fwd_params',self.model+'.fwd_err',self.model+'.rev_params',self.model+'.rev_err')
+    aligner = Aligner(align_model+'.fwd_params',align_model+'.fwd_err',align_model+'.rev_params',align_model+'.rev_err')
     align_str = aligner.align( ' '.join(src_line)+u' ||| '+' '.join(tg_line) )
     for pair in align_str.split():
         pair = pair.split('-')
-        cur_alignments[int(pair[1])].append( pair[0] )
+        cur_alignments[int(pair[1])].append( int(pair[0]) )
     aligner.close()
 
-   return cur_alignments
+    return cur_alignments
