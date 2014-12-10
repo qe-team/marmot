@@ -8,7 +8,7 @@ from collections import defaultdict
 from subprocess import Popen, call
 from nltk import word_tokenize
 from marmot.util.force_align import Aligner
-from marmot.util.train_alignments import train_alignments
+from marmot.util.alignments import train_alignments
 import time
 import os, sys
 
