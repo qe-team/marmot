@@ -36,7 +36,7 @@ class AlignmentFeatureExtractor(FeatureExtractor):
         source_nums = context_obj['alignments'][context_obj['index']] 
         # if word is unaligned - no source and no source contexts
         if source_nums == []:
-            return ('Unaligned',[ 'Unaligned' for i in context_size ], [ 'Unaligned' for i in context_size ])
+            return ('Unaligned',[ 'Unaligned' for i in range(context_size) ], [ 'Unaligned' for i in range(context_size) ])
 
         # TODO: find contexts for all words aligned to the token (now only 1st word)
         else:

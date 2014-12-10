@@ -47,6 +47,15 @@ class AlignmentFeatureExtractorTests(unittest.TestCase):
         self.assertEqual(cont_word, u'junge')
 
 
+    def test_unaligned(self):
+        obj = {'token':u'hits', 'index':2, 'target':[u'a',u'boy',u'hits',u'a',u'dog'], 'source':[u'un', u'garcon',u'frappe', u'un', u'chien'], 'target_pos':['DT','NN','VBZ', 'DT', 'NN'], 'source_pos':['DT','NN','VBZ', 'DT', 'NN'], 'alignments':[[0],[1],[],[2],[4]]}
+        (cont_word, left, right) = self.aligner_no_model.get_features(obj)
+        self.assertEqual(cont_word, u'Unaligned')
+        self.assertEqual(left, [u'Unaligned'])
+        self.assertEqual(right, [u'Unaligned'])
+
+
+
 if __name__ == '__main__':
     unittest.main()
 
