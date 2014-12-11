@@ -4,7 +4,7 @@
 # A parser takes some input, and returns a list of contexts in the format:  { 'token': <token>, index: <idx>, 'source': [<source toks>]', 'target': [<target toks>], 'tag': <tag>}
 # return a context object from an iterable of contexts, and a set of interesting tokens
 from marmot.util.simple_corpus import SimpleCorpus
-from collections import defaultdict
+from collections import defaultdict, Counter
 from subprocess import Popen, call
 from nltk import word_tokenize
 from marmot.util.force_align import Aligner
@@ -20,6 +20,14 @@ def extract_important_tokens(corpus_file, min_count=1):
         for word in context:
             word_counts[word] += 1
     return set([k for k,v in word_counts.items() if v >= min_count])
+
+# extract important tokens from WMT test format
+def extract_important_tokens_wmt(corpus_file, min_count=1):
+    all_words = []
+    for line in open(corpus_file):
+        all_words.append( line.decode('utf-8').split('\t')[2] )
+    word_counts = Counter(all_words)
+    return set( [k for k,v in word_counts.items() if v > min_count] )
 
 
 def create_new_instance(token=None, idx=None, source=None, target=None, label=None):
@@ -200,9 +208,9 @@ def parse_back_translation(corpus_file, labels_file, interesting_tokens=None):
 
 from itertools import groupby
 import codecs
-# TODO: add support for including the source sentence into the output (takes another file as input)
 # matching sentences may require us to include the sen id
-def parse_wmt14_data(corpus_file, interesting_tokens=None):
+# if source is not provided, pass an empty string ('') as <source_file>
+def parse_wmt14_data(corpus_file, source_file, interesting_tokens=None):
      # recover sentences from a .tsv with senids and tokens (wmt14 format)
     def group_by_senid(filename):
         rows = []
@@ -216,24 +224,32 @@ def parse_wmt14_data(corpus_file, interesting_tokens=None):
             sens.append(sen)
         return sens
 
-    def extract_word_exchange_format(wmt_contexts, interesting_tokens=None):
+
+    def extract_word_exchange_format(wmt_contexts, source=None, interesting_tokens=None):
         word_exchange_format = []
-        for context in wmt_contexts:
+        for i,context in enumerate(wmt_contexts):
             target_sen = [w[2] for w in context]
+            source_sen = source[i] if source else None
             for row in context:
-                idx = int(row[1])
+                obj_items = []
                 word = row[2]
-                tag = row[5]
-                if interesting_tokens is not None:
-                    if word in interesting_tokens:
-                        word_exchange_format.append({'token': word, 'target': target_sen, 'index': idx, 'tag': tag})
-                else:
-                    word_exchange_format.append({'token': word, 'target': target_sen, 'index': idx, 'tag': tag})
+                obj_items.append(('index', int(row[1])))
+                obj_items.append(('token', word))
+                obj_items.append(('tag', row[5]))
+                obj_items.append(('target', target_sen))
+                if source:
+                    obj_items.append(('source', source_sen))
+                if not interesting_tokens or word in interesting_tokens:
+                        word_exchange_format.append({ k:val for (k, val) in obj_items })
         return word_exchange_format
 
     sen_groups = group_by_senid(corpus_file)
-    wef = extract_word_exchange_format(sen_groups)
+    source_sen_groups = None
+    if source_file != '':
+        source_sen_groups = [ word_tokenize( line[:-1].split('\t')[1] ) for line in codecs.open(source_file, encoding='utf-8') ]
+    wef = extract_word_exchange_format(sen_groups, source=source_sen_groups, interesting_tokens=interesting_tokens)
     return wef
+
 
 # semeval format
 
