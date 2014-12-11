@@ -3,7 +3,7 @@
 
 import unittest
 import os
-from marmot.features.dictionary_feature_extractor import SpecListFeatureExtractor
+from marmot.features.dictionary_feature_extractor import DictionaryFeatureExtractor
 
 
 # test a class which extracts source and target token count features, and the source/target token count ratio
@@ -12,8 +12,8 @@ class TokenCountFeatureExtractorTests(unittest.TestCase):
     def setUp(self):
         module_path = os.path.dirname(os.path.realpath(__file__))
         self.module_path = module_path
-        self.spec_list = SpecListFeatureExtractor(language='english')
-        self.custom_list = SpecListFeatureExtractor(punctuation=',.:;()', stopwords=['Sam'])
+        self.spec_list = DictionaryFeatureExtractor(language='english')
+        self.custom_list = DictionaryFeatureExtractor(punctuation=',.:;()', stopwords=['Sam'])
 
 
     def test_get_features(self):

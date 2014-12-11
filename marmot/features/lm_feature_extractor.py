@@ -35,4 +35,4 @@ class LMFeatureExtractor(FeatureExtractor):
     def get_features(self, context_obj):
         left_ngram = self.check_lm( context_obj['target'][:context_obj['index']+1], side='left' )
         right_ngram = self.check_lm( context_obj['target'][context_obj['index']:], side='right' )
-        return (left_ngram, right_ngram)
+        return [left_ngram, right_ngram]

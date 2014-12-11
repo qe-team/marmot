@@ -42,4 +42,4 @@ class POSFeatureExtractor(FeatureExtractor):
     if context_obj.has_key('source_pos') and context_obj['source_pos'] != [] and context_obj.has_key('alignments'):
         src_pos = [ context_obj['source_pos'][i] for i in context_obj['alignments'][context_obj['index']] ]
 
-    return (tg_pos, src_pos)
+    return [tg_pos, src_pos]
