@@ -1,6 +1,9 @@
 import numpy as np
 import multiprocessing as multi
 import logging
+import types
+import sklearn
+from sklearn.preprocessing import LabelBinarizer, MultiLabelBinarizer
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 logger = logging.getLogger('testlogger')
@@ -117,7 +120,8 @@ def map_feature_extractors((context, extractor)):
 def contexts_to_features(token_contexts, feature_extractors, workers=1):
     #single thread
     if workers == 1:
-        return {token: np.vstack( [np.hstack([map_feature_extractors((context, extractor)) for extractor in feature_extractors] ) for context in contexts]) for token, contexts in token_contexts.items()}
+         return {token: np.vstack( [np.hstack([map_feature_extractors((context, extractor)) for extractor in feature_extractors] ) for context in contexts]) for token, contexts in token_contexts.items()}
+
     #multiple threads
     else:
         #resulting object
@@ -135,6 +139,99 @@ def contexts_to_features(token_contexts, feature_extractors, workers=1):
             res_dict[token] = np.hstack(extractors_output)
 
         return res_dict
+
+
+# feature extraction for categorical features with convertation to one-hot representation
+def contexts_to_features_categorical(token_contexts, feature_extractors, workers=1):
+    #single thread
+    if workers == 1:
+        return {token: [ [x for a_list in [map_feature_extractors((context, extractor)) for extractor in feature_extractors] for x in a_list ] for context in contexts] for token, contexts in token_contexts.items()}
+
+    #multiple threads
+    else:
+        #resulting object
+        res_dict = {}
+        pool = multi.Pool(workers)
+        print("Feature extractors: ", feature_extractors)
+        for token, contexts in token_contexts.items():
+            logger.info('Multithreaded - Extracting categorical contexts for token: ' + token + ' -- with ' + str(len(contexts)) + ' contexts...')
+            #each context is paired with all feature extractors
+            extractors_output = []
+            for extractor in feature_extractors:
+                context_list = [(cont, extractor) for cont in contexts]
+                extractors_output.append( pool.map(map_feature_extractors, context_list) )
+            # np.hstack and np.vstack can't be used because lists have objects of different types
+            intermediate =  [ [x[i] for x in extractors_output] for i in range(len(extractors_output[0])) ]
+            res_dict[token] = [ flatten(sl) for sl in intermediate ]
+
+        return res_dict
+
+# convert categorical features to one-hot representation
+# ALL available data (train + test) needs to be provided 
+def binarize_features( all_values ):
+    new_values = []
+    binarizers = {}
+    print "ALL VALUES LENGTH: ", len(all_values)
+#    print "ALL VALUES: ", all_values[:10]
+    for f in range(len(all_values[0])):
+        cur_features = [ context[f] for context in all_values ]
+        print 'CUR FEATURES:', cur_features
+        # only categorical values need to be binarized, ints/floats are left as they are 
+        if type(cur_features[0]) == 'list' or type(cur_features[0]) == 'str':
+            lb = LabelBinarizer()
+            new_features = lb.fit_transform( cur_features )
+            binarizers[f] = lb
+            new_values = np.hstack( (new_values, new_features) )
+        else:
+            new_values = np.hstack( (new_values, np.vstack(cur_features)) )
+
+    return (new_values, binarizers)
+
+# train converters(binarizers) from categorical values to one-hot representation
+#      for all features
+def fit_binarizers( all_values ):
+    binarizers = {}
+#    print "ALL VALUES: ", all_values[0]
+    for f in range(len(all_values[0])):
+        cur_features = [ context[f] for context in all_values ]
+#        print "CUR_FEATURES:", cur_features
+#        print "TYPE: ", type(cur_features[0])
+        # only categorical values need to be binarized, ints/floats are left as they are
+        if isinstance(cur_features[0], tuple([types.StringType, types.UnicodeType])):
+            lb = LabelBinarizer()
+            lb.fit( cur_features )
+            binarizers[f] = lb
+        elif isinstance(cur_features[0], types.ListType):
+            mlb = MultiLabelBinarizer()
+            mlb.fit( [tuple(x) for x in cur_features] )
+            binarizers[f] = mlb
+#    print "BINARIZERS:", binarizers
+    return binarizers
+
+# convert categorical features to one-hot representations with pre-fitted binarizers
+def binarize(features, binarizers):
+    new_features = []
+#    print "BINARIZERS: ", type(binarizers), binarizers
+#    print "FEATURES", features
+#    print "COMPARE: ", max(binarizers.keys()), len(features) 
+    assert( max(binarizers.keys()) < len(features) )
+    for i, f in enumerate(features):
+        if binarizers.has_key(i):
+#            print "AAA"
+            binarizer = binarizers[i]
+            if isinstance(binarizer, sklearn.preprocessing.label.LabelBinarizer):
+#                print "PLAIN FEATURE: ", f
+#                print "TRANSFORMED FEATURE: ", binarizer.transform([f])
+#                print "NEW FEATURES TYPE:", type(new_features)
+                new_features = np.hstack( (new_features, binarizer.transform([f])[0]) )
+            elif isinstance(binarizer, sklearn.preprocessing.label.MultiLabelBinarizer):
+#                print "PLAIN FEATURE: ", f
+#                print "TRANSFORMED FEATURE: ", binarizer.transform([tuple(f)])
+#                print "NEW FEATURES TYPE:", type(new_features)
+                new_features = np.hstack( (new_features, binarizer.transform([tuple(f)])[0]) )
+        else:
+            new_features = np.hstack( (new_features, f) )
+    return new_features
 
 
 def tags_from_contexts(token_contexts):
