@@ -86,7 +86,7 @@ class TestRunExperiment(unittest.TestCase):
 
         token_contexts = experiment_utils.map_contexts(interesting_tokens, context_creators)
 
-        feature_extractor_list = self.config['feature_extractors']
+        feature_extractor_list = self.config['feature_extractors'][:1]
         feature_extractors = experiment_utils.build_feature_extractors(feature_extractor_list)
 
         mapped_context = np.hstack([experiment_utils.map_feature_extractors( (token_contexts['the'][0], extractor) ) for extractor in feature_extractors])
@@ -101,7 +101,7 @@ class TestRunExperiment(unittest.TestCase):
 
         token_contexts = experiment_utils.map_contexts(interesting_tokens, context_creators)
 
-        feature_extractor_list = self.config['feature_extractors']
+        feature_extractor_list = self.config['feature_extractors'][:1]
         feature_extractors = experiment_utils.build_feature_extractors(feature_extractor_list)
 
         workers = 8
@@ -111,6 +111,37 @@ class TestRunExperiment(unittest.TestCase):
         for tok, feature_vecs in mapped_contexts.items():
             self.assertTrue(feature_vecs.shape[0] == len(token_contexts[tok]))
 
+
+    def test_contexts_to_features_categorical(self):
+
+        token_contexts = {}
+        token_contexts['little'] = [ {'index':1, 'token':u'little', 'target':[u'the', u'little', u'boy'], 'source':[u'le', u'petit', u'garcon'], 'alignments':[[0],[1],[2]], 'source_pos':[u'Art', u'Adj', u'Noun'], 'target_pos':[u'DT', u'JJ', u'NN']}, {'index':1, 'token':u'little', 'target':[u'a', u'little', u'dog'], 'source':[u'un', u'petit', u'chien'], 'alignments':[[0],[1],[2]], 'source_pos':[u'Art', u'Adj', u'Noun'], 'target_pos':[u'DT', u'JJ', u'NN']} ]
+
+        feature_extractor_list = self.config['feature_extractors']
+        feature_extractors = experiment_utils.build_feature_extractors(feature_extractor_list)
+
+        workers = 8
+        mapped_contexts = experiment_utils.contexts_to_features_categorical(token_contexts, feature_extractors, workers=8)
+
+        self.assertEqual(set(mapped_contexts.keys()), set(token_contexts.keys()))
+        for tok, feature_vecs in mapped_contexts.items():
+            self.assertTrue(len(feature_vecs) == len(token_contexts[tok]))
+        context = mapped_contexts['little'][0]
+        self.assertEqual( context[0], 3 )
+        self.assertEqual( context[1], 3 )
+        self.assertAlmostEqual( context[2], 1.0 )
+        self.assertEqual( context[3], u'petit' )
+        self.assertEqual( context[4], [u'le'] )
+        self.assertEqual( context[5], [u'garcon'] )
+        self.assertEqual( [ context[6], context[7], context[8], context[9] ], [0,0,0,0] )
+        self.assertEqual( context[12], u'JJ' )
+        self.assertEqual( context[13], [u'Adj'] )
+
+        #TODO: check that binarizers' output is correct
+        binarizers = experiment_utils.fit_binarizers( mapped_contexts['little'] )
+        binarized_features = [ experiment_utils.binarize(val, binarizers) for val in mapped_contexts['little'] ]
+
+
     def test_time_contexts_to_features(self):
         context_creator_list = self.config['context_creators']
         context_creators = experiment_utils.build_context_creators(context_creator_list)
@@ -118,7 +149,7 @@ class TestRunExperiment(unittest.TestCase):
 
         token_contexts = experiment_utils.map_contexts(interesting_tokens, context_creators)
 
-        feature_extractor_list = self.config['feature_extractors']
+        feature_extractor_list = self.config['feature_extractors'][:1]
         feature_extractors = experiment_utils.build_feature_extractors(feature_extractor_list)
 
         start = time.time()
