@@ -55,12 +55,9 @@ def list_of_target_contexts(contexts, interesting_tokens, tag=1):
 # representations - generator
 def list_of_contexts_additional(contexts, representations, repr_labels, interesting_tokens, tag=1):
     token_contexts = []
-#    representations = [ open(r) for r in representations if type(r) == 'file' ]
-    #print representations
     for all_features in zip(contexts, *representations):
         if len(all_features)-1 != len(repr_labels):
             sys.stderr.write( "Wrong number of additional element labels\n" )
-            print all_features, repr_labels
             return []
         # target sentence
         doc = all_features[0]
@@ -72,7 +69,6 @@ def list_of_contexts_additional(contexts, representations, repr_labels, interest
     for r in representations:
         if type(r) == 'file':
             r.close()   
-
     return token_contexts
 
 
@@ -187,6 +183,10 @@ def parse_corpus_contexts(corpus_file, interesting_tokens=None, tag=1):
     return list_of_target_contexts(corpus.get_texts(), interesting_tokens, tag=tag)
 
 
+def get_corpus_file(corpus_file, label):
+    corpus = SimpleCorpus(corpus_file)
+    return (label, corpus.get_texts())
+
 # parse_corpus_contexts with additional representations
 # <additional> list of representations, each of format (<label>, <generator>)
 #def parse_corpus_contexts_additional(corpus_file, tag=1, interesting_tokens=None, *additional):
@@ -196,7 +196,6 @@ def parse_corpus_contexts_additional(corpus_file, interesting_tokens, tag, *addi
     repr_labels = [ r[0] for r in additional ]
 
     contexts = list_of_contexts_additional(corpus.get_texts(), representations, repr_labels, interesting_tokens, tag=1)
-
     return contexts
 
 
