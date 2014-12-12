@@ -63,11 +63,18 @@ class TestParseWMT(unittest.TestCase):
         self.interesting_tokens = set(['the','it'])
         module_path = os.path.dirname(__file__)
         self.corpus_path = os.path.join(module_path, 'test_data/DE_EN.tgt_ann.test')
+        self.source_path = os.path.join(module_path, 'test_data/DE_EN.source.test')
 
-    def test_parse_wmt14_data(self):
-        contexts = parse_wmt14_data(self.corpus_path)
+    def test_parse_wmt14_data_no_source(self):
+        contexts = parse_wmt14_data(self.corpus_path, '')
         for context in contexts:
             self.assertTrue(context['token'] == context['target'][context['index']])
+
+    def test_parse_wmt14_data(self):
+        contexts = parse_wmt14_data(self.corpus_path, self.source_path)
+        for context in contexts:
+            self.assertTrue(context['token'] == context['target'][context['index']])
+            self.assertTrue(context.has_key('source'))
 
 
 class TestSemevalParser(unittest.TestCase):
