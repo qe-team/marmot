@@ -279,8 +279,11 @@ def parse_semeval(inputfile, scoresfile, stops=False):
         return a_fix
 
     def load_data(path, scores):
-        scores = [float(x) for x in open(scores)]
         lines = list(open(path))
+        if scores is not None:
+            scores = [float(x) for x in open(scores)]
+        else:
+            scores = ['unknown' for i in len(lines)]
         training_data = []
         assert len(scores) == len(lines), 'the scores file and the text file should have the same number of lines'
         r1 = re.compile(r'\<([^ ]+)\>')
