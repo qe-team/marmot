@@ -115,7 +115,7 @@ class TestRunExperiment(unittest.TestCase):
     def test_contexts_to_features_categorical(self):
 
         token_contexts = {}
-        token_contexts['little'] = [ {'index':1, 'token':u'little', 'target':[u'the', u'little', u'boy'], 'source':[u'le', u'petit', u'garcon'], 'alignments':[[0],[1],[2]], 'source_pos':[u'Art', u'Adj', u'Noun'], 'target_pos':[u'DT', u'JJ', u'NN']}, {'index':1, 'token':u'little', 'target':[u'a', u'little', u'dog'], 'source':[u'un', u'petit', u'chien'], 'alignments':[[0],[1],[2]], 'source_pos':[u'Art', u'Adj', u'Noun'], 'target_pos':[u'DT', u'JJ', u'NN']} ]
+        token_contexts['little'] = [ {'index':1, 'token':u'little', 'target':[u'the', u'little', u'boy'], 'source':[u'le', u'petit', u'garcon'], 'alignments':[[0],[1],[2]], 'source_pos':[u'Art', u'Adj', u'Noun'], 'target_pos':[u'DT', u'JJ', u'NN']}, {'index':1, 'token':u'little', 'target':[u'a', u'little', u'dog'], 'source':[u'un', u'petit', u'chien'], 'alignments':[[0],[1],[2]], 'source_pos':[u'Art', u'Adj', u'Noun'], 'target_pos':[u'DT', u'JJ', u'NN']}, {'index':1, 'token':u'little', 'target':[u'a', u'little', u'cat'], 'source':[u'un', u'petit', u'chat'], 'alignments':[[0],[1],[2]], 'source_pos':[u'Art', u'Adj', u'Noun'], 'target_pos':[u'DT', u'JJN', u'NN']} ]
 
         feature_extractor_list = self.config['feature_extractors']
         feature_extractors = experiment_utils.build_feature_extractors(feature_extractor_list)
@@ -137,9 +137,15 @@ class TestRunExperiment(unittest.TestCase):
         self.assertEqual( context[12], u'JJ' )
         self.assertEqual( context[13], [u'Adj'] )
 
-        #TODO: check that binarizers' output is correct
-        binarizers = experiment_utils.fit_binarizers( mapped_contexts['little'] )
-        binarized_features = [ experiment_utils.binarize(val, binarizers) for val in mapped_contexts['little'] ]
+
+    def test_binarizers(self):
+        contexts = [[3.0, 3.0, 1.0, u'petit', [u'le'], [u'garcon'], 0, 0, 0, 0, 0, 0, u'JJ', [u'Adj']], [3.0, 3.0, 1.0, u'petite', [u'un'], [u'chien'], 0, 0, 0, 0, 2, 0, u'JJ', [u'Adv']], [3.0, 3.0, 1.0, u'petits', [u'un'], [u'chat'], 0, 0, 0, 0, 2, 0, u'JJN', [u'Adj', u'Adv']]]
+
+        binarizers = experiment_utils.fit_binarizers(contexts)
+        binarized_features = [ experiment_utils.binarize(val, binarizers) for val in contexts ]
+        self.assertTrue( np.allclose(binarized_features[0], np.array([3., 3., 1., 1., 0., 0., 1., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 1., 0.]) ) )
+        self.assertTrue( np.allclose(binarized_features[1], np.array([3., 3., 1., 0., 1., 0., 0., 1., 0., 1., 0., 0., 0., 0., 0., 2., 0., 0., 0., 1.]) ) )
+        self.assertTrue( np.allclose(binarized_features[2], np.array([3., 3., 1., 0., 0., 1., 0., 1., 1., 0., 0., 0., 0., 0., 0., 2., 0., 1., 1., 1.]) ) )
 
 
     def test_time_contexts_to_features(self):

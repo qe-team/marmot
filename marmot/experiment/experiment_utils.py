@@ -191,11 +191,9 @@ def binarize_features( all_values ):
 #      for all features
 def fit_binarizers( all_values ):
     binarizers = {}
-#    print "ALL VALUES: ", all_values[0]
     for f in range(len(all_values[0])):
         cur_features = [ context[f] for context in all_values ]
-#        print "CUR_FEATURES:", cur_features
-#        print "TYPE: ", type(cur_features[0])
+
         # only categorical values need to be binarized, ints/floats are left as they are
         if isinstance(cur_features[0], tuple([types.StringType, types.UnicodeType])):
             lb = LabelBinarizer()
@@ -205,29 +203,18 @@ def fit_binarizers( all_values ):
             mlb = MultiLabelBinarizer()
             mlb.fit( [tuple(x) for x in cur_features] )
             binarizers[f] = mlb
-#    print "BINARIZERS:", binarizers
     return binarizers
 
 # convert categorical features to one-hot representations with pre-fitted binarizers
 def binarize(features, binarizers):
     new_features = []
-#    print "BINARIZERS: ", type(binarizers), binarizers
-#    print "FEATURES", features
-#    print "COMPARE: ", max(binarizers.keys()), len(features) 
     assert( max(binarizers.keys()) < len(features) )
     for i, f in enumerate(features):
         if binarizers.has_key(i):
-#            print "AAA"
             binarizer = binarizers[i]
             if isinstance(binarizer, sklearn.preprocessing.label.LabelBinarizer):
-#                print "PLAIN FEATURE: ", f
-#                print "TRANSFORMED FEATURE: ", binarizer.transform([f])
-#                print "NEW FEATURES TYPE:", type(new_features)
                 new_features = np.hstack( (new_features, binarizer.transform([f])[0]) )
             elif isinstance(binarizer, sklearn.preprocessing.label.MultiLabelBinarizer):
-#                print "PLAIN FEATURE: ", f
-#                print "TRANSFORMED FEATURE: ", binarizer.transform([tuple(f)])
-#                print "NEW FEATURES TYPE:", type(new_features)
                 new_features = np.hstack( (new_features, binarizer.transform([tuple(f)])[0]) )
         else:
             new_features = np.hstack( (new_features, f) )
