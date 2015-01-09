@@ -1,9 +1,11 @@
+from __future__ import division
 import numpy as np
 import multiprocessing as multi
 import logging
 import types
 import sklearn
 from sklearn.preprocessing import LabelBinarizer, MultiLabelBinarizer
+from collections import defaultdict
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 logger = logging.getLogger('testlogger')
@@ -59,6 +61,27 @@ def build_context_creators(context_creator_list):
 
 def filter_contexts(token_contexts, min_total=1):
     return {token: contexts for token, contexts in token_contexts.items() if len(contexts) >= min_total}
+
+
+# filter contexts to satisfy the whole size constraint and the class size constraint
+def filter_contexts_class(token_contexts, min_total=1, min_class_count=1, proportion=2):
+    new_token_contexts = {}
+    classes = set( [cc['tag'] for context in token_contexts.values() for cc in context] )
+    for token, contexts in token_contexts.items():
+        # no need to check other conditions if there are too few contexts
+        if len(contexts) < min_total:
+            continue
+
+        class_counts = {cl:0 for cl in classes}
+        for cc in contexts:
+            class_counts[cc['tag']] += 1
+        min_class = min( class_counts.values() )
+        cur_proportion = max( class_counts.values() )/max(min_class,1)
+
+        if min_class >= min_class_count and cur_proportion <= proportion:
+            new_token_contexts[token] = contexts
+
+    return new_token_contexts
 
 
 # convert the tag representation of a list of contexts into another format (remap the tag strings)

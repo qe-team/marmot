@@ -19,10 +19,26 @@ context_creators:
             args:
               - !join experiment/test/test_data/training.txt
 
+context_creators2:
+# a positive corpus context creator
+  - module: marmot.util.corpus_context_creator.CorpusContextCreator
+    args:
+      - type: function_output
+        func: marmot.preprocessing.parsers.parse_wmt14_data
+        args:
+          - !join experiment/en_es_data/EN_ES.tgt_ann.train
+          - !join experiment/en_es_data/EN_ES.source.train
+          - type: function_output
+            func: marmot.preprocessing.parsers.extract_important_tokens
+            args:
+              - !join experiment/en_es_data/EN_ES.tgt_ann.test
+              - 1
+
 # require contexts to satisfy these filter constraints in order to be included in classifier training
 filters:
-  min_total: 2
-  min_class_count: 1
+  min_total: 3
+  min_class_count: 2
+  proportion: 2
 
 # feature extractors are used to map over contexts
 feature_extractors:

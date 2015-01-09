@@ -195,6 +195,19 @@ class TestRunExperiment(unittest.TestCase):
         self.assertFalse(fake_token in filtered_contexts, 'a token that does not exist should not have len(contexts) >= 1')
 
 
+    def test_filter_context_class(self):
+        context_creator_list = self.config['context_creators2']
+        context_creators = experiment_utils.build_context_creators(context_creator_list)
+
+        interesting_tokens = set(['del','pescado'])
+        token_contexts = experiment_utils.map_contexts(interesting_tokens, context_creators)
+        self.assertTrue('pescado' in token_contexts)
+
+        filtered_contexts = experiment_utils.filter_contexts_class(token_contexts, min_total=self.config['filters']['min_total'], min_class_count=self.config['filters']['min_class_count'], proportion=self.config['filters']['proportion'])
+        self.assertTrue('del' in filtered_contexts)
+        self.assertFalse('pescado' in filtered_contexts)
+
+
     def test_convert_tagset(self):
         wmt_binary_classes = {0 :u'BAD', 1: u'OK'}
         context_creator_list = self.config['context_creators']
