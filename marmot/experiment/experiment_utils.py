@@ -189,38 +189,38 @@ def contexts_to_features_categorical(token_contexts, feature_extractors, workers
 
         return res_dict
 
+
 # convert categorical features to one-hot representation
 # ALL available data (train + test) needs to be provided 
-def binarize_features( all_values ):
+def binarize_features(all_values):
     new_values = []
     binarizers = {}
     print "ALL VALUES LENGTH: ", len(all_values)
-#    print "ALL VALUES: ", all_values[:10]
     for f in range(len(all_values[0])):
-        cur_features = [ context[f] for context in all_values ]
+        cur_features = [context[f] for context in all_values]
         print 'CUR FEATURES:', cur_features
         # only categorical values need to be binarized, ints/floats are left as they are 
         if type(cur_features[0]) == 'list' or type(cur_features[0]) == 'str':
             lb = LabelBinarizer()
-            new_features = lb.fit_transform( cur_features )
+            new_features = lb.fit_transform(cur_features)
             binarizers[f] = lb
-            new_values = np.hstack( (new_values, new_features) )
+            new_values = np.hstack((new_values, new_features))
         else:
-            new_values = np.hstack( (new_values, np.vstack(cur_features)) )
+            new_values = np.hstack((new_values, np.vstack(cur_features)))
 
-    return (new_values, binarizers)
+    return new_values, binarizers
 
 # train converters(binarizers) from categorical values to one-hot representation
 #      for all features
-def fit_binarizers( all_values ):
+def fit_binarizers(all_values):
     binarizers = {}
     for f in range(len(all_values[0])):
-        cur_features = [ context[f] for context in all_values ]
+        cur_features = [context[f] for context in all_values]
 
         # only categorical values need to be binarized, ints/floats are left as they are
         if isinstance(cur_features[0], tuple([types.StringType, types.UnicodeType])):
             lb = LabelBinarizer()
-            lb.fit( cur_features )
+            lb.fit(cur_features)
             binarizers[f] = lb
         elif isinstance(cur_features[0], types.ListType):
             mlb = MultiLabelBinarizer()
@@ -228,10 +228,11 @@ def fit_binarizers( all_values ):
             binarizers[f] = mlb
     return binarizers
 
+
 # convert categorical features to one-hot representations with pre-fitted binarizers
 def binarize(features, binarizers):
     new_features = []
-    assert( max(binarizers.keys()) < len(features) )
+    assert(max(binarizers.keys()) < len(features))
     for i, f in enumerate(features):
         if binarizers.has_key(i):
             binarizer = binarizers[i]
@@ -246,6 +247,7 @@ def binarize(features, binarizers):
 
 def tags_from_contexts(token_contexts):
     return {token: np.array([context['tag'] for context in contexts]) for token, contexts in token_contexts.items()}
+
 
 def sync_keys(dict_a, dict_b):
     dict_a_keys = set(dict_a.keys())
