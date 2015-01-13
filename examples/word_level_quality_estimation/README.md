@@ -1,0 +1,1 @@
+### this directory contains examples demonstrating how MARMOT can be used for the [WMT word-level quality estimation task](http://www.statmt.org/wmt14/quality-estimation-task.html)
