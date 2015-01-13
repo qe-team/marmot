@@ -1,12 +1,6 @@
 # test the evaluation functions
-# from evaluate import
-
-# choose_token_subset - get the instances for this token only
-# signifigance_test -
-
 import unittest
 import os
-import inspect
 from marmot.evaluation.evaluate import significance_test, get_scores, read_wmt_annotation, evaluate_wmt, evaluate_hashed_predictions
 
 
