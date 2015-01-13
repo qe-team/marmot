@@ -2,7 +2,7 @@ workers: 10
 interesting_tokens:
     func: marmot.preprocessing.parsers.extract_important_tokens_wmt
     args:
-      - !join experiment/en_es_data/EN_ES.tgt_ann.test
+      - !join ../examples/word_level_quality_estimation/data/en_es/EN_ES.tgt_ann.test
       - 1
 
 
@@ -13,12 +13,12 @@ context_creators:
       - type: function_output
         func: marmot.preprocessing.parsers.parse_wmt14_data
         args:
-          - !join experiment/en_es_data/EN_ES.tgt_ann.train
-          - !join experiment/en_es_data/EN_ES.source.train
+          - !join ../examples/word_level_quality_estimation/data/en_es/EN_ES.tgt_ann.train
+          - !join ../examples/word_level_quality_estimation/data/en_es/EN_ES.source.train
           - type: function_output 
             func: marmot.preprocessing.parsers.extract_important_tokens
             args:
-              - !join experiment/en_es_data/EN_ES.tgt_ann.test
+              - !join ../examples/word_level_quality_estimation/data/en_es/EN_ES.tgt_ann.test
               - 1
 
 # require contexts to satisfy these filter constraints in order to be included in classifier training
@@ -32,20 +32,20 @@ feature_extractors:
   - module: marmot.features.alignment_feature_extractor.AlignmentFeatureExtractor
     args:
       - ''                                               # alignment model
-      - !join experiment/en_es_data/europarl.1000.en     # parallel corpus - source
-      - !join experiment/en_es_data/europarl.1000.en     # parallel corpus - target
+      - !join ../examples/word_level_quality_estimation/data/en_es/europarl.1000.en     # parallel corpus - source
+      - !join ../examples/word_level_quality_estimation/data/en_es/europarl.1000.en     # parallel corpus - target
   - module: marmot.features.dictionary_feature_extractor.DictionaryFeatureExtractor
     args:
       - 'spanish'              # target language for stopwords extraction
   - module: marmot.features.lm_feature_extractor.LMFeatureExtractor
     args:
-      - !join experiment/en_es_data/europarl.1000.en # file for LM 
+      - !join ../examples/word_level_quality_estimation/data/en_es/europarl.1000.en # file for LM
       - 3                                            # LM order
   - module: marmot.features.pos_feature_extractor.POSFeatureExtractor
     args:
-      - !join experiment/en_es_data/tree-tagger
-      - !join experiment/en_es_data/english-utf8.par
-      - !join experiment/en_es_data/spanish-par-linux-3.2-utf8.bin
+      - !join ../examples/word_level_quality_estimation/data/en_es/tree-tagger
+      - !join ../examples/word_level_quality_estimation/data/en_es/english-utf8.par
+      - !join ../examples/word_level_quality_estimation/data/en_es/spanish-par-linux-3.2-utf8.bin
 
 
 learning:
@@ -60,8 +60,8 @@ testing:
     - type: function_output
       func: marmot.preprocessing.parsers.parse_wmt14_data
       args:
-        - !join experiment/en_es_data/EN_ES.tgt_ann.test
-        - !join experiment/en_es_data/EN_ES.source.test
+        - !join ../examples/word_level_quality_estimation/data/en_es/EN_ES.tgt_ann.test
+        - !join ../examples/word_level_quality_estimation/data/en_es/EN_ES.source.test
 
 
 evaluation:

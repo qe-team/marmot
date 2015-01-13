@@ -8,7 +8,7 @@ from marmot.util.ngram_window_extractor import left_context, right_context
 # all features that require source dictionary
 class AlignmentFeatureExtractor(FeatureExtractor):
 
-    def __init__(self, align_model='', src_file = '', tg_file = ''):
+    def __init__(self, align_model='', src_file='', tg_file=''):
         self.model = ''
 
         # no alignment model

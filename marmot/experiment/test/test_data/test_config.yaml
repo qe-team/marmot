@@ -26,12 +26,12 @@ context_creators2:
       - type: function_output
         func: marmot.preprocessing.parsers.parse_wmt14_data
         args:
-          - !join experiment/en_es_data/EN_ES.tgt_ann.train
-          - !join experiment/en_es_data/EN_ES.source.train
+          - !join experiment/test/test_data/EN_ES.tgt_ann.train
+          - !join experiment/test/test_data/EN_ES.source.train
           - type: function_output
             func: marmot.preprocessing.parsers.extract_important_tokens
             args:
-              - !join experiment/en_es_data/EN_ES.tgt_ann.test
+              - !join experiment/test/test_data/EN_ES.tgt_ann.test
               - 1
 
 # require contexts to satisfy these filter constraints in order to be included in classifier training
@@ -53,7 +53,7 @@ feature_extractors:
       - 'english'              # target language for stopwords extraction
   - module: marmot.features.lm_feature_extractor.LMFeatureExtractor
     args:
-      - !join experiment/en_es_data/europarl.1000.en # file for LM
+      - !join experiment/test/test_data/europarl.1000.en # file for LM
       - 3                                            # LM order
   - module: marmot.features.pos_feature_extractor.POSFeatureExtractor
     args:

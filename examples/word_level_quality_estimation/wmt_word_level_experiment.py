@@ -2,6 +2,9 @@ from argparse import ArgumentParser
 import yaml
 import os, sys
 import logging
+
+import numpy as np
+
 import marmot
 
 from marmot.experiment import learning_utils
@@ -59,11 +62,11 @@ def main(config):
     assert set(test_contexts.keys()) == set(train_contexts.keys())
 
     # extract the 'tag' attribute into the y-value for classification
+    # tags may need to be converted to be consistent with the training data
     wmt_binary_classes = {u'BAD': 0, u'OK': 1}
     train_context_tags = experiment_utils.tags_from_contexts(train_contexts)
-    train_context_tags = {k:np.array([wmt_binary_classes[v] for v in val]) for k, val in train_context_tags.items()}
+    train_context_tags = {k: np.array([wmt_binary_classes[v] for v in val]) for k, val in train_context_tags.items()}
 
-    # tags may need to be converted to be consistent with the training data
     test_contexts = experiment_utils.convert_tagset(wmt_binary_classes, test_contexts)
     test_tags_actual = experiment_utils.tags_from_contexts(test_contexts)
 
