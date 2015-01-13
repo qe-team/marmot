@@ -27,6 +27,7 @@ def main(config):
     # import them according to their fully-specified class names in the config file
     # it's up to the user to specify context creators which extract both negative and positive examples (if that's what they want)
 
+    # Chris - working - we want to hit every token
     interesting_tokens = import_and_call_function(config['interesting_tokens'])
     print "INTERESTING TOKENS: ", interesting_tokens
     logger.info('The number of interesting tokens is: ' + str(len(interesting_tokens)))
@@ -46,7 +47,7 @@ def main(config):
     test_contexts = map_contexts(interesting_tokens, [test_context_creator])
 
     min_total = config['filters']['min_total']
-    # filter token contexts based on the user-specified filer criteria
+    # filter token contexts based on the user-specified filter criteria
     logger.info('filtering the contexts by the total number of available instances...')
     train_contexts = filter_contexts(train_contexts, min_total=min_total)
     test_contexts = filter_contexts(test_contexts, min_total=min_total)
@@ -76,10 +77,10 @@ def main(config):
     train_context_features = contexts_to_features_categorical(train_contexts, feature_extractors, workers=workers)
 
     all_values = flatten(test_context_features.values())
-    all_values.extend( flatten(train_context_features.values()) )
-    binarizers = fit_binarizers( all_values )
-    test_context_features = { k:[binarize(v, binarizers) for v in val] for k, val in test_context_features.items() }
-    train_context_features = { k:[binarize(v, binarizers) for v in val] for k, val in train_context_features.items() }
+    all_values.extend(flatten(train_context_features.values()))
+    binarizers = fit_binarizers(all_values)
+    test_context_features = {k:[binarize(v, binarizers) for v in val] for k, val in test_context_features.items()}
+    train_context_features = {k:[binarize(v, binarizers) for v in val] for k, val in train_context_features.items()}
 
     # BEGIN LEARNING
     classifier_type = import_class(config['learning']['classifier']['module'])
@@ -97,6 +98,11 @@ def main(config):
         except KeyError as e:
             print(key + " - is NOT in the classifier map")
             raise
+
+
+    # WORKING - dump the output in WMT format
+
+    #### put the rest of the code into a separate 'evaluate' function
 
     # create the performance report for each word in the test data that we had a classifier for
     # TODO: Working - evaluate based on the format
