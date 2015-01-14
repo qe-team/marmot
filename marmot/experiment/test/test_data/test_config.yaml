@@ -46,20 +46,20 @@ feature_extractors:
   - module: marmot.features.alignment_feature_extractor.AlignmentFeatureExtractor
     args:
       - ''                                               # alignment model
-      - ''     # parallel corpus - source
-      - ''     # parallel corpus - target
+      - !join ../examples/word_level_quality_estimation/data/en_es/europarl.1000.en     # parallel corpus - source
+      - !join ../examples/word_level_quality_estimation/data/en_es/europarl.1000.es     # parallel corpus - target
   - module: marmot.features.dictionary_feature_extractor.DictionaryFeatureExtractor
     args:
-      - 'english'              # target language for stopwords extraction
+      - 'spanish'              # target language for stopwords extraction
   - module: marmot.features.lm_feature_extractor.LMFeatureExtractor
     args:
-      - !join experiment/test/test_data/europarl.1000.en # file for LM
+      - !join ../examples/word_level_quality_estimation/data/en_es/europarl.1000.es # file for LM
       - 3                                            # LM order
   - module: marmot.features.pos_feature_extractor.POSFeatureExtractor
     args:
-      - ''
-      - ''
-      - ''
+      - !join ../examples/word_level_quality_estimation/data/en_es/tree-tagger
+      - !join ../examples/word_level_quality_estimation/data/en_es/english-utf8.par
+      - !join ../examples/word_level_quality_estimation/data/en_es/spanish-par-linux-3.2-utf8.bin
 
 learning:
   classifier:
