@@ -1,5 +1,5 @@
 from nltk import ngrams, word_tokenize
-#from nltk.model import NgramModel
+import codecs
 
 from marmot.features.feature_extractor import FeatureExtractor
 
@@ -11,12 +11,12 @@ class LMFeatureExtractor(FeatureExtractor):
     def __init__(self, corpus_file, order=3):
 
         self.order = order
-        self.lm = [ set() for i in range(order) ]
-        for line in open(corpus_file):
-             words = word_tokenize(line[:-1].decode('utf-8'))
-             for i in range(1,order):
-                 self.lm[i] = self.lm[i].union( ngrams( words, i+1 ) )
-             self.lm[0] = self.lm[0].union(words)
+        self.lm = [set() for i in range(order)]
+        for line in codecs.open(corpus_file, encoding='utf-8'):
+            words = word_tokenize(line[:-1])
+            for i in range(1, order):
+                self.lm[i] = self.lm[i].union(ngrams(words, i+1))
+            self.lm[0] = self.lm[0].union(words)
     
     def check_lm(self, ngram, side='left'):
         for i in range(self.order, 0, -1):
@@ -28,11 +28,13 @@ class LMFeatureExtractor(FeatureExtractor):
                 return i
         return 0
 
-
   # returns a set of features related to LM
   # currently extracting: highest order ngram including the word and its LEFT context,
   #                       highest order ngram including the word and its RIGHT context
     def get_features(self, context_obj):
-        left_ngram = self.check_lm( context_obj['target'][:context_obj['index']+1], side='left' )
-        right_ngram = self.check_lm( context_obj['target'][context_obj['index']:], side='right' )
+        left_ngram = self.check_lm(context_obj['target'][:context_obj['index']+1], side='left')
+        right_ngram = self.check_lm(context_obj['target'][context_obj['index']:], side='right')
         return [left_ngram, right_ngram]
+
+    def get_feature_names(self):
+        return ['highest_order_ngram_left', 'highest_order_ngram_right']

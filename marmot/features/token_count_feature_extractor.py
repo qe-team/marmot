@@ -6,6 +6,7 @@ import logging
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 logger = logging.getLogger('testlogger')
 
+
 class TokenCountFeatureExtractor(FeatureExtractor):
 
     # extract the word2vec features for a window of tokens around the target token
@@ -31,5 +32,7 @@ class TokenCountFeatureExtractor(FeatureExtractor):
         t_count = self.target_count(context_obj)
         return s_count / t_count
 
+    def get_feature_names(self):
+        return ['source_token_count', 'target_token_count', 'source_target_token_count_ratio']
 
 

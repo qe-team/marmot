@@ -44,3 +44,6 @@ class AlignmentFeatureExtractor(FeatureExtractor):
             right = right_context(context_obj['source'], context_obj['source'][source_nums[0]], context_size=context_size, idx=source_nums[0])
 
         return [context_obj['source'][source_nums[0]], left, right]
+
+    def get_feature_names(self):
+        return ['first_aligned_token', 'left_alignment', 'right_alignment']
