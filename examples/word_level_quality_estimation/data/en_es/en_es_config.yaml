@@ -33,13 +33,13 @@ feature_extractors:
     args:
       - ''                                               # alignment model
       - !join ../examples/word_level_quality_estimation/data/en_es/europarl.1000.en     # parallel corpus - source
-      - !join ../examples/word_level_quality_estimation/data/en_es/europarl.1000.en     # parallel corpus - target
+      - !join ../examples/word_level_quality_estimation/data/en_es/europarl.1000.es     # parallel corpus - target
   - module: marmot.features.dictionary_feature_extractor.DictionaryFeatureExtractor
     args:
       - 'spanish'              # target language for stopwords extraction
   - module: marmot.features.lm_feature_extractor.LMFeatureExtractor
     args:
-      - !join ../examples/word_level_quality_estimation/data/en_es/europarl.1000.en # file for LM
+      - !join ../examples/word_level_quality_estimation/data/en_es/europarl.1000.es # file for LM
       - 3                                            # LM order
   - module: marmot.features.pos_feature_extractor.POSFeatureExtractor
     args:
