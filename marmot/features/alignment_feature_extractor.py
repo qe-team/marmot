@@ -23,7 +23,7 @@ class AlignmentFeatureExtractor(FeatureExtractor):
 
     def get_features(self, context_obj, context_size=1):
         if not context_obj.has_key('source') or not context_obj.has_key('target') or context_obj['source']==None or context_obj['target']==None:
-#            sys.stderr.write('Source and/or target sentences are not defined. Not enough information for alignment features extraction\n')
+            sys.stderr.write('Source and/or target sentences are not defined. Not enough information for alignment features extraction\n')
             return []
 
         if not context_obj.has_key('alignments'):
