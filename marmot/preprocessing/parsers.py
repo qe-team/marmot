@@ -25,10 +25,9 @@ def extract_important_tokens(corpus_file, min_count=1):
 def extract_important_tokens_wmt(corpus_file, min_count=1):
     all_words = []
     for line in open(corpus_file):
-        all_words.append( line.decode('utf-8').split('\t')[2] )
+        all_words.append(line.decode('utf-8').split('\t')[2])
     word_counts = Counter(all_words)
-    return set( [k for k,v in word_counts.items() if v > min_count] )
-
+    return set([k for k,v in word_counts.items() if v > min_count])
 
 def create_new_instance(token=None, idx=None, source=None, target=None, label=None):
     return {'token': token, 'index': idx, 'source': source, 'target': target, 'tag': label}
@@ -47,7 +46,7 @@ def list_of_target_contexts(contexts, interesting_tokens, tag=1):
     token_contexts = []
     for doc in contexts:
         for idx, tok in enumerate(doc):
-            if (interesting_tokens is None or tok in interesting_tokens):
+            if interesting_tokens is None or tok in interesting_tokens:
                 token_contexts.append(create_new_instance(tok, idx, target=doc, label=tag))
     return token_contexts
 
@@ -255,6 +254,7 @@ def parse_wmt14_data(corpus_file, source_file, interesting_tokens=None):
 # A parser takes some input, and returns a list of contexts in the format:  { 'token': <token>, index: <idx>, 'source': [<source toks>]', 'target': [<target toks>], 'tag': <tag>}
 # semeval input looks like: <sen1>TAB<sen2>
 # the scores are in a separate *.gs.* file
+# TODO: this currently removes stopwords by default (despite the stops=False)
 import re
 import nltk
 from nltk.corpus import stopwords

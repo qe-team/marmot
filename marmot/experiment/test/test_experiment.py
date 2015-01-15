@@ -254,5 +254,50 @@ class TestFunctionTree(unittest.TestCase):
         self.assertListEqual(json.loads(json_contexts), self.contexts)
 
 
+# test retrieving a list of feature names for the FeatureExtractor classes specified in the config
+class TestFeatureExtractorIntegration(unittest.TestCase):
+
+    def setUp(self):
+        module_path = os.path.dirname(__file__)
+        self.module_path = module_path
+        test_config = os.path.join(module_path, 'test_data/test_config.yaml')
+
+        with open(test_config, "r") as cfg_file:
+            self.config = yaml.load(cfg_file.read())
+
+    # in the test_config.yaml, we ask for TokenCount, Alignment, LM, Dictionary, POS
+    def test_get_feature_names(self):
+        # test construction of feature extractors
+        feature_extractor_list = self.config['feature_extractors']
+        feature_extractors = experiment_utils.build_feature_extractors(feature_extractor_list)
+        # WORKING - add a method to experiment_utils to get all feature_names
+
+        expected = ['source_token_count', 'target_token_count', 'source_target_token_count_ratio',
+                    'first_aligned_token', 'left_alignment', 'right_alignment',
+                    'is_stopword', 'is_punctuation', 'is_proper_noun', 'is_digit',
+                    'highest_order_ngram_left', 'highest_order_ngram_right',
+                    'target_pos', 'aligned_source_pos_list']
+
+        feature_names = experiment_utils.feature_names_from_extractor_list(feature_extractors)
+        self.assertListEqual(feature_names, expected)
+
+
+
+    def test_map_feature_extractors(self):
+        context_creator_list = self.config['context_creators']
+        context_creators = experiment_utils.build_context_creators(context_creator_list)
+        interesting_tokens = set(['the','it', 'a'])
+
+        token_contexts = experiment_utils.map_contexts(interesting_tokens, context_creators)
+
+        feature_extractor_list = self.config['feature_extractors'][:1]
+        feature_extractors = experiment_utils.build_feature_extractors(feature_extractor_list)
+
+        mapped_context = np.hstack([experiment_utils.map_feature_extractors( (token_contexts['the'][0], extractor) ) for extractor in feature_extractors])
+        self.assertTrue(isinstance(mapped_context, np.ndarray))
+        # uses the TokenCountFeatureExtractor, which returns 3 features
+        self.assertTrue(len(mapped_context) == 3)
+
+
 if __name__ == '__main__':
     unittest.main()

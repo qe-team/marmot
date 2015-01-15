@@ -43,10 +43,16 @@ def train_alignments(src_train, tg_train, align_model='align_model'):
 
 
 def align_sentence(src_line, tg_line, align_model):
-    cur_alignments = [ [] for i in range(len(tg_line)) ]
+    # TODO: there is an error here if one or both fields are missing -- we cannot align a sentence without both src_line and tg_line
+    # throw an error prompting the user to specify another dataset or context creator
+    # if not src_line or not tg_line:
+
+
+    cur_alignments = [[] for i in range(len(tg_line))]
 
     aligner = Aligner(align_model+'.fwd_params',align_model+'.fwd_err',align_model+'.rev_params',align_model+'.rev_err')
-    align_str = aligner.align( ' '.join(src_line)+u' ||| '+' '.join(tg_line) )
+    align_str = aligner.align(' '.join(src_line)+u' ||| '+' '.join(tg_line))
+    # parse the return value from the aligner
     for pair in align_str.split():
         pair = pair.split('-')
         cur_alignments[int(pair[1])].append( int(pair[0]) )

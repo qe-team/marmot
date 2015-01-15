@@ -190,6 +190,15 @@ def contexts_to_features_categorical(token_contexts, feature_extractors, workers
         return res_dict
 
 
+def feature_names_from_extractor_list(feature_extractors):
+    """
+    :param feature_extractors: a list of feature extractors
+    :return: a list of the feature names for each extractor (think first row of .csv file)
+    """
+    feature_names = [feature_name for feature_extractor in feature_extractors for feature_name in feature_extractor.get_feature_names()]
+    return feature_names
+
+
 # convert categorical features to one-hot representation
 # ALL available data (train + test) needs to be provided 
 def binarize_features(all_values):
