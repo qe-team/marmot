@@ -31,6 +31,9 @@ class TestRunExperiment(unittest.TestCase):
 
         feature_extractors = experiment_utils.build_feature_extractors(self.config['feature_extractors'])
         token_context_features = experiment_utils.contexts_to_features(token_contexts, feature_extractors)
+        binarizers = experiment_utils.fit_binarizers(experiment_utils.flatten(token_context_features.values()))
+        token_context_features = {k: [experiment_utils.binarize(v, binarizers) for v in val] for k, val in token_context_features.items()}
+
         token_context_tags = experiment_utils.tags_from_contexts(token_contexts)
 
         # train the classifier for each token
