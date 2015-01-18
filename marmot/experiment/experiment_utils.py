@@ -135,15 +135,14 @@ def build_feature_extractors(feature_extractor_list):
     return feature_extractors
 
 # returns a numpy array
-def map_feature_extractors((context, extractor)):
-#    return np.hstack([extractor.get_features(context) for extractor in feature_extractors])
+def map_feature_extractor((context, extractor)):
     return extractor.get_features(context)
 
 #multithreaded feature extraction
 def contexts_to_features(token_contexts, feature_extractors, workers=1):
     #single thread
     if workers == 1:
-         return {token: np.vstack( [np.hstack([map_feature_extractors((context, extractor)) for extractor in feature_extractors] ) for context in contexts]) for token, contexts in token_contexts.items()}
+         return {token: np.vstack( [np.hstack([map_feature_extractor((context, extractor)) for extractor in feature_extractors] ) for context in contexts]) for token, contexts in token_contexts.items()}
 
     #multiple threads
     else:
@@ -158,7 +157,7 @@ def contexts_to_features(token_contexts, feature_extractors, workers=1):
             extractors_output = []
             for extractor in feature_extractors:
                 context_list = [(cont, extractor) for cont in contexts]
-                extractors_output.append(np.vstack(pool.map(map_feature_extractors, context_list)))
+                extractors_output.append(np.vstack(pool.map(map_feature_extractor, context_list)))
             res_dict[token] = np.hstack(extractors_output)
 
         return res_dict
@@ -168,7 +167,7 @@ def contexts_to_features(token_contexts, feature_extractors, workers=1):
 def contexts_to_features_categorical(token_contexts, feature_extractors, workers=1):
     #single thread
     if workers == 1:
-        return {token: [ [x for a_list in [map_feature_extractors((context, extractor)) for extractor in feature_extractors] for x in a_list ] for context in contexts] for token, contexts in token_contexts.items()}
+        return {token: [ [x for a_list in [map_feature_extractor((context, extractor)) for extractor in feature_extractors] for x in a_list ] for context in contexts] for token, contexts in token_contexts.items()}
 
     #multiple threads
     else:
@@ -182,7 +181,7 @@ def contexts_to_features_categorical(token_contexts, feature_extractors, workers
             extractors_output = []
             for extractor in feature_extractors:
                 context_list = [(cont, extractor) for cont in contexts]
-                extractors_output.append( pool.map(map_feature_extractors, context_list) )
+                extractors_output.append( pool.map(map_feature_extractor, context_list) )
             # np.hstack and np.vstack can't be used because lists have objects of different types
             intermediate =  [ [x[i] for x in extractors_output] for i in range(len(extractors_output[0])) ]
             res_dict[token] = [ flatten(sl) for sl in intermediate ]
@@ -255,6 +254,11 @@ def binarize(features, binarizers):
 
 
 def tags_from_contexts(token_contexts):
+    """
+    create a dict mapping tokens to their tags
+    :param token_contexts:
+    :return: a dict of {<token>: [tag_i, tag_i+1, ...]}
+    """
     return {token: np.array([context['tag'] for context in contexts]) for token, contexts in token_contexts.items()}
 
 

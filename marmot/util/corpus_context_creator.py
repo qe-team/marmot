@@ -5,6 +5,10 @@ from collections import defaultdict
 from context_creator import ContextCreator
 
 class CorpusContextCreator(ContextCreator):
+    """
+    build a corpus from a list of context_obj
+    - a corpus is indexed by the 'token' field of the context objects
+    """
 
     # { 'token': <token>, index: <idx>, 'source': [<source toks>]', 'target': [<target toks>], 'tag': <tag>}
     def __init__(self, all_contexts, max_instances=10000):
@@ -22,6 +26,8 @@ class CorpusContextCreator(ContextCreator):
             return self.context_map[token][:max_size]
         else:
             return self.context_map[token]
+
+    # TODO: get a list of contexts from a list of tokens
 
 
 

@@ -79,7 +79,7 @@ class TestRunExperiment(unittest.TestCase):
         for extractor in feature_extractors:
             self.assertTrue(isinstance(extractor, FeatureExtractor))
 
-    def test_map_feature_extractors(self):
+    def test_map_feature_extractor(self):
         context_creator_list = self.config['context_creators']
         context_creators = experiment_utils.build_context_creators(context_creator_list)
         interesting_tokens = set(['the','it', 'a'])
@@ -89,7 +89,7 @@ class TestRunExperiment(unittest.TestCase):
         feature_extractor_list = self.config['feature_extractors'][:1]
         feature_extractors = experiment_utils.build_feature_extractors(feature_extractor_list)
 
-        mapped_context = np.hstack([experiment_utils.map_feature_extractors( (token_contexts['the'][0], extractor) ) for extractor in feature_extractors])
+        mapped_context = np.hstack([experiment_utils.map_feature_extractor( (token_contexts['the'][0], extractor) ) for extractor in feature_extractors])
         self.assertTrue(isinstance(mapped_context, np.ndarray))
         # uses the TokenCountFeatureExtractor, which returns 3 features
         self.assertTrue(len(mapped_context) == 3)
@@ -283,7 +283,7 @@ class TestFeatureExtractorIntegration(unittest.TestCase):
 
 
 
-    def test_map_feature_extractors(self):
+    def test_map_feature_extractor(self):
         context_creator_list = self.config['context_creators']
         context_creators = experiment_utils.build_context_creators(context_creator_list)
         interesting_tokens = set(['the','it', 'a'])
@@ -293,7 +293,7 @@ class TestFeatureExtractorIntegration(unittest.TestCase):
         feature_extractor_list = self.config['feature_extractors'][:1]
         feature_extractors = experiment_utils.build_feature_extractors(feature_extractor_list)
 
-        mapped_context = np.hstack([experiment_utils.map_feature_extractors( (token_contexts['the'][0], extractor) ) for extractor in feature_extractors])
+        mapped_context = np.hstack([experiment_utils.map_feature_extractor((token_contexts['the'][0], extractor)) for extractor in feature_extractors])
         self.assertTrue(isinstance(mapped_context, np.ndarray))
         # uses the TokenCountFeatureExtractor, which returns 3 features
         self.assertTrue(len(mapped_context) == 3)
