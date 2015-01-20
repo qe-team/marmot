@@ -39,7 +39,7 @@ def train_alignments(src_train, tg_train, align_model='align_model'):
     fwd_err.close()
     rev_err.close()
 
-    return align_model
+    return os.path.dirname(align_model+'.fwd_align')+align_model
 
 
 def align_sentence(src_line, tg_line, align_model):

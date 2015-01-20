@@ -1,3 +1,5 @@
+import os
+
 import marmot
 from marmot.experiment.experiment_utils import *
 from marmot.util.simple_corpus import SimpleCorpus
@@ -26,17 +28,34 @@ def build_objects(object_list, root_element='module'):
         objects.append(obj)
     return objects
 
+def convert_alignments(align_list, n_words):
+    new_align = [ [] for i in range(n_words) ]
+    for pair in align_list:
+        two_digits = pair.split('-')
+        new_align[int(two_digits[1])].append(int(two_digits[0]))
+    return new_align
+        
+
 def create_context( repr_dict ):
     context_list = []
     # is checked before in create_contexts, but who knows
     if not repr_dict.has_key('target'):
         print "No 'target' label in data representations"
         return []
+    if not repr_dict.has_key('tag') or not (type(repr_dict['tag']) == list or type(repr_dict['tag']) == int):
+        print "No 'tag' label in data representations or wrong format of tag"
+        return []
+    if repr_dict.has_key('alignments'):
+        repr_dict['alignments'] = convert_alignments(repr_dict['alignments'], len(repr_dict['target']))
+
+    active_keys = repr_dict.keys()
+    active_keys.remove('tag')
     for idx, word in enumerate(repr_dict['target']):
         c = {}
         c['token'] = word
         c['index'] = idx
-        for k in repr_dict.keys():
+        c['tag'] = repr_dict['tag'] if type(repr_dict['tag']) == int else repr_dict['tag'][idx]
+        for k in active_keys:
             c[k] = repr_dict[k]
         context_list.append(c)
     return context_list
@@ -50,8 +69,18 @@ def create_contexts( data_obj, sequences=False ):
     if not data_obj.has_key('target'):
         print "No 'target' label in data representations"
         return []
+
+    if not data_obj.has_key('tag') or not (os.path.isfile(data_obj['tag']) or type(data_obj['tag']) == int):
+        print "No 'tag' label in data representations or wrong format of tag"
+        print data_obj
+        return []
+
     corpora = [ SimpleCorpus(d) for d in data_obj.values() ]
-    for sents in zip(*[c.get_texts() for c in corpora]):
+    #print data_obj
+    for sents in zip(*[c.get_texts_raw() for c in corpora]):
         if sequences:
             contexts.append( create_context( { data_obj.keys()[i]:sents[i] for i in range(len(sents)) } ) )
-        contexts.extend( create_context( { data_obj.keys()[i]:sents[i] for i in range(len(sents)) } ) )
+        else:
+            contexts.extend( create_context( { data_obj.keys()[i]:sents[i] for i in range(len(sents)) } ) )
+
+    return contexts

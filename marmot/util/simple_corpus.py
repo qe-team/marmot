@@ -6,7 +6,7 @@ from gensim import utils, corpora, models, similarities
 import numpy as np
 import codecs
 
-from nltk.tokenize import word_tokenize
+from nltk.tokenize import word_tokenize, WhitespaceTokenizer
 from scipy import sparse
 
 import logging
@@ -34,6 +34,19 @@ class SimpleCorpus(corpora.TextCorpus):
             for doc in stream:
                 # yield [word for word in word_tokenize(utils.to_unicode(doc).lower())]
                 yield [word for word in word_tokenize(utils.to_unicode(doc))]
+
+    
+    def get_texts_raw(self):
+        """
+        Parse documents analogously to SimpleCorpus.get_texts(),
+        but tokenized by whitespace only
+        """
+        wst = WhitespaceTokenizer()
+        with self.getstream() as stream:
+            for doc in stream:
+                # yield [word for word in word_tokenize(utils.to_unicode(doc).lower())]
+                yield [word for word in wst.tokenize(utils.to_unicode(doc))]
+
 
     def __len__(self):
         """Define this so we can use `len(corpus)`"""

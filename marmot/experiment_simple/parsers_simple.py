@@ -17,8 +17,8 @@ def parse_wmt_to_text( wmt_file, source_file ):
     tmp_dir = os.getcwd()+'/tmp_dir'
     call(['mkdir', '-p', tmp_dir])
 
-    target_file = tmp_dir+'/target.txt'
-    tags_file = tmp_dir+'/tags.txt'
+    target_file = tmp_dir+'/'+os.path.basename(wmt_file)+'target'
+    tags_file = tmp_dir+'/'+os.path.basename(wmt_file)+'tags'
 
     target = open(target_file, 'w')
     tags = open(tags_file, 'w')
@@ -42,16 +42,16 @@ def parse_wmt_to_text( wmt_file, source_file ):
     tags.close()
     target.close()
     print "THREE FILES", target_file, source_file, tags_file
-    return { 'target': target_file, 'source': source_file, 'tag_file': tags_file }
+    return { 'target': target_file, 'source': source_file, 'tag': tags_file }
 
 def get_corpus( target_file, source_file, tag ):
-    if type(tag) == int:
-        return { 'target': target_file, 'source': source_file, 'tag': tag }
-    elif os.path.isfile(tag):
-        return { 'target': target_file, 'source': source_file, 'tag_file': tag }
-    else:
-        print "Tag "+tag+" has invalid type: should be integer or file"
-        return {}
+#    if type(tag) == int:
+     return { 'target': target_file, 'source': source_file, 'tag': tag }
+#    elif os.path.isfile(tag):
+#        return { 'target': target_file, 'source': source_file, 'tag_file': tag }
+#    else:
+#        print "Tag "+tag+" has invalid type: should be integer or file"
+#        return {}
 
 
 def cur_dir():
@@ -130,7 +130,7 @@ def get_alignments(src_file, tg_file, trained_model = None, src_train='', tg_tra
     align_file = src_file+'_'+os.path.basename(tg_file)+'.aligned'
     aligned = open(align_file, 'w')
     for src_line, tg_line in zip(src, tg):
-        aligned.write( aligner.align( src_line[:-1].decode('utf-8')+u' ||| '+tg_line[:-1].decode('utf-8') ) )
+        aligned.write( aligner.align( src_line[:-1].decode('utf-8')+u' ||| '+tg_line[:-1].decode('utf-8') )+u'\n' )
     aligned.close()
 
     return (label, align_file)

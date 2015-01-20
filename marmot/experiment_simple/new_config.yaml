@@ -28,7 +28,7 @@ additional:
   - module: marmot.experiment_simple.representation_generator.RepresentationGenerator
     args:
       - marmot.experiment_simple.parsers_simple.get_pos_tagging
-      - 'target'
+      - 'source'
       - tiny_test/tree-tagger
       - tiny_test/english-utf8.par
       - 'source_pos'
