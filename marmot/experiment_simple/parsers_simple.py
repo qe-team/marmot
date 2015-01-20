@@ -12,27 +12,36 @@ from marmot.util.alignments import train_alignments
 # convert WMT file to two files: plain text and labels
 #    plain text:  word word word word word
 #    labels:      OK   BAD  BAD  OK   OK
-def parse_wmt_to_text( wmt_file, source_file ):
+# check that source and target have the same number of sentences, re-write source file without sentence ids
+def parse_wmt_to_text( wmt_file, wmt_source_file ):
     print "Parse wmt" 
     tmp_dir = os.getcwd()+'/tmp_dir'
     call(['mkdir', '-p', tmp_dir])
 
-    target_file = tmp_dir+'/'+os.path.basename(wmt_file)+'target'
-    tags_file = tmp_dir+'/'+os.path.basename(wmt_file)+'tags'
+    target_file = tmp_dir+'/'+os.path.basename(wmt_file)+'.target'
+    tags_file = tmp_dir+'/'+os.path.basename(wmt_file)+'.tags'
+    source_file = tmp_dir+'/'+os.path.basename(wmt_source_file)+'.txt'
 
     target = open(target_file, 'w')
     tags = open(tags_file, 'w')
+    source = open(source_file, 'w')
     cur_num = '0'
     cur_sent = []
     cur_tags = []
+
+    source_sents = {}
+    for line in open(wmt_source_file):
+        str_num = line.decode('utf-8').strip().split('\t')
+        source_sents[str_num[0]] = str_num[1]
+
     for line in open(wmt_file):
         chunks = line[:-1].decode('utf-8').split('\t')
-#        print "CHUNKS", chunks
         if chunks[0] != cur_num:
             if cur_sent != []:
-#                print "ALOHA!"
-                target.write('%s\n' % (' '.join([w.encode('utf-8') for w in cur_sent]) ))
-                tags.write('%s\n' % (' '.join([w.encode('utf-8') for w in cur_tags])) )
+                if source_sents.has_key(cur_num):
+                    source.write('%s\n' % source_sents[cur_num].encode('utf-8'))
+                    target.write('%s\n' % (' '.join([w.encode('utf-8') for w in cur_sent]) ))
+                    tags.write('%s\n' % (' '.join([w.encode('utf-8') for w in cur_tags])) )
                 cur_sent = []
                 cur_tags = []
             cur_num = chunks[0]
