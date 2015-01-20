@@ -1,20 +1,26 @@
 import os
+import numpy as np
+import multiprocessing as multi
+import logging
 
 import marmot
-from marmot.experiment.experiment_utils import *
+from marmot.experiment import experiment_utils
 from marmot.util.simple_corpus import SimpleCorpus
+
+logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+logger = logging.getLogger('testlogger')
 
 # load and build object - universal
 def build_object(obj_info, root_element='module'):
     print "IMPORT", obj_info[root_element]
-    klass = import_class(obj_info[root_element])
+    klass = experiment_utils.import_class(obj_info[root_element])
     input_args = obj_info['args'] if 'args' in obj_info else []
 
     # map args to function outputs where requested
     for idx, arg in enumerate(input_args):
         if type(arg) is dict and 'type' in arg and arg['type'] == 'function_output':
-            func = import_function(arg['func'])
-            input_args[idx] = function_tree(func, arg['args'])
+            func = experiment_utils.import_function(arg['func'])
+            input_args[idx] = experiment_utils.function_tree(func, arg['args'])
 
     # init the object
     obj = klass(*input_args)
@@ -28,6 +34,7 @@ def build_objects(object_list, root_element='module'):
         objects.append(obj)
     return objects
 
+# convert alignments from list of strings 'i-j' to list of lists such that new_align[j] = i
 def convert_alignments(align_list, n_words):
     new_align = [ [] for i in range(n_words) ]
     for pair in align_list:
@@ -64,7 +71,7 @@ def create_context( repr_dict ):
 # create context objects from a data_obj: a dictionary with representation labels as keys ('target', 'source', etc.) and files as values
 # output: if sequences = False, one list of context objects is returned
 #         if sequences = True, list of lists of context objects is returned (list of sequences)
-def create_contexts( data_obj, sequences=False ):
+def create_contexts( data_obj, sequential=False ):
     contexts = []
     if not data_obj.has_key('target'):
         print "No 'target' label in data representations"
@@ -78,9 +85,59 @@ def create_contexts( data_obj, sequences=False ):
     corpora = [ SimpleCorpus(d) for d in data_obj.values() ]
     #print data_obj
     for sents in zip(*[c.get_texts_raw() for c in corpora]):
-        if sequences:
+        if sequential:
             contexts.append( create_context( { data_obj.keys()[i]:sents[i] for i in range(len(sents)) } ) )
         else:
             contexts.extend( create_context( { data_obj.keys()[i]:sents[i] for i in range(len(sents)) } ) )
 
     return contexts
+
+
+def tags_from_contexts(all_contexts):
+    def sequence_tags(seq):
+        return np.array([ context['tag'] for context in seq ])
+
+    # {token:contexts} format
+    if type(all_contexts) == dict:
+        return {token:sequence_tags(contexts) for token, contexts in all_contexts.items()}
+
+    elif type(all_contexts) == list:
+        # list of contexts
+        if type(all_contexts[0]) == dict:
+            return sequence_tags(all_contexts)
+        # list of sequences of contexts
+        elif type(all_contexts[0]) == list:
+            return np.array([ sequence_tags(context) for context in all_contexts ])
+
+# returns a numpy array
+def map_feature_extractors((context, extractor)):
+#    return np.hstack([extractor.get_features(context) for extractor in feature_extractors])
+    return extractor.get_features(context)
+
+
+# feature extraction for categorical features with convertation to one-hot representation
+def contexts_to_features_categorical(contexts, feature_extractors, workers=1):
+    #single thread
+    if workers == 1:
+        return [ [x for a_list in [map_feature_extractors((context, extractor)) for extractor in feature_extractors] for x in a_list ] for context in contexts]
+
+    #multiple threads
+    else:
+        #resulting object
+        res_list = []
+        pool = multi.Pool(workers)
+        print("Feature extractors: ", feature_extractors)
+        logger.info('Multithreaded - Extracting categorical contexts -- ' + str(len(contexts)) + ' contexts...')
+        print "CONTEXTS", type(contexts), type(contexts[0]), len(contexts), len(contexts[0])
+        #each context is paired with all feature extractors
+        for extractor in feature_extractors:
+            context_list = [(cont, extractor) for cont in contexts]
+#            print context_list
+            sys.exit(2)
+            res_list.append( pool.map(map_feature_extractors, context_list) )
+        # np.hstack and np.vstack can't be used because lists have objects of different types
+        intermediate =  [ [x[i] for x in extractors_output] for i in range(len(res_list[0])) ]
+        res_dict = [ flatten(sl) for sl in intermediate ]
+
+    return res_dict
+
