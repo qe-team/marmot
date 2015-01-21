@@ -2,6 +2,8 @@ import os
 import numpy as np
 import multiprocessing as multi
 import logging
+import copy
+from collections import defaultdict
 
 import marmot
 from marmot.experiment import experiment_utils
@@ -71,7 +73,7 @@ def create_context( repr_dict ):
 # create context objects from a data_obj: a dictionary with representation labels as keys ('target', 'source', etc.) and files as values
 # output: if sequences = False, one list of context objects is returned
 #         if sequences = True, list of lists of context objects is returned (list of sequences)
-def create_contexts( data_obj, sequential=False ):
+def create_contexts( data_obj, data_type='plain' ):
     contexts = []
     if not data_obj.has_key('target'):
         print "No 'target' label in data representations"
@@ -85,29 +87,22 @@ def create_contexts( data_obj, sequential=False ):
     corpora = [ SimpleCorpus(d) for d in data_obj.values() ]
     #print data_obj
     for sents in zip(*[c.get_texts_raw() for c in corpora]):
-        if sequential:
+        if data_type == 'sequential':
             contexts.append( create_context( { data_obj.keys()[i]:sents[i] for i in range(len(sents)) } ) )
         else:
             contexts.extend( create_context( { data_obj.keys()[i]:sents[i] for i in range(len(sents)) } ) )
+            if data_type == 'token':
+                new_contexts = defaultdict(list)
+                for cont in contexts:
+                    new_contexts[cont['token']].append( cont )
+                contexts = copy.deepcopy(new_contexts)
 
     return contexts
 
+# extract tags from a list of contexts
+def tags_from_contexts(contexts):
+    return np.array([ context['tag'] for context in contexts ])
 
-def tags_from_contexts(all_contexts):
-    def sequence_tags(seq):
-        return np.array([ context['tag'] for context in seq ])
-
-    # {token:contexts} format
-    if type(all_contexts) == dict:
-        return {token:sequence_tags(contexts) for token, contexts in all_contexts.items()}
-
-    elif type(all_contexts) == list:
-        # list of contexts
-        if type(all_contexts[0]) == dict:
-            return sequence_tags(all_contexts)
-        # list of sequences of contexts
-        elif type(all_contexts[0]) == list:
-            return np.array([ sequence_tags(context) for context in all_contexts ])
 
 # returns a numpy array
 def map_feature_extractors((context, extractor)):
@@ -132,12 +127,29 @@ def contexts_to_features_categorical(contexts, feature_extractors, workers=1):
         #each context is paired with all feature extractors
         for extractor in feature_extractors:
             context_list = [(cont, extractor) for cont in contexts]
-#            print context_list
-            sys.exit(2)
             res_list.append( pool.map(map_feature_extractors, context_list) )
         # np.hstack and np.vstack can't be used because lists have objects of different types
-        intermediate =  [ [x[i] for x in extractors_output] for i in range(len(res_list[0])) ]
-        res_dict = [ flatten(sl) for sl in intermediate ]
+        intermediate =  [ [x[i] for x in res_list] for i in range(len(res_list[0])) ]
+        res_list = [ experiment_utils.flatten(sl) for sl in intermediate ]
 
-    return res_dict
+    return res_list
+
+# check that <a_list> is a list of lists
+def list_of_lists(a_list):
+    if type(a_list) == list and len(a_list) > 0 and type(a_list[0]) == list:
+        return True
+    return False
+
+
+# call the same function for the data organised in different structures
+def call_for_each_element( data, function, args=[], data_type='sequential' ):
+    if data_type == 'plain':
+        assert( not list_of_lists(data) )
+        return function(data, *args)
+    elif data_type == 'sequential':
+        assert( list_of_lists(data) )
+        return [ function(d, *args) for d in data ]
+    elif data_type == 'token':
+        assert( type(data) == dict )
+        return {token:function(contexts, *args) for token, contexts in data.items()}
 

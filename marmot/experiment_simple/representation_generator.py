@@ -29,6 +29,5 @@ class RepresentationGenerator():
         return (label, file_name)
 
     def cleanup(self):
-        print "CLEANUP"
         for f in self.files:
             call(['rm', f])
