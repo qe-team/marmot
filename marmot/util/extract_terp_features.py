@@ -147,7 +147,10 @@ if __name__ == "__main__":
     #TERp annotation
     #TERp writes all results to files, so no answer from subprocess is needed
     sys.stderr.write("Computation of edit distance with TERp\n")
-    call([args.terp+"/bin/terp_ter", " -r "+args.reference+'.num', " -h "+args.automatic+'.num', " -n "+prefix])
+    # this computes TER, not TERp
+    # call([args.terp+"/bin/terp_ter", " -r "+args.reference+'.num', " -h "+args.automatic+'.num', " -n "+prefix])
+    # try calling the real terp jar
+    call(["java", " -jar "+args.terp+"dist/lib/terp.jar", " -r "+args.reference+'.num', " -h "+args.automatic+'.num', " -n "+prefix])
     missing_lines_set = compress_pra(prefix+'.pra')
 
     #remove the lines which have errors in TERp output and didn't get to .pra_short
