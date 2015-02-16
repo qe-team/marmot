@@ -134,6 +134,7 @@ def contexts_to_features_categorical(contexts, feature_extractors, workers=1):
 
     return res_list
 
+
 # check that <a_list> is a list of lists
 def list_of_lists(a_list):
     if type(a_list) == list and len(a_list) > 0 and type(a_list[0]) == list:
@@ -142,7 +143,7 @@ def list_of_lists(a_list):
 
 
 # call the same function for the data organised in different structures
-def call_for_each_element( data, function, args=[], data_type='sequential' ):
+def call_for_each_element(data, function, args=[], data_type='sequential'):
     if data_type == 'plain':
         assert( not list_of_lists(data) )
         return function(data, *args)

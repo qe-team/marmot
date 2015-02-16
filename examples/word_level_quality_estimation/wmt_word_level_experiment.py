@@ -38,7 +38,7 @@ def main(config):
 
     # Note: context creators currently create their own interesting tokens internally (interesting tokens controls the index of the context creator)
     logger.info('building the context creators...')
-    train_context_creators = experiment_utils.build_context_creators(config['context_creators'])
+    train_context_creators = experiment_utils.build_objects(config['context_creators'])
 
     # get the contexts for all of our interesting words (may be +,- or, multi-class)
     logger.info('mapping the training contexts over the interesting tokens in train...')
@@ -46,7 +46,7 @@ def main(config):
 
     # load and parse the test data
     logger.info('mapping the training contexts over the interesting tokens in test...')
-    test_context_creator = experiment_utils.build_context_creator(config['testing'])
+    test_context_creator = experiment_utils.build_objects(config['testing'])
     test_contexts = experiment_utils.map_contexts(interesting_tokens, [test_context_creator])
 
     min_total = config['filters']['min_total']

@@ -17,27 +17,27 @@ def init_class(klass, args):
     return klass(*args)
 
 
-def build_context_creator(creator_obj):
-    creator_klass = import_class(creator_obj['module'])
-    input_args = creator_obj['args']
-
-    # map args to function outputs where requested
-    for idx, arg in enumerate(input_args):
-        if type(arg) is dict and 'type' in arg and arg['type'] == 'function_output':
-            func = import_function(arg['func'])
-            input_args[idx] = function_tree(func, arg['args'])
-
-    # init the object
-    creator = creator_klass(*input_args)
-    return creator
-
-
-def build_context_creators(context_creator_list):
-    context_creators = []
-    for creator_obj in context_creator_list:
-        creator = build_context_creator(creator_obj)
-        context_creators.append(creator)
-    return context_creators
+# def build_context_creator(creator_obj):
+#     creator_klass = import_class(creator_obj['module'])
+#     input_args = creator_obj['args']
+#
+#     # map args to function outputs where requested
+#     for idx, arg in enumerate(input_args):
+#         if type(arg) is dict and 'type' in arg and arg['type'] == 'function_output':
+#             func = import_function(arg['func'])
+#             input_args[idx] = function_tree(func, arg['args'])
+#
+#     # init the object
+#     creator = creator_klass(*input_args)
+#     return creator
+#
+#
+# def build_context_creators(context_creator_list):
+#     context_creators = []
+#     for creator_obj in context_creator_list:
+#         creator = build_context_creator(creator_obj)
+#         context_creators.append(creator)
+#     return context_creators
 
 
 def filter_contexts(token_contexts, min_total=1):
@@ -117,7 +117,7 @@ def build_feature_extractors(feature_extractor_list):
 
 
 # multithreaded feature extraction
-# TODO: this is for a dict representation
+# this is for a dict representation {<tpk>: [<context>,...]}
 def token_contexts_to_features(token_contexts, feature_extractors, workers=1):
     #single thread
     if workers == 1:
