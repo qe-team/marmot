@@ -16,6 +16,7 @@ def join_with_module_path(loader, node):
 ## register the tag handler
 yaml.add_constructor('!join', join_with_module_path)
 
+
 class TestRunExperiment(unittest.TestCase):
 
     def setUp(self):
@@ -115,7 +116,6 @@ class TestRunExperiment(unittest.TestCase):
         self.assertEqual(context[12], u'JJ')
         self.assertEqual(context[13], [u'Adj'])
 
-
     def test_binarizers(self):
         contexts = [[3.0, 3.0, 1.0, u'petit', [u'le'], [u'garcon'], 0, 0, 0, 0, 0, 0, u'JJ', [u'Adj']], [3.0, 3.0, 1.0, u'petite', [u'un'], [u'chien'], 0, 0, 0, 0, 2, 0, u'JJ', [u'Adv']], [3.0, 3.0, 1.0, u'petits', [u'un'], [u'chat'], 0, 0, 0, 0, 2, 0, u'JJN', [u'Adj', u'Adv']]]
 
@@ -124,7 +124,6 @@ class TestRunExperiment(unittest.TestCase):
         self.assertTrue( np.allclose(binarized_features[0], np.array([3., 3., 1., 1., 0., 0., 1., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 1., 0.]) ) )
         self.assertTrue( np.allclose(binarized_features[1], np.array([3., 3., 1., 0., 1., 0., 0., 1., 0., 1., 0., 0., 0., 0., 0., 2., 0., 0., 0., 1.]) ) )
         self.assertTrue( np.allclose(binarized_features[2], np.array([3., 3., 1., 0., 0., 1., 0., 1., 1., 0., 0., 0., 0., 0., 0., 2., 0., 1., 1., 1.]) ) )
-
 
     def test_time_contexts_to_features(self):
         context_creator_list = self.config['context_creators']
@@ -145,7 +144,6 @@ class TestRunExperiment(unittest.TestCase):
         mapped_contexts = experiment_utils.contexts_to_features(token_contexts, feature_extractors, workers=10)
         finish = time.time() - start
         print "Multiple: ", finish
-
 
     def test_tags_from_contexts(self):
         context_creator_list = self.config['context_creators']
