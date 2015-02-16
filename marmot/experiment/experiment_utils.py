@@ -170,6 +170,7 @@ def token_contexts_to_features_categorical(token_contexts, feature_extractors, w
 
 def feature_names_from_extractor_list(feature_extractors):
     """
+    get a list of feature names from a list of feature extractors
     :param feature_extractors: a list of feature extractors
     :return: a list of the feature names for each extractor (think first row of .csv file)
     """
@@ -187,6 +188,12 @@ def tags_from_contexts(token_contexts):
 
 
 def sync_keys(dict_a, dict_b):
+    '''
+    make sure two dicts have the same keys, delete the ones that are different
+    :param dict_a:
+    :param dict_b:
+    :return:
+    '''
     dict_a_keys = set(dict_a.keys())
     dict_b_keys = set(dict_b.keys())
     for k in dict_a_keys.symmetric_difference(dict_b_keys):
