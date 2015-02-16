@@ -75,9 +75,9 @@ def main(config):
     # { 'token': <token>, index: <idx>, 'source': [<source toks>]', 'target': [<target toks>], 'tag': <tag>}
     feature_extractors = experiment_utils.build_feature_extractors(config['feature_extractors'])
     logger.info('mapping the feature extractors over the contexts for test...')
-    test_context_features = experiment_utils.contexts_to_features_categorical(test_contexts, feature_extractors, workers=workers)
+    test_context_features = experiment_utils.token_contexts_to_features_categorical(test_contexts, feature_extractors, workers=workers)
     logger.info('mapping the feature extractors over the contexts for train...')
-    train_context_features = experiment_utils.contexts_to_features_categorical(train_contexts, feature_extractors, workers=workers)
+    train_context_features = experiment_utils.token_contexts_to_features_categorical(train_contexts, feature_extractors, workers=workers)
 
     # flatten so that we can properly binarize the features
     all_values = experiment_utils.flatten(test_context_features.values())

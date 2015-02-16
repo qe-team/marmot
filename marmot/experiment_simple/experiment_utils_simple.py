@@ -114,7 +114,7 @@ def map_feature_extractors((context, extractor)):
 def contexts_to_features_categorical(contexts, feature_extractors, workers=1):
     #single thread
     if workers == 1:
-        return [ [x for a_list in [map_feature_extractors((context, extractor)) for extractor in feature_extractors] for x in a_list ] for context in contexts]
+        return [[x for a_list in [map_feature_extractors((context, extractor)) for extractor in feature_extractors] for x in a_list ] for context in contexts]
 
     #multiple threads
     else:

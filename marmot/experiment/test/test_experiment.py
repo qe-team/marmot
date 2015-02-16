@@ -73,7 +73,7 @@ class TestRunExperiment(unittest.TestCase):
         # uses the TokenCountFeatureExtractor, which returns 3 features
         self.assertTrue(len(mapped_context) == 3)
 
-    def test_contexts_to_features(self):
+    def test_token_contexts_to_features(self):
         context_creator_list = self.config['context_creators']
         context_creators = experiment_utils.build_context_creators(context_creator_list)
         interesting_tokens = set(['the','it', 'a'])
@@ -84,14 +84,14 @@ class TestRunExperiment(unittest.TestCase):
         feature_extractors = experiment_utils.build_feature_extractors(feature_extractor_list)
 
         workers = 8
-        mapped_contexts = experiment_utils.contexts_to_features(token_contexts, feature_extractors, workers=8)
+        mapped_contexts = experiment_utils.token_contexts_to_features(token_contexts, feature_extractors, workers=8)
 
         self.assertEqual(set(mapped_contexts.keys()), set(token_contexts.keys()))
         for tok, feature_vecs in mapped_contexts.items():
             self.assertTrue(feature_vecs.shape[0] == len(token_contexts[tok]))
 
 
-    def test_contexts_to_features_categorical(self):
+    def test_token_contexts_to_features_categorical(self):
 
         token_contexts = {}
         token_contexts['little'] = [{'index':1, 'token':u'little', 'target':[u'the', u'little', u'boy'], 'source':[u'le', u'petit', u'garcon'], 'alignments':[[0],[1],[2]], 'source_pos':[u'Art', u'Adj', u'Noun'], 'target_pos':[u'DT', u'JJ', u'NN']}, {'index':1, 'token':u'little', 'target':[u'a', u'little', u'dog'], 'source':[u'un', u'petit', u'chien'], 'alignments':[[0],[1],[2]], 'source_pos':[u'Art', u'Adj', u'Noun'], 'target_pos':[u'DT', u'JJ', u'NN']}, {'index':1, 'token':u'little', 'target':[u'a', u'little', u'cat'], 'source':[u'un', u'petit', u'chat'], 'alignments':[[0],[1],[2]], 'source_pos':[u'Art', u'Adj', u'Noun'], 'target_pos':[u'DT', u'JJN', u'NN']}]
@@ -100,7 +100,7 @@ class TestRunExperiment(unittest.TestCase):
         feature_extractors = experiment_utils.build_feature_extractors(feature_extractor_list)
 
         workers = 8
-        mapped_contexts = experiment_utils.contexts_to_features_categorical(token_contexts, feature_extractors, workers=8)
+        mapped_contexts = experiment_utils.token_contexts_to_features_categorical(token_contexts, feature_extractors, workers=8)
 
         self.assertEqual(set(mapped_contexts.keys()), set(token_contexts.keys()))
         for tok, feature_vecs in mapped_contexts.items():
@@ -125,7 +125,7 @@ class TestRunExperiment(unittest.TestCase):
         self.assertTrue( np.allclose(binarized_features[1], np.array([3., 3., 1., 0., 1., 0., 0., 1., 0., 1., 0., 0., 0., 0., 0., 2., 0., 0., 0., 1.]) ) )
         self.assertTrue( np.allclose(binarized_features[2], np.array([3., 3., 1., 0., 0., 1., 0., 1., 1., 0., 0., 0., 0., 0., 0., 2., 0., 1., 1., 1.]) ) )
 
-    def test_time_contexts_to_features(self):
+    def test_time_token_contexts_to_features(self):
         context_creator_list = self.config['context_creators']
         context_creators = experiment_utils.build_context_creators(context_creator_list)
         interesting_tokens = set(['the','it', 'a'])
@@ -136,12 +136,12 @@ class TestRunExperiment(unittest.TestCase):
         feature_extractors = experiment_utils.build_feature_extractors(feature_extractor_list)
 
         start = time.time()
-        mapped_contexts = experiment_utils.contexts_to_features(token_contexts, feature_extractors)
+        mapped_contexts = experiment_utils.token_contexts_to_features(token_contexts, feature_extractors)
         finish = time.time() - start
         print "Single: ", finish
 
         start = time.time()
-        mapped_contexts = experiment_utils.contexts_to_features(token_contexts, feature_extractors, workers=10)
+        mapped_contexts = experiment_utils.token_contexts_to_features(token_contexts, feature_extractors, workers=10)
         finish = time.time() - start
         print "Multiple: ", finish
 

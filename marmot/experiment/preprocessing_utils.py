@@ -106,6 +106,10 @@ def map_feature_extractor((context, extractor)):
 
 
 # feature extraction for categorical features with conversion to one-hot representation
+# this implementation is for a list representation
+# this returns a list of lists, where each list contains the feature extractor results for a context
+# the point of returning a list of lists is to allow binarization of the feature values
+# TODO: we can binarize over the columns of the matrix instead of binarizing the results of each feature extractor
 def contexts_to_features(contexts, feature_extractors, workers=1):
     # single thread
     if workers == 1:
@@ -137,6 +141,7 @@ def tags_from_contexts(contexts):
 
 # train converters(binarizers) from categorical values to one-hot representation
 #      for all features
+# all_values is a list of lists, because we need to look at the feature values for every instance to binarize properly
 def fit_binarizers(all_values):
     binarizers = {}
     for f in range(len(all_values[0])):
@@ -167,7 +172,7 @@ def binarize(features, binarizers):
         if i in binarizers:
             binarizer = binarizers[i]
             if type(binarizer) == LabelBinarizer:
-                transformed =  binarizer.transform(cur_values)
+                transformed = binarizer.transform(cur_values)
                 new_features = np.hstack((new_features, binarizer.transform(cur_values)))
             elif type(binarizer) == MultiLabelBinarizer:
                 assert(list_of_lists(cur_values))
