@@ -79,7 +79,6 @@ def main(config):
     logger.info('mapping the feature extractors over the contexts for train...')
     train_features = call_for_each_element(train_contexts, contexts_to_features, [feature_extractors, workers], data_type=data_type)
     print('TEST features', len(test_features))
-
     # flatten so that we can properly binarize the features
     all_values = []
     if data_type == 'sequential':

@@ -1,3 +1,6 @@
+# we need numpy to check the type of objects in list_of_lists
+import numpy
+
 def import_class(module_name):
     mod_name, class_name = module_name.rsplit('.', 1)
     mod = __import__(mod_name, fromlist=[class_name])
@@ -22,9 +25,9 @@ def import_and_call_function(function_obj):
     return call_function(func, args)
 
 
-# check that <a_list> is a list of lists
+# check that <a_list> is an iterable of iterables
 def list_of_lists(a_list):
-    if type(a_list) == list and len(a_list) > 0 and all([type(l) == list for l in a_list]):
+    if isinstance(a_list, (list, tuple, numpy.ndarray)) and len(a_list) > 0 and all([isinstance(l, (list, tuple, numpy.ndarray)) for l in a_list]):
         return True
     return False
 

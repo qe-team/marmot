@@ -84,6 +84,8 @@ def create_contexts(data_obj, data_type='plain'):
             contexts.append(create_context({data_obj.keys()[i]: sents[i] for i in range(len(sents))}))
         else:
             contexts.extend(create_context({data_obj.keys()[i]: sents[i] for i in range(len(sents))}))
+
+            # TODO: there is an error here
             if data_type == 'token':
                 new_contexts = defaultdict(list)
                 for cont in contexts:
@@ -94,6 +96,7 @@ def create_contexts(data_obj, data_type='plain'):
 
 
 # convert list of lists into a flat list
+# TODO: there is an error where no code runs here
 def flatten(lofl):
     if list_of_lists(lofl):
         return [item for sublist in lofl for item in sublist]
@@ -125,7 +128,8 @@ def contexts_to_features(contexts, feature_extractors, workers=1):
         # each context is paired with all feature extractors
         for extractor in feature_extractors:
             context_list = [(cont, extractor) for cont in contexts]
-            res_list.append(pool.map(map_feature_extractor, context_list))
+            features = pool.map(map_feature_extractor, context_list)
+            res_list.append(features)
         # np.hstack and np.vstack can't be used because lists have objects of different types
         intermediate = [[x[i] for x in res_list] for i in range(len(res_list[0]))]
         res_list = [flatten(x) for x in intermediate]
