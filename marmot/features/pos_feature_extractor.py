@@ -1,4 +1,4 @@
-import os, sys
+import sys
 from subprocess import Popen, PIPE
 
 from marmot.features.feature_extractor import FeatureExtractor
@@ -29,17 +29,17 @@ class POSFeatureExtractor(FeatureExtractor):
 
     def get_features(self, context_obj):
         if 'target_pos' not in context_obj:
-            if 'target' in context_obj and context_obj['target'] != None:
+            if 'target' in context_obj and context_obj['target'] is not None:
                 context_obj['target_pos'] = self._call_tagger(context_obj['target'])
             else:
                 context_obj['target_pos'] = []
         if 'source_pos' not in context_obj:
-            if 'source' in context_obj and context_obj['source'] != None:
+            if 'source' in context_obj and context_obj['source'] is not None:
                 context_obj['source_pos'] = self._call_tagger(context_obj['source'], lang='src')
             else:
                 context_obj['source_pos'] = []
 
-        #extract POS features:
+        # extract POS features:
         # - target POS
         # - source POS (may be more than 1)
         # - something else?

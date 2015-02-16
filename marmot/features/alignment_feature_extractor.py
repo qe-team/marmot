@@ -1,9 +1,11 @@
-import os, sys
+from __future__ import print_function
+
+import os
 
 from marmot.features.feature_extractor import FeatureExtractor
 from marmot.util.alignments import train_alignments, align_sentence
-from marmot.util.force_align import Aligner
 from marmot.util.ngram_window_extractor import left_context, right_context
+
 
 # all features that require source dictionary
 class AlignmentFeatureExtractor(FeatureExtractor):
@@ -20,23 +22,22 @@ class AlignmentFeatureExtractor(FeatureExtractor):
         else:
             self.model = align_model
 
-
     def get_features(self, context_obj, context_size=1):
-        if not context_obj.has_key('source') or not context_obj.has_key('target') or context_obj['source']==None or context_obj['target']==None:
-            sys.stderr.write('Source and/or target sentences are not defined. Not enough information for alignment features extraction\n')
+        if 'source' not in context_obj or 'target' not in context_obj or context_obj['source'] is None or context_obj['target'] is None:
+            print('Source and/or target sentences are not defined. Not enough information for alignment features extraction')
             return []
 
-        if not context_obj.has_key('alignments'):
+        if 'alignments' not in context_obj:
             if self.model == '':
-#                sys.stderr.write('No alignment model specified and no pre-defined alignments in context object\n')
+                print('No alignment model specified and no pre-defined alignments in context object')
                 return []
             context_obj['alignments'] = align_sentence(context_obj['source'], context_obj['target'], self.model)
 
         # source word(s)
-        source_nums = context_obj['alignments'][context_obj['index']] 
+        source_nums = context_obj['alignments'][context_obj['index']]
         # if word is unaligned - no source and no source contexts
         if source_nums == []:
-            return ['Unaligned',[ 'Unaligned' for i in range(context_size) ], [ 'Unaligned' for i in range(context_size) ] ]
+            return ['Unaligned', ['Unaligned' for i in range(context_size)], ['Unaligned' for i in range(context_size)]]
 
         # TODO: find contexts for all words aligned to the token (now only 1st word)
         else:

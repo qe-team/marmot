@@ -3,6 +3,7 @@ import nltk
 
 from marmot.features.feature_extractor import FeatureExtractor
 
+
 class DictionaryFeatureExtractor(FeatureExtractor):
     '''
     Extract binary features indicating that the word belongs to a list of special tokens:
@@ -13,11 +14,10 @@ class DictionaryFeatureExtractor(FeatureExtractor):
     '''
 
     def __init__(self, language='', stopwords=[], punctuation=[], proper=[]):
-
-      # all lists can be defined by user, otherwise are taken from python and nltk
-      self.punctuation = punctuation if punctuation else string.punctuation
-      self.stopwords = stopwords if stopwords else nltk.corpus.stopwords.words(language) if language else nltk.corpus.stopwords.words()
-      self.proper = proper
+        # all lists can be defined by user, otherwise are taken from python and nltk
+        self.punctuation = punctuation if punctuation else string.punctuation
+        self.stopwords = stopwords if stopwords else nltk.corpus.stopwords.words(language) if language else nltk.corpus.stopwords.words()
+        self.proper = proper
 
     # returns:
     #    ( is stopword, is punctuation, is proper name, is digit )

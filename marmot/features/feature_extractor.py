@@ -12,6 +12,7 @@ from abc import ABCMeta, abstractmethod
 # a negative context is a context that is representative of a WRONG usage of a word
 # a negative context for a word may have nothing to do with a positive context (i.e. it may just be random)
 
+
 class FeatureExtractor(object):
 
     __metaclass__ = ABCMeta
@@ -26,8 +27,6 @@ class FeatureExtractor(object):
         - some fields MAY BE MISSING from a given context object, the implementation needs to check for its fields
         """
         pass
-
-
 
     @abstractmethod
     def get_feature_names(self):

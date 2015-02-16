@@ -4,8 +4,8 @@ import codecs
 from marmot.features.feature_extractor import FeatureExtractor
 
 
-# Class that extracts various LM features 
-# Calling an external LM is very slow, so a new lm is constructed with nltk 
+# Class that extracts various LM features
+# Calling an external LM is very slow, so a new lm is constructed with nltk
 class LMFeatureExtractor(FeatureExtractor):
 
     def __init__(self, corpus_file, order=3):
@@ -17,7 +17,7 @@ class LMFeatureExtractor(FeatureExtractor):
             for i in range(1, order):
                 self.lm[i] = self.lm[i].union(ngrams(words, i+1))
             self.lm[0] = self.lm[0].union(words)
-    
+
     def check_lm(self, ngram, side='left'):
         for i in range(self.order, 0, -1):
             if side == 'left':
@@ -28,9 +28,9 @@ class LMFeatureExtractor(FeatureExtractor):
                 return i
         return 0
 
-  # returns a set of features related to LM
-  # currently extracting: highest order ngram including the word and its LEFT context,
-  #                       highest order ngram including the word and its RIGHT context
+    # returns a set of features related to LM
+    # currently extracting: highest order ngram including the word and its LEFT context,
+    #                       highest order ngram including the word and its RIGHT context
     def get_features(self, context_obj):
         left_ngram = self.check_lm(context_obj['target'][:context_obj['index']+1], side='left')
         right_ngram = self.check_lm(context_obj['target'][context_obj['index']:], side='right')
