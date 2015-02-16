@@ -25,6 +25,8 @@ def parse_sentence( line_array ):
       align = line[line_separator+3:-2]
       # 'Deletion' errors are not considered as there is no word in hypothesis for them
       align = align.replace('D','')
+      print('parse sentence - align: ')
+      print(align)
     elif line_id == "HypLocMap":
       ( orig2shifted, shifted2orig ) = parse_hyp_loc_map( line[line_separator+2:-1] )
     else: continue
