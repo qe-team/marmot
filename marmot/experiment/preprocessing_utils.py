@@ -110,6 +110,7 @@ def map_feature_extractor((context, extractor)):
 # this returns a list of lists, where each list contains the feature extractor results for a context
 # the point of returning a list of lists is to allow binarization of the feature values
 # TODO: we can binarize over the columns of the matrix instead of binarizing the results of each feature extractor
+# TODO: is the output of the single worker and the multithreaded different? if so, change
 def contexts_to_features(contexts, feature_extractors, workers=1):
     # single thread
     if workers == 1:
@@ -155,7 +156,7 @@ def fit_binarizers(all_values):
         elif type(cur_features[0]) == list:
             mlb = MultiLabelBinarizer()
             # default feature for unknown values
-            cur_features.append(tuple(("unk",)))
+            cur_features.append(tuple(("__unk__",)))
             mlb.fit([tuple(x) for x in cur_features])
             binarizers[f] = mlb
     return binarizers
@@ -180,15 +181,13 @@ def binarize(features, binarizers):
                 cur_values_default = []
                 default_value = binarizer.classes_[-1]
                 for a_list in cur_values:
-                    new_list = []
-                    for val in a_list:
-                        if val in binarizer.classes_:
-                            new_list.append(val)
-                        else:
-                            new_list.append(default_value)
+                    new_list = list(a_list)
+                    for j, val in enumerate(new_list):
+                        if val not in binarizer.classes_:
+                            new_list[j] = default_value
                     cur_values_default.append(tuple(new_list))
 
-                transformed =  binarizer.transform(cur_values_default)
+                transformed = binarizer.transform(cur_values_default)
                 new_features = np.hstack((new_features, transformed))
         else:
             cur_values = np.ndarray((len(cur_values),1), buffer=np.array(cur_values))
