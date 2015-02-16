@@ -23,8 +23,14 @@ def convert_alignments(align_list, n_words):
         new_align[int(two_digits[1])].append(int(two_digits[0]))
     return new_align
 
-
+# TODO: this function adds keys to the context object, but maybe the user wants different keys
+# TODO: the function should be agnostic about which keys it adds -- why does it care?
 def create_context(repr_dict):
+    '''
+    :param repr_dict: a dict representing a 'line' or 'sentence' or a 'segment'
+    :return: a list of context objects representing the data for each token in the sequence
+    '''
+
     context_list = []
     # is checked before in create_contexts, but who knows
     if 'target' not in repr_dict:
@@ -54,7 +60,13 @@ def create_context(repr_dict):
 # output: if data_type = 'plain', one list of context objects is returned
 #         if data_type = 'sequential', a list of lists of context objects is returned (list of sequences)
 #         if data_type = 'token', a dict {token: <list_of_contexts>} is returned
+# TODO: this function requires the 'target' and 'tag' keys, but the user may wish to specify other keys
 def create_contexts(data_obj, data_type='plain'):
+    '''
+    :param data_obj: an object representing a dataset consisting of files
+    :param data_type:
+    :return:
+    '''
     contexts = []
     if 'target' not in data_obj:
         print("No 'target' label in data representations")
@@ -65,6 +77,7 @@ def create_contexts(data_obj, data_type='plain'):
         print(data_obj)
         return []
 
+    # TODO: tokenization is performed implicitly here -- this means that files _must_ be whitespace tokenized
     corpora = [SimpleCorpus(d) for d in data_obj.values()]
     for sents in zip(*[c.get_texts_raw() for c in corpora]):
         if data_type == 'sequential':
@@ -92,7 +105,7 @@ def map_feature_extractor((context, extractor)):
     return extractor.get_features(context)
 
 
-# feature extraction for categorical features with convertation to one-hot representation
+# feature extraction for categorical features with conversion to one-hot representation
 def contexts_to_features(contexts, feature_extractors, workers=1):
     # single thread
     if workers == 1:
@@ -144,24 +157,6 @@ def fit_binarizers(all_values):
 
 
 # convert categorical features to one-hot representations with pre-fitted binarizers
-#def binarize(features, binarizers):
-#    new_features = []
-#    print('Apply binarizers', type(features), len(features), type(features[0]), len(features[0]))
-#    assert(max(binarizers.keys()) < len(features))
-#    for i, f in enumerate(features):
-#        if i in binarizers:
-#            binarizer = binarizers[i]
-#            if type(binarizer) == LabelBinarizer:
-#                new_features = np.hstack((new_features, binarizer.transform([f])[0]))
-#            elif type(binarizer) == MultiLabelBinarizer:
-#                new_features = np.hstack((new_features, binarizer.transform([tuple(f)])[0]))
-#        else:
-#            new_features = np.hstack((new_features, f))
-#    return new_features
-
-
-
-# convert categorical features to one-hot representations with pre-fitted binarizers
 def binarize(features, binarizers):
     assert(list_of_lists(features))
     num_features = len(features[0])
@@ -194,4 +189,3 @@ def binarize(features, binarizers):
             cur_values = np.ndarray((len(cur_values),1), buffer=np.array(cur_values))
             new_features = np.hstack((new_features, cur_values))
     return new_features
-
