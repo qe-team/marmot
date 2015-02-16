@@ -55,10 +55,11 @@ class TestRunExperiment(unittest.TestCase):
             for context in token_contexts[token][:10]:
                 self.assertTrue(context['token'] != None)
 
-    def test_build_feature_extractors(self):
+    # todo: this is an import test --> move to import tests
+    def test_build_objects(self):
         # test construction of feature extractors
         feature_extractor_list = self.config['feature_extractors']
-        feature_extractors = experiment_utils.build_feature_extractors(feature_extractor_list)
+        feature_extractors = import_utils.build_objects(feature_extractor_list)
         from marmot.features.feature_extractor import FeatureExtractor
         for extractor in feature_extractors:
             self.assertTrue(isinstance(extractor, FeatureExtractor))
@@ -71,7 +72,7 @@ class TestRunExperiment(unittest.TestCase):
         token_contexts = experiment_utils.map_contexts(interesting_tokens, context_creators)
 
         feature_extractor_list = self.config['feature_extractors'][:1]
-        feature_extractors = experiment_utils.build_feature_extractors(feature_extractor_list)
+        feature_extractors = import_utils.build_objects(feature_extractor_list)
 
         mapped_context = np.hstack([experiment_utils.map_feature_extractor((token_contexts['the'][0], extractor)) for extractor in feature_extractors])
         self.assertTrue(isinstance(mapped_context, np.ndarray))
@@ -86,7 +87,7 @@ class TestRunExperiment(unittest.TestCase):
         token_contexts = experiment_utils.map_contexts(interesting_tokens, context_creators)
 
         feature_extractor_list = self.config['feature_extractors'][:1]
-        feature_extractors = experiment_utils.build_feature_extractors(feature_extractor_list)
+        feature_extractors = import_utils.build_objects(feature_extractor_list)
 
         workers = 8
         mapped_contexts = experiment_utils.token_contexts_to_features(token_contexts, feature_extractors, workers=8)
@@ -102,7 +103,7 @@ class TestRunExperiment(unittest.TestCase):
         token_contexts['little'] = [{'index':1, 'token':u'little', 'target':[u'the', u'little', u'boy'], 'source':[u'le', u'petit', u'garcon'], 'alignments':[[0],[1],[2]], 'source_pos':[u'Art', u'Adj', u'Noun'], 'target_pos':[u'DT', u'JJ', u'NN']}, {'index':1, 'token':u'little', 'target':[u'a', u'little', u'dog'], 'source':[u'un', u'petit', u'chien'], 'alignments':[[0],[1],[2]], 'source_pos':[u'Art', u'Adj', u'Noun'], 'target_pos':[u'DT', u'JJ', u'NN']}, {'index':1, 'token':u'little', 'target':[u'a', u'little', u'cat'], 'source':[u'un', u'petit', u'chat'], 'alignments':[[0],[1],[2]], 'source_pos':[u'Art', u'Adj', u'Noun'], 'target_pos':[u'DT', u'JJN', u'NN']}]
 
         feature_extractor_list = self.config['feature_extractors']
-        feature_extractors = experiment_utils.build_feature_extractors(feature_extractor_list)
+        feature_extractors = import_utils.build_objects(feature_extractor_list)
 
         workers = 8
         mapped_contexts = experiment_utils.token_contexts_to_features_categorical(token_contexts, feature_extractors, workers=8)
@@ -132,13 +133,13 @@ class TestRunExperiment(unittest.TestCase):
 
     def test_time_token_contexts_to_features(self):
         context_creator_list = self.config['context_creators']
-        context_creators = experiment_utils.build_objects(context_creator_list)
+        context_creators = import_utils.build_objects(context_creator_list)
         interesting_tokens = set(['the','it', 'a'])
 
         token_contexts = experiment_utils.map_contexts(interesting_tokens, context_creators)
 
         feature_extractor_list = self.config['feature_extractors'][:1]
-        feature_extractors = experiment_utils.build_feature_extractors(feature_extractor_list)
+        feature_extractors = import_utils.build_objects(feature_extractor_list)
 
         start = time.time()
         mapped_contexts = experiment_utils.token_contexts_to_features(token_contexts, feature_extractors)
@@ -152,7 +153,7 @@ class TestRunExperiment(unittest.TestCase):
 
     def test_tags_from_contexts(self):
         context_creator_list = self.config['context_creators']
-        context_creators = experiment_utils.build_objects(context_creator_list)
+        context_creators = import_utils.build_objects(context_creator_list)
         interesting_tokens = set(['the','it', 'a'])
 
         token_contexts = experiment_utils.map_contexts(interesting_tokens, context_creators)
@@ -165,7 +166,7 @@ class TestRunExperiment(unittest.TestCase):
 
     def test_filter_contexts(self):
         context_creator_list = self.config['context_creators']
-        context_creators = experiment_utils.build_objects(context_creator_list)
+        context_creators = import_utils.build_objects(context_creator_list)
 
         fake_token = '_z_z_z'
         interesting_tokens = set(['the','it', 'a', fake_token])
@@ -177,7 +178,7 @@ class TestRunExperiment(unittest.TestCase):
 
     def test_filter_context_class(self):
         context_creator_list = self.config['context_creators2']
-        context_creators = experiment_utils.build_objects(context_creator_list)
+        context_creators = import_utils.build_objects(context_creator_list)
 
         interesting_tokens = set(['del','pescado'])
         token_contexts = experiment_utils.map_contexts(interesting_tokens, context_creators)
@@ -190,7 +191,7 @@ class TestRunExperiment(unittest.TestCase):
     def test_convert_tagset(self):
         wmt_binary_classes = {0 :u'BAD', 1: u'OK'}
         context_creator_list = self.config['context_creators']
-        context_creators = experiment_utils.build_objects(context_creator_list)
+        context_creators = import_utils.build_objects(context_creator_list)
 
         interesting_tokens = set(['the','it', 'a'])
         token_contexts = experiment_utils.map_contexts(interesting_tokens, context_creators)
@@ -217,7 +218,7 @@ class TestFeatureExtractorIntegration(unittest.TestCase):
     def test_get_feature_names(self):
         # test construction of feature extractors
         feature_extractor_list = self.config['feature_extractors']
-        feature_extractors = experiment_utils.build_feature_extractors(feature_extractor_list)
+        feature_extractors = import_utils.build_objects(feature_extractor_list)
 
         expected = ['source_token_count', 'target_token_count', 'source_target_token_count_ratio',
                     'first_aligned_token', 'left_alignment', 'right_alignment',
@@ -230,13 +231,13 @@ class TestFeatureExtractorIntegration(unittest.TestCase):
 
     def test_map_feature_extractor(self):
         context_creator_list = self.config['context_creators']
-        context_creators = experiment_utils.build_objects(context_creator_list)
+        context_creators = import_utils.build_objects(context_creator_list)
         interesting_tokens = set(['the','it', 'a'])
 
         token_contexts = experiment_utils.map_contexts(interesting_tokens, context_creators)
 
         feature_extractor_list = self.config['feature_extractors'][:1]
-        feature_extractors = experiment_utils.build_feature_extractors(feature_extractor_list)
+        feature_extractors = import_utils.build_objects(feature_extractor_list)
 
         mapped_context = np.hstack([experiment_utils.map_feature_extractor((token_contexts['the'][0], extractor)) for extractor in feature_extractors])
         self.assertTrue(isinstance(mapped_context, np.ndarray))

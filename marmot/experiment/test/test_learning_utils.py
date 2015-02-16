@@ -3,6 +3,7 @@ import yaml
 import os
 import marmot
 from marmot.experiment import experiment_utils
+from marmot.experiment import import_utils
 from marmot.experiment import learning_utils
 
 
@@ -26,10 +27,10 @@ class TestRunExperiment(unittest.TestCase):
 
     def test_token_classifiers(self):
         interesting_tokens = set(['the','it', 'a'])
-        context_creators = experiment_utils.build_context_creators(self.config['context_creators'])
+        context_creators = import_utils.build_objects(self.config['context_creators'])
         token_contexts = experiment_utils.map_contexts(interesting_tokens, context_creators)
 
-        feature_extractors = experiment_utils.build_feature_extractors(self.config['feature_extractors'])
+        feature_extractors = import_utils.build_objects(self.config['feature_extractors'])
         token_context_features = experiment_utils.token_contexts_to_features(token_contexts, feature_extractors)
         binarizers = experiment_utils.fit_binarizers(experiment_utils.flatten(token_context_features.values()))
         token_context_features = {k: [experiment_utils.binarize(v, binarizers) for v in val] for k, val in token_context_features.items()}

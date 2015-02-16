@@ -6,7 +6,7 @@ import types
 import sklearn
 from sklearn.preprocessing import LabelBinarizer, MultiLabelBinarizer
 
-from import_utils import import_class, import_function, function_tree
+from import_utils import import_class
 from preprocessing_utils import map_feature_extractor
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
@@ -88,6 +88,7 @@ def map_context_creators((token, context_creators)):
     contexts = flatten([creator.get_contexts(token) for creator in context_creators])
     return token, contexts
 
+
 #multithreaded context mapping
 def map_contexts(tokens, context_creators, workers=1):
     #single thread
@@ -101,19 +102,6 @@ def map_contexts(tokens, context_creators, workers=1):
         res = pool.map(map_context_creators, tokens_with_extractors)
         res_dict = {k:v for k,v in res}
         return res_dict
-
-def build_feature_extractors(feature_extractor_list):
-    feature_extractors = []
-    for extractor_obj in feature_extractor_list:
-        extractor_klass = import_class(extractor_obj['module'])
-        if ('args' in extractor_obj):
-            input_args = extractor_obj['args']
-            extractor = extractor_klass(*input_args)
-        else:
-            extractor = extractor_klass()
-        feature_extractors.append(extractor)
-
-    return feature_extractors
 
 
 # multithreaded feature extraction
