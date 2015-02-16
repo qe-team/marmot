@@ -3,9 +3,8 @@ import sys, codecs, pickle
 import numpy as np
 import pandas as pd
 
-import preprocess, preprocess_ter
-import evaluation
-from word2vec import get_features, classify
+import preprocess_wmt
+import preprocess_ter
 
 # prepare a dataset for the Machine Learning component
 # sample call: python prepare_dataset.py -i test_data/training -v /home/chris/programs/word2vec/trunk/vectors.bin -o 'test-'
@@ -25,11 +24,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     text_processor = None
     if args.preprocessor == 'xml':
-        text_processor = preprocess.parse_src
+        text_processor = preprocess_wmt.parse_src
     elif args.preprocessor == 'ter':
         text_processor = preprocess_ter.parse_ter_file
     else:
-        text_processor = preprocess.parse_src
+        text_processor = preprocess_wmt.parse_src
 
     # TODO: all of the following code could be parallelized
     train_features = text_processor(args.input, good_context=True)

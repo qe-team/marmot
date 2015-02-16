@@ -9,7 +9,7 @@ from marmot.preprocessing.parsers import *
 from marmot.util.simple_corpus import SimpleCorpus
 
 
-class BackTransParseTests( unittest.TestCase ):
+class BackTransParseTests(unittest.TestCase):
     def setUp(self):
         self.interesting_tokens = set(['the','it'])
         module_path = os.path.dirname(__file__)
