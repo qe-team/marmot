@@ -10,32 +10,10 @@ from collections import defaultdict
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 logger = logging.getLogger('testlogger')
 
-def import_class(module_name):
-    mod_name, class_name = module_name.rsplit('.', 1)
-    mod = __import__(mod_name, fromlist=[class_name])
-    klass = getattr(mod, class_name)
-    return klass
-
 
 def init_class(klass, args):
     return klass(*args)
 
-
-def import_function(func_name):
-    mod_name, func_name = func_name.rsplit('.', 1)
-    mod = __import__(mod_name, fromlist=[func_name])
-    func = getattr(mod, func_name)
-    return func
-
-
-def call_function(function, args):
-    return function(*args)
-
-
-def import_and_call_function(function_obj):
-    func = import_function(function_obj['func'])
-    args = function_obj['args']
-    return call_function(func, args)
 
 def build_context_creator(creator_obj):
     creator_klass = import_class(creator_obj['module'])
@@ -270,25 +248,3 @@ def sync_keys(dict_a, dict_b):
             del dict_a[k]
         else:
             del dict_b[k]
-
-# call through the function tree, at each node look for: (func:<>, args:<>)
-# args[] may have a property: type: function_output:, if so, call recursively with (func:<>, args:<>)
-# finally, call the original func with its args
-def function_tree(func, args):
-    # map args to function outputs where requested
-    for idx, arg in enumerate(args):
-        if type(arg) is dict and 'type' in arg and arg['type'] == 'function_output':
-            inner_func = import_function(arg['func'])
-            args[idx] = function_tree(inner_func, arg['args'])
-
-    # the function is ready to be called
-    return call_function(func, args)
-
-
-
-
-
-
-
-
-
