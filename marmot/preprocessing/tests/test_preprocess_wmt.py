@@ -5,8 +5,7 @@ import sys
 import StringIO
 import numpy as np
 
-import preprocess_wmt
-
+from marmot.preprocessing import preprocess_wmt
 
 class TestPreprocessWMT(unittest.TestCase):
 
