@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import os
+import errno
 
 from marmot.features.feature_extractor import FeatureExtractor
 from marmot.util.alignments import train_alignments, align_sentence
@@ -10,7 +11,18 @@ from marmot.util.ngram_window_extractor import left_context, right_context
 # all features that require source dictionary
 class AlignmentFeatureExtractor(FeatureExtractor):
 
-    def __init__(self, align_model='', src_file='', tg_file='', context_size=1):
+    def __init__(self, align_model='', src_file='', tg_file='', tmp_dir=None, context_size=1):
+        if tmp_dir is None:
+            tmp_dir = os.getcwd()
+        try:
+            os.makedirs(tmp_dir)
+        except OSError as exc:  # Python >2.5
+            if exc.errno == errno.EEXIST and os.path.isdir(tmp_dir):
+                pass
+            else:
+                raise
+        self.tmp_dir = tmp_dir
+
         self.model = ''
 
         # no alignment model
@@ -18,7 +30,7 @@ class AlignmentFeatureExtractor(FeatureExtractor):
             # if src_file and tg_file are not empty, it means that an alignment model needs to be trained
             # (self.model doesn't have to be defined, if context objects have alignments)
             if os.path.isfile(src_file) and os.path.isfile(tg_file):
-                self.model = train_alignments(src_file, tg_file)
+                self.model = train_alignments(src_file, tg_file, self.tmp_dir)
         else:
             self.model = align_model
         self.context_size = context_size

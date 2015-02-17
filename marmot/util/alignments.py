@@ -14,7 +14,7 @@ def train_alignments(src_train, tg_train, tmp_dir, align_model='align_model'):
         sys.stderr.write('No parallel corpus for training\n')
         return ''
     # join source and target files
-    joint_name = tmp_dir + os.path.basename(src_train)+'_'+os.path.basename(tg_train)
+    joint_name = tmp_dir + '/' + os.path.basename(src_train) + '_' + os.path.basename(tg_train)
     src_tg_file = open(joint_name, 'w')
     get_corp = Popen([cdec+'/corpus/paste-files.pl', src_train, tg_train], stdout=src_tg_file)
     get_corp.wait()
