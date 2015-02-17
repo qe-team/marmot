@@ -1,6 +1,7 @@
 import unittest
 import yaml
 import os
+import shutil
 import numpy as np
 import marmot
 from marmot.experiment import experiment_utils
@@ -31,6 +32,9 @@ class TestRunExperiment(unittest.TestCase):
 
         with open(test_config, "r") as cfg_file:
             self.config = yaml.load(cfg_file.read())
+
+    def tearDown(self):
+        shutil.rmtree(self.config['tmp'], ignore_errors=True)
 
     def test_build_object(self):
         testing_cc = self.config['testing']

@@ -1,4 +1,5 @@
 workers: 10
+tmp: &tmp_dir !join experiment/test/tmp_dir
 interesting_tokens:
     func: marmot.preprocessing.parsers.extract_important_tokens
     args:
@@ -48,6 +49,7 @@ feature_extractors:
       - ''                                               # alignment model
       - !join ../examples/word_level_quality_estimation/data/en_es/europarl.1000.en     # parallel corpus - source
       - !join ../examples/word_level_quality_estimation/data/en_es/europarl.1000.es     # parallel corpus - target
+      - *tmp_dir
   - module: marmot.features.dictionary_feature_extractor.DictionaryFeatureExtractor
     args:
       - 'spanish'              # target language for stopwords extraction
@@ -73,7 +75,7 @@ testing:
     - type: function_output
       func: marmot.preprocessing.parsers.parse_wmt14_data
       args:
-        - !join preprocessing/test_data/DE_EN.tgt_ann.test
+        - !join preprocessing/tests/test_data/DE_EN.tgt_ann.test
         - ''
 
 
