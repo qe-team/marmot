@@ -8,20 +8,6 @@ from marmot.parsers.parsers import *
 from marmot.util.simple_corpus import SimpleCorpus
 
 
-class BackTransParseTests(unittest.TestCase):
-    def setUp(self):
-        self.interesting_tokens = set(['the','it'])
-        module_path = os.path.dirname(__file__)
-        self.corpus_file = os.path.join(module_path, 'test_data/negative_data/back_translation.txt')
-        self.labels_file = os.path.join(module_path, 'test_data/negative_data/back_translation.labels')
-
-    def test_parse_back_translation(self):
-        token_contexts = parse_back_translation(self.corpus_file, self.labels_file, set(['the']))
-        self.assertTrue(len(token_contexts) > 0)
-        no_token_contexts = parse_back_translation(self.corpus_file, self.labels_file, set(['egraweaweg']))
-        self.assertTrue(len(no_token_contexts) == 0)
-
-
 class TestCorpusParser(unittest.TestCase):
     def setUp(self):
         self.interesting_tokens = set(['the','it'])
@@ -90,6 +76,7 @@ class TestSemevalParser(unittest.TestCase):
             self.assertTrue(type(context['source']) == list and type(context['target']) == list)
             self.assertTrue(len(context['source']) > 0 and len(context['target']) > 0)
 
+
 class TestAdditionalRepresentations(unittest.TestCase):
 
     def setUp(self):
@@ -105,12 +92,10 @@ class TestAdditionalRepresentations(unittest.TestCase):
         self.tagger = tagger_path+'/bin/tree-tagger'
         self.parameter_file = tagger_path+'/lib/english-utf8.par'
 
-
     def test_create_new_instance_additional(self):
         obj = create_new_instance_additional('boy', 1, target=['a','boy','hits','a','dog'], label=1, elements=[['DT','NN','VVZ','DT','NN'], [u'un', u'garçon', u'frappe', u'un', u'chien']], elem_labels=['target_pos', 'source'])
-        self.assertTrue( obj['target_pos'] == ['DT','NN','VVZ','DT','NN'] )
-        self.assertTrue( obj['source'] == [u'un', u'garçon', u'frappe', u'un', u'chien'] )
-
+        self.assertTrue(obj['target_pos'] == ['DT','NN','VVZ','DT','NN'])
+        self.assertTrue(obj['source'] == [u'un', u'garçon', u'frappe', u'un', u'chien'])
 
     def test_parse_corpus_contexts_additional(self):
 
