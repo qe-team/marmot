@@ -7,7 +7,7 @@ import glob
 from marmot.parsers.parsers import *
 from marmot.util.simple_corpus import SimpleCorpus
 
-
+# TODO: none of these tests adhere to the new parser API, they need to be moved, updated, or deleted
 class TestCorpusParser(unittest.TestCase):
     def setUp(self):
         self.interesting_tokens = set(['the','it'])
