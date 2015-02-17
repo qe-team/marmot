@@ -3,7 +3,6 @@
 
 import unittest, os, tempfile, sys
 import glob
-from subprocess import call
 
 from marmot.parsers.parsers import *
 from marmot.util.simple_corpus import SimpleCorpus
