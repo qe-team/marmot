@@ -2,7 +2,7 @@
 #encoding: utf-8
 
 from __future__ import division, print_function
-from gensim import utils, corpora, models, similarities
+from gensim import utils, corpora
 import numpy as np
 import codecs
 
@@ -13,6 +13,7 @@ import logging
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 logger = logging.getLogger('testlogger')
 
+
 class SimpleCorpus(corpora.TextCorpus):
 
     # make sure that the token2id dict gets created
@@ -22,7 +23,6 @@ class SimpleCorpus(corpora.TextCorpus):
         corpus_file = codecs.open(corpus_file, encoding='utf8')
         super(SimpleCorpus, self).__init__(corpus_file)
         self.dictionary.id2token = {v: k for k,v in self.dictionary.token2id.items()}
-
 
     def get_texts(self):
         """
@@ -35,7 +35,6 @@ class SimpleCorpus(corpora.TextCorpus):
                 # yield [word for word in word_tokenize(utils.to_unicode(doc).lower())]
                 yield [word for word in word_tokenize(utils.to_unicode(doc))]
 
-    
     def get_texts_raw(self):
         """
         Parse documents analogously to SimpleCorpus.get_texts(),
@@ -44,9 +43,7 @@ class SimpleCorpus(corpora.TextCorpus):
         wst = WhitespaceTokenizer()
         with self.getstream() as stream:
             for doc in stream:
-                # yield [word for word in word_tokenize(utils.to_unicode(doc).lower())]
                 yield [word for word in wst.tokenize(utils.to_unicode(doc))]
-
 
     def __len__(self):
         """Define this so we can use `len(corpus)`"""
@@ -67,6 +64,7 @@ class SimpleCorpus(corpora.TextCorpus):
         vvec = sparse.csr_matrix( vec )
 #        print( "Binary vector: ", vvec.shape )
         return vvec
+
 
 # build a corpus from a file (one document per line)
 def build_corpus(filename):
