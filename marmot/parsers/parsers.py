@@ -182,4 +182,3 @@ def parse_semeval(inputfile, scoresfile, stops=False):
         return training_data
 
     return load_data(inputfile, scoresfile)
-
