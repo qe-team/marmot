@@ -52,7 +52,6 @@ def main(config):
     test_contexts = create_contexts(test_data, data_type=data_type)
     train_contexts = create_contexts(train_data, data_type=data_type)
 
-    print('TEST contexts', test_contexts[:10])
 #    for r in representation_generators:
 #        r.cleanup()
 
@@ -78,6 +77,7 @@ def main(config):
     logger.info('mapping the feature extractors over the contexts for train...')
     train_features = call_for_each_element(train_contexts, contexts_to_features, [feature_extractors, workers], data_type=data_type)
     print('TEST features', len(test_features))
+
     # flatten so that we can properly binarize the features
     all_values = []
     if data_type == 'sequential':
@@ -86,26 +86,67 @@ def main(config):
         all_values = copy.deepcopy(train_features)
     elif data_type == 'token':
         all_values = flatten(train_features.values())
+
     logger.info('fitting binarizers...')
     binarizers = fit_binarizers(all_values)
     logger.info('binarizing test data...')
     test_features = call_for_each_element(test_features, binarize, [binarizers], data_type=data_type)
     logger.info('binarizing training data...')
     train_features = call_for_each_element(train_features, binarize, [binarizers], data_type=data_type)
+
     logger.info('training sets successfully generated')
-    print('TEST features binary', len(test_features))
+
     # learning
     if data_type == 'sequential':
-        raise NotImplementedError('sequential learning hasnt been implemented yet')
+        # raise NotImplementedError('sequential learning hasnt been implemented yet')
+
+        logger.info('training sequential model...')
+        from pystruct.models import ChainCRF
+        # from pystruct.models import EdgeFeatureGraphCRF
+
+        from pystruct.learners import OneSlackSSVM
+        from pystruct.learners import StructuredPerceptron
+        from pystruct.learners import SubgradientSSVM
+
+        # Train linear chain CRF
+        model = ChainCRF(directed=True)
+        structured_predictor = OneSlackSSVM(model=model, C=.1, inference_cache=50, tol=0.1, n_jobs=1)
+        import ipdb
+        # ipdb.set_trace()
+
+        # map tags to ints
+        tag_map = {u'OK': 1, u'BAD': 0}
+        train_tags = [[tag_map[tag] for tag in seq] for seq in train_tags]
+        test_tags = [[tag_map[tag] for tag in seq] for seq in test_tags]
+
+        x_train = numpy.array([numpy.array(xi) for xi in train_features])
+        y_train = numpy.array([numpy.array(xi) for xi in train_tags])
+        x_test = numpy.array([numpy.array(xi) for xi in test_features])
+        y_test = numpy.array([numpy.array(xi) for xi in test_tags])
+        structured_predictor.fit(x_train, y_train)
+        logger.info('scoring sequential model...')
+        print('score: ' + str(structured_predictor.score(x_test, y_test)))
+        # classifier_type = import_class(config['learning']['classifier']['module'])
+        structured_hyp = structured_predictor.predict(x_test)
+        flattened_hyp = flatten(structured_hyp)
+        flattened_ref = flatten(y_test)
+        # ipdb.set_trace()
+        from sklearn.metrics import f1_score
+        logger.info('f1: ')
+        print(f1_score(flattened_ref, flattened_hyp, average=None))
+
+
     else:
+        # data_type is 'token' or 'plain'
         logger.info('start training...')
         classifier_type = import_class(config['learning']['classifier']['module'])
         # train the classifier(s)
         classifier_map = map_classifiers(train_features, train_tags, classifier_type, data_type=data_type)
 
-    logger.info('classifying the test instances')
-    test_predictions = predict_all(test_features, classifier_map, data_type=data_type)
-    print('TEST predictions', len(test_predictions))
+    # Chris: commented for sequential learning
+    # logger.info('classifying the test instances')
+    # test_predictions = predict_all(test_features, classifier_map, data_type=data_type)
+    # print('TEST predictions', len(test_predictions))
 
     if data_type == 'token':
         f1_map = {}
@@ -123,7 +164,7 @@ def main(config):
         logger.info('F1 score: ')
         print(f1)
 
-    write_res_to_file(config['test']['output'], test_predictions)
+    # write_res_to_file(config['test']['output'], test_predictions)
 
 
 if __name__ == '__main__':

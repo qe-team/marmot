@@ -3,7 +3,6 @@ import numpy
 import os
 import errno
 
-
 def import_class(module_name):
     mod_name, class_name = module_name.rsplit('.', 1)
     mod = __import__(mod_name, fromlist=[class_name])
