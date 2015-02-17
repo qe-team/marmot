@@ -24,14 +24,14 @@ def main(config):
     # <tags> can be a file with tags or a single tag
     test_data = import_and_call_function(config['test'][0])
     training_data = import_and_call_function(config['training'][0])
-#    test_data = [import_and_call_function(data_obj) for data_obj in config['test']]
-#    train_data = [import_and_call_function(data_obj) for data_obj in config['training']]
 
     # build objects for additional representations
     representation_generators = build_objects(config['additional'])
 
     # get additional representations
     # generators return a pair (label, representation)
+    # TODO: generators should return data, not filenames
+    # TODO: generators can check if the file they are trying to make already exists, if so, they should read it, if not, build the representation, and persist according to a flag
     for r in representation_generators:
         new_repr_test = r.generate(test_data)
         test_data[new_repr_test[0]] = new_repr_test[1]
@@ -48,6 +48,10 @@ def main(config):
     # how to generate the old {token:context_list} representation?
     data_type = config['contexts'] if 'contexts' in config else 'plain'
 
+    # TODO: `create_contexts` means 'read the files in the representation generator object'
+
+    # TODO: files are implicitly whitespace tokenized
+    # TODO: create_contexts maps a whitespace tokenized, line by line dataset into one of our three data representations
     test_contexts = create_contexts(test_data, data_type=data_type)
     train_contexts = create_contexts(training_data, data_type=data_type)
 
