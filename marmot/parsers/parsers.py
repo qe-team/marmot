@@ -5,13 +5,10 @@
 # return a context object from an iterable of contexts, and a set of interesting tokens
 from marmot.util.simple_corpus import SimpleCorpus
 from collections import defaultdict, Counter
-from subprocess import Popen, call
 from nltk import word_tokenize
-import time
-import os, sys, errno
 
 
-
+# TODO: begin word-specific classifiers
 # TODO: this belongs in utils
 def extract_important_tokens(corpus_file, min_count=1):
     corpus = SimpleCorpus(corpus_file)
@@ -29,6 +26,7 @@ def extract_important_tokens_wmt(corpus_file, min_count=1):
         all_words.append(line.decode('utf-8').split('\t')[2])
     word_counts = Counter(all_words)
     return set([k for k,v in word_counts.items() if v > min_count])
+
 
 def create_new_instance(token=None, idx=None, source=None, target=None, label=None):
     return {'token': token, 'index': idx, 'source': source, 'target': target, 'tag': label}
@@ -54,11 +52,11 @@ def list_of_bad_contexts(contexts, labels, interesting_tokens=None):
                 token_contexts.append(create_new_instance(tok, idx, target=doc, label=0))
     return token_contexts
 
-# TODO this is for the word-specific classifiers
 def parse_corpus_contexts(corpus_file, interesting_tokens=None, tag=1):
     corpus = SimpleCorpus(corpus_file)
     return list_of_target_contexts(corpus.get_texts(), interesting_tokens, tag=tag)
 
+# TODO: end word-specific classifiers
 
 def get_corpus_file(corpus_file, label):
     corpus = SimpleCorpus(corpus_file)
