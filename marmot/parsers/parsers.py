@@ -124,7 +124,16 @@ def get_pos_tagging( src_file, tagger, par_file, label ):
 
     return (label, output)
 
-# TODO: this is an additional representation - requires the alignment files to exist
+# TODO: this is an additional representation - requires the alignment model files to exist
+# force alignment with fastalign
+# if no alignment model provided, builds the alignment model first
+# <align_model> - path to alignment model such that <align_model>.frd_params, .rev_params, .fwd_err, .rev_err exist
+# <src_file>, <tg_file> - files to be aligned
+# returns: list of lists of possible alignments for every target word:
+#    [ [ [0], [1,2], [], [3,4], [3,4], [7], [6], [] ... ]
+#      [ ....                                           ]
+#        ....
+#      [ ....                                           ] ]
 def force_alignments(src_file, tg_file, trained_model):
     alignments = []
     aligner = Aligner(trained_model+'.fwd_params',trained_model+'.fwd_err',trained_model+'.rev_params',trained_model+'.rev_err')
@@ -144,31 +153,6 @@ def force_alignments(src_file, tg_file, trained_model):
 
     return alignments
  
-
-# force alignment with fastalign
-# TODO: commented because there is a duplicate function in simple-->parsers.py
-# if no alignment model provided, builds the alignment model first
-# <align_model> - path to alignment model such that <align_model>.frd_params, .rev_params, .fwd_err, .rev_err exist
-# <src_file>, <tg_file> - files to be aligned
-# returns: list of lists of possible alignments for every target word:
-#    [ [ [0], [1,2], [], [3,4], [3,4], [7], [6], [] ... ]
-#      [ ....                                           ]
-#        ....
-#      [ ....                                           ] ]
-# def get_alignments(src_file, tg_file, trained_model = None, src_train='', tg_train='', align_model = 'align_model', label='alignments'):
-#     alignments = []
-#     print "Get alignments"
-#     if trained_model == None:
-#         trained_model = train_alignments(src_train, tg_train, align_model)
-#         if trained_model == '':
-#             sys.stderr.write('No alignment model trained\n')
-#             return []
-#
-#     print 'Trained model: ', trained_model
-#     alignments = force_alignments( src_file, tg_file, trained_model )
-#
-#     return (label, alignments)
-
 
 # get all of the bad contexts in a list of contexts
 def list_of_bad_contexts(contexts, labels, interesting_tokens=None):
