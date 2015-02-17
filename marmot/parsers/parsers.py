@@ -64,69 +64,13 @@ def get_corpus_file(corpus_file, label):
     corpus = SimpleCorpus(corpus_file)
     return (label, corpus.get_texts())
 
-# convert WMT file to two files: plain text and labels
-#    plain text:  word word word word word
-#    labels:      OK   BAD  BAD  OK   OK
-# check that source and target have the same number of sentences, re-write source file without sentence ids
-def parse_wmt_to_text(wmt_file, wmt_source_file):
-    tmp_dir = os.getcwd()+'/tmp_dir'
-    mkdir_p(tmp_dir)
-
-    # TODO: the next three lines are critical, because the alignment representation generator depends upon them being there when it runs
-    # TODO: make the persisting of these files explicit and parameterized
-    target_file = tmp_dir+'/'+os.path.basename(wmt_file)+'.target'
-    tags_file = tmp_dir+'/'+os.path.basename(wmt_file)+'.tags'
-    source_file = tmp_dir+'/'+os.path.basename(wmt_source_file)+'.txt'
-
-    target = open(target_file, 'w')
-    tags = open(tags_file, 'w')
-    source = open(source_file, 'w')
-    cur_num = None
-    cur_sent, cur_tags = [], []
-
-    # parse source files
-    source_sents = {}
-    for line in open(wmt_source_file):
-        str_num = line.decode('utf-8').strip().split('\t')
-        source_sents[str_num[0]] = str_num[1]
-
-    # parse target file and write new source, target, and tag files
-    for line in open(wmt_file):
-        chunks = line[:-1].decode('utf-8').split('\t')
-        if chunks[0] != cur_num:
-            if cur_num is not None:
-                # check that the sentence is in source
-                if cur_num in source_sents:
-                    source.write('%s\n' % source_sents[cur_num].encode('utf-8'))
-                    target.write('%s\n' % (' '.join([w.encode('utf-8') for w in cur_sent])))
-                    tags.write('%s\n' % (' '.join([w.encode('utf-8') for w in cur_tags])))
-                cur_sent = []
-                cur_tags = []
-            cur_num = chunks[0]
-        cur_sent.append(chunks[2])
-        cur_tags.append(chunks[5])
-    # last sentence
-    if len(cur_sent) > 0 and cur_num in source_sents:
-        source.write('%s\n' % source_sents[cur_num].encode('utf-8'))
-        target.write('%s\n' % (' '.join([w.encode('utf-8') for w in cur_sent])))
-        tags.write('%s\n' % (' '.join([w.encode('utf-8') for w in cur_tags])))
-
-    tags.close()
-    target.close()
-    source.close()
-
-    return {'target': target_file, 'source': source_file, 'tag': tags_file}
-
-# TODO: parse here, don't return the file names
-def get_corpus(target_file, source_file, tag):
-    return {'target': target_file, 'source': source_file, 'tag': tag}
-
 
 from itertools import groupby
 import codecs
 
 # matching sentences may require us to include the sen id
 # if source is not provided, pass an empty string ('') as <source_file>
+# TODO: this doesn't conform to the new parser API -- returns a list of contexts
 def parse_wmt14_data(corpus_file, source_file, interesting_tokens=None):
      # recover sentences from a .tsv with senids and tokens (wmt14 format)
     def group_by_senid(filename):
@@ -174,6 +118,7 @@ def parse_wmt14_data(corpus_file, source_file, interesting_tokens=None):
 # semeval input looks like: <sen1>TAB<sen2>
 # the scores are in a separate *.gs.* file
 # TODO: this currently removes stopwords by default (despite the stops=False)
+# TODO: this doesn't conform to the new parser API -- returns a list of contexts
 import re
 import nltk
 from nltk.corpus import stopwords
