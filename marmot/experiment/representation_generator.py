@@ -2,6 +2,7 @@ from subprocess import call
 from marmot.experiment.import_utils import import_function
 
 
+# TODO: this should be an abstract base class
 # generate an additional representation
 class RepresentationGenerator():
     
@@ -20,9 +21,12 @@ class RepresentationGenerator():
 
     # returns a pair (representation_label, representation_file),
     # representation file should be sentence-aligned with target words
+    # TODO: generate the representation (optional), then parse the representation
+    # TODO: the representation is currently generated in the parser
     def generate(self, data_obj):
         all_args = [data_obj[d] for d in self.data]
         all_args.extend(self.args)
+        # TODO: parsers should return data, not filenames
         (label, file_name) = self.func(*all_args)
         self.files.append(file_name)
         return (label, file_name)

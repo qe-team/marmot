@@ -25,6 +25,8 @@ def convert_alignments(align_list, n_words):
 
 # TODO: this function adds keys to the context object, but maybe the user wants different keys
 # TODO: the function should be agnostic about which keys it adds -- why does it care?
+# there is a difference between 'sequence fields' and 'token fields'
+# this method creates a context for each token
 def create_context(repr_dict):
     '''
     :param repr_dict: a dict representing a 'line' or 'sentence' or a 'segment'

@@ -207,6 +207,8 @@ def parse_wmt_to_text(wmt_file, wmt_source_file):
     tmp_dir = os.getcwd()+'/tmp_dir'
     mkdir_p(tmp_dir)
 
+    # TODO: the next three lines are critical, because the alignment representation generator depends upon them being there when it runs
+    # TODO: make the persisting of these files explicit and parameterized
     target_file = tmp_dir+'/'+os.path.basename(wmt_file)+'.target'
     tags_file = tmp_dir+'/'+os.path.basename(wmt_file)+'.tags'
     source_file = tmp_dir+'/'+os.path.basename(wmt_source_file)+'.txt'
@@ -251,8 +253,6 @@ def parse_wmt_to_text(wmt_file, wmt_source_file):
     return {'target': target_file, 'source': source_file, 'tag': tags_file}
 
 
-
-
 def get_corpus(target_file, source_file, tag):
     return {'target': target_file, 'source': source_file, 'tag': tag}
 
@@ -260,6 +260,7 @@ def get_corpus(target_file, source_file, tag):
 def cur_dir():
     import os
     print(os.getcwd())
+
 
 # copy of the function from parsers.py, but it writes the tagging to the file
 # TODO: this is specifically for tree tagger, it's not a general pos tagging function
