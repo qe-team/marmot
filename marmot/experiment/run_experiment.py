@@ -37,12 +37,6 @@ def main(config):
         test_data[new_repr_test[0]] = new_repr_test[1]
         new_repr_train = r.generate(training_data)
         training_data[new_repr_train[0]] = new_repr_train[1]
-#        new_repr_test = [r.generate(tst) for tst in test_data]
-#        for idx, tst in enumerate(test_data):
-#            test_data[idx][new_repr_test[idx][0]] = new_repr_test[idx][1]
-#        new_repr_train = [r.generate(train) for train in train_data]
-#        for idx, train in enumerate(train_data):
-#            train_data[idx][new_repr_train[idx][0]] = new_repr_train[idx][1]
 
     # since there is only one context creator and it does nothing, we don't need it any more
     # how to generate the old {token:context_list} representation?
@@ -55,20 +49,17 @@ def main(config):
     test_contexts = create_contexts(test_data, data_type=data_type)
     train_contexts = create_contexts(training_data, data_type=data_type)
 
-
     print('TEST contexts', len(test_contexts))
     for r in representation_generators:
         r.cleanup()
 
     # make sure the test_context and train_context keys are in sync
+    # TODO: this is important when we are learning token-level classifiers
 #    experiment_utils.sync_keys(train_contexts, test_contexts)
 
+    # TODO: this is important when we are learning token-level classifiers
     # test_contexts = filter_contexts(test_contexts, min_total=min_total)
 #    assert set(test_contexts.keys()) == set(train_contexts.keys())
-
-    # extract the 'tag' attribute into the y-value for classification
-    # tags may need to be converted to be consistent with the training data
-#    wmt_binary_classes = {u'BAD': 0, u'OK': 1}
 
     train_tags = call_for_each_element(train_contexts, tags_from_contexts, data_type=data_type)
     test_tags = call_for_each_element(test_contexts, tags_from_contexts, data_type=data_type)
