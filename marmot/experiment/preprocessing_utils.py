@@ -59,7 +59,7 @@ def create_context(repr_dict):
 
 
 # create context objects from a data_obj -
-#     - a dictionary with representation labels as keys ('target', 'source', etc.) and 
+#     - a dictionary with representation labels as keys ('target', 'source', etc.) and
 #       representations (lists of lists) as values
 # output: if data_type = 'plain', one list of context objects is returned
 #         if data_type = 'sequential', a list of lists of context objects is returned (list of sequences)
