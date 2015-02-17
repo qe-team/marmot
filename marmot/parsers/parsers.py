@@ -194,7 +194,7 @@ def parse_wmt14_data(corpus_file, source_file, interesting_tokens=None):
     sen_groups = group_by_senid(corpus_file)
     source_sen_groups = None
     if source_file != '':
-        source_sen_groups = [ word_tokenize( line[:-1].split('\t')[1] ) for line in codecs.open(source_file, encoding='utf-8') ]
+        source_sen_groups = [word_tokenize(line[:-1].split('\t')[1]) for line in codecs.open(source_file, encoding='utf-8') ]
     wef = extract_word_exchange_format(sen_groups, source=source_sen_groups, interesting_tokens=interesting_tokens)
     return wef
 
