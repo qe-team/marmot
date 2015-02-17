@@ -77,55 +77,6 @@ class TestSemevalParser(unittest.TestCase):
             self.assertTrue(len(context['source']) > 0 and len(context['target']) > 0)
 
 
-class TestAdditionalRepresentations(unittest.TestCase):
-
-    def setUp(self):
-        self.interesting_tokens = set(['the','it'])
-        module_path = os.path.dirname(__file__)
-        self.tg_corpus_path = os.path.join(module_path, 'test_data/corpus.en.1000')
-        self.src_corpus_path = os.path.join(module_path, 'test_data/corpus.de.1000')
-        self.source = SimpleCorpus(self.src_corpus_path)
-        self.target = SimpleCorpus(self.tg_corpus_path)
-        tagger_path = os.environ['TREE_TAGGER'] if os.environ.has_key('TREE_TAGGER') else ''
-        if tagger_path == '':
-            sys.stderr.write('TreeTagger is not installed or TREE_TAGGER variable is not set\n')
-        self.tagger = tagger_path+'/bin/tree-tagger'
-        self.parameter_file = tagger_path+'/lib/english-utf8.par'
-
-    def test_create_new_instance_additional(self):
-        obj = create_new_instance_additional('boy', 1, target=['a','boy','hits','a','dog'], label=1, elements=[['DT','NN','VVZ','DT','NN'], [u'un', u'garçon', u'frappe', u'un', u'chien']], elem_labels=['target_pos', 'source'])
-        self.assertTrue(obj['target_pos'] == ['DT','NN','VVZ','DT','NN'])
-        self.assertTrue(obj['source'] == [u'un', u'garçon', u'frappe', u'un', u'chien'])
-
-    def test_parse_corpus_contexts_additional(self):
-
-        # tagging
-        (label_tag, tag_list) = get_pos_tagging( self.tg_corpus_path, self.tagger, self.parameter_file, 'target_pos' )
-        self.assertTrue( label_tag == 'target_pos' )
-        for sent, tags in zip(self.target.get_texts(), tag_list):
-            self.assertTrue( len(sent) == len(tags) )
-
-        for a_file in glob.glob('tmp_final*'):
-            call(['rm', a_file])
-
-        # alignment
-        (label_align, alignments) = get_alignments(self.src_corpus_path, self.tg_corpus_path, trained_model = None, src_train=self.src_corpus_path, tg_train=self.tg_corpus_path, align_model = 'align_model', label='alignments')
-        self.assertTrue(label_align == 'alignments')
-        for src, tg, align in zip(open(self.src_corpus_path), open(self.tg_corpus_path), alignments):
-            src_words = src[:-1].split()
-            tg_words = tg[:-1].split()
-            self.assertTrue(len(align) == len(tg_words))
-            self.assertTrue( [num < len(src_words) for a in align for num in a] )
-
-        for a_file in glob.glob('align_model.*'):
-            call(['rm', a_file])
-        for a_file in glob.glob(os.path.basename(self.src_corpus_path)+'_'+os.path.basename(self.tg_corpus_path)+'*'):
-            call(['rm', a_file])
-
-        additional = [(label_tag, tag_list), ('source', self.source.get_texts()), (label_align, alignments)]
-        out=parse_corpus_contexts_additional(self.tg_corpus_path, self.interesting_tokens, 1, *additional)
-  
-
 if __name__ == '__main__':
     unittest.main()
 

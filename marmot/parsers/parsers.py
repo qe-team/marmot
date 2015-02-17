@@ -10,9 +10,6 @@ from nltk import word_tokenize
 import time
 import os, sys, errno
 
-# TODO: these are for generating the representation
-from marmot.util.force_align import Aligner
-from marmot.util.alignments import train_alignments
 
 
 # TODO: this belongs in utils
@@ -36,14 +33,6 @@ def extract_important_tokens_wmt(corpus_file, min_count=1):
 def create_new_instance(token=None, idx=None, source=None, target=None, label=None):
     return {'token': token, 'index': idx, 'source': source, 'target': target, 'tag': label}
 
-# create context object with any number of fields
-# elements - values of fields
-# elem_labels - names of fields
-def create_new_instance_additional(token, idx, target=None, label=None, elements=[], elem_labels=[]):
-    context_obj = {'token': token, 'index': idx, 'target': target, 'tag': label}
-    context_obj.update( {l:el for l,el in zip(elem_labels, elements)} )
-    return context_obj
-
 
 # by default, this function returns postive contexts (tag=1), but you can specify other tags if you wish
 def list_of_target_contexts(contexts, interesting_tokens, tag=1):
@@ -52,26 +41,6 @@ def list_of_target_contexts(contexts, interesting_tokens, tag=1):
         for idx, tok in enumerate(doc):
             if interesting_tokens is None or tok in interesting_tokens:
                 token_contexts.append(create_new_instance(tok, idx, target=doc, label=tag))
-    return token_contexts
-
-# create a list of context objects with custom number of elements
-# representations - generator
-def list_of_contexts_additional(contexts, representations, repr_labels, interesting_tokens, tag=1):
-    token_contexts = []
-    for all_features in zip(contexts, *representations):
-        if len(all_features)-1 != len(repr_labels):
-            sys.stderr.write( "Wrong number of additional element labels\n" )
-            return []
-        # target sentence
-        doc = all_features[0]
-
-        for idx, tok in enumerate(doc):
-            if (interesting_tokens is None or tok in interesting_tokens):
-                token_contexts.append(create_new_instance_additional(tok, idx, target=doc, label=tag, elements=all_features[1:], elem_labels=repr_labels))
-
-    for r in representations:
-        if type(r) == 'file':
-            r.close()   
     return token_contexts
 
 

@@ -1,3 +1,11 @@
+
+# WORKING - move representation generators out of parsers file
+
+
+# TODO: these are for generating the representation
+from marmot.util.force_align import Aligner
+from marmot.util.alignments import train_alignments
+
 def mkdir_p(path):
     try:
         os.makedirs(path)
