@@ -17,26 +17,29 @@ logger = logging.getLogger('testlogger')
 
 def main(config):
     workers = config['workers']
-    print(config['test'][0]['output'])
-
+    print(config['representations'])
+    print(config['representations']['training'])
     # unify data representations
     # test_data and training_data - lists of dictionaries { target: target_file, source: source_file, tags: tags).
     # <tags> can be a file with tags or a single tag
-    test_data = import_and_call_function(config['test'][0])
-    training_data = import_and_call_function(config['training'][0])
+#    test_data = import_and_call_function(config['test'][0])
+#    training_data = import_and_call_function(config['training'][0])
 
     # build objects for additional representations
-    representation_generators = build_objects(config['additional'])
+    train_representation_generators = build_objects(config['representations']['training'])
+    test_representation_generators = build_objects(config['representations']['test'])
 
     # get additional representations
     # generators return a pair (label, representation)
     # TODO: generators should return data, not filenames
     # TODO: generators can check if the file they are trying to make already exists, if so, they should read it, if not, build the representation, and persist according to a flag
-    for r in representation_generators:
-        new_repr_test = r.generate(test_data)
-        test_data[new_repr_test[0]] = new_repr_test[1]
-        new_repr_train = r.generate(training_data)
-        training_data[new_repr_train[0]] = new_repr_train[1]
+    train_data = {}
+    test_data = {}
+    for r in train_representation_generators:
+        train_data = r.generate(train_data)
+    for r in test_representation_generators:
+        test_data = r.generate(test_data)
+    print(train_data.keys())
 
     # since there is only one context creator and it does nothing, we don't need it any more
     # how to generate the old {token:context_list} representation?
@@ -47,11 +50,11 @@ def main(config):
     # TODO: files are implicitly whitespace tokenized
     # TODO: create_contexts maps a whitespace tokenized, line by line dataset into one of our three data representations
     test_contexts = create_contexts(test_data, data_type=data_type)
-    train_contexts = create_contexts(training_data, data_type=data_type)
+    train_contexts = create_contexts(train_data, data_type=data_type)
 
-    print('TEST contexts', len(test_contexts))
-    for r in representation_generators:
-        r.cleanup()
+    print('TEST contexts', test_contexts[:10])
+#    for r in representation_generators:
+#        r.cleanup()
 
     # make sure the test_context and train_context keys are in sync
     # TODO: this is important when we are learning token-level classifiers
@@ -119,7 +122,7 @@ def main(config):
         logger.info('F1 score: ')
         print(f1)
 
-    write_res_to_file(config['test'][0]['output'], test_predictions)
+    write_res_to_file(config['test']['output'], test_predictions)
 
 
 if __name__ == '__main__':
