@@ -11,8 +11,8 @@ class AlignmentFeatureExtractorTests(unittest.TestCase):
 
     def setUp(self):
         self.module_path = os.path.dirname(os.path.realpath(__file__))
-        self.src_name = os.path.join(self.module_path,'../../preprocessing/test_data/corpus.de.1000')
-        self.tg_name = os.path.join(self.module_path,'../../preprocessing/test_data/corpus.en.1000')
+        self.src_name = os.path.join(self.module_path,'../../preprocessing/tests/test_data/corpus.de.1000')
+        self.tg_name = os.path.join(self.module_path,'../../preprocessing/tests/test_data/corpus.en.1000')
         self.aligner_no_model = AlignmentFeatureExtractor()
         self.aligner_no_model_2 = AlignmentFeatureExtractor(context_size=2)
 
@@ -30,7 +30,7 @@ class AlignmentFeatureExtractorTests(unittest.TestCase):
 
     def test_alignment_on_the_fly(self):
         obj = {'token':u'boy', 'index':1, 'source':[u'ein', u'junge', u'schlägt', u'einen', u'Hund'], 'target':[u'a', u'boy', u'hits', u'a', u'dog']}
-        aligner_corpus = AlignmentFeatureExtractor( src_file = self.src_name, tg_file = self.tg_name)
+        aligner_corpus = AlignmentFeatureExtractor(src_file = self.src_name, tg_file = self.tg_name)
         (cont_word, left, right) = aligner_corpus.get_features(obj)
         self.assertTrue(obj.has_key('alignments'))
         self.assertEqual(cont_word, u'junge')
