@@ -126,7 +126,7 @@ def contexts_to_features(contexts, feature_extractors, workers=1):
         # resulting object
         res_list = []
         pool = multi.Pool(workers)
-        logger.info('Multithreaded - Extracting categorical contexts -- ' + str(len(contexts)) + ' contexts...')
+        logger.info('Multithreaded - Extracting the features for: ' + str(len(contexts)) + ' contexts...')
         # each context is paired with all feature extractors
         for extractor in feature_extractors:
             context_list = [(cont, extractor) for cont in contexts]

@@ -41,7 +41,7 @@ def main(config):
         test_data = r.generate(test_data)
     print(train_data.keys())
 
-    # since there is only one context creator and it does nothing, we don't need it any more
+    # TODO: since there is only one context creator and it does nothing, we don't need it any more
     # how to generate the old {token:context_list} representation?
     data_type = config['contexts'] if 'contexts' in config else 'plain'
 
@@ -64,6 +64,7 @@ def main(config):
     # test_contexts = filter_contexts(test_contexts, min_total=min_total)
 #    assert set(test_contexts.keys()) == set(train_contexts.keys())
 
+    # TODO: error here for sequential data
     train_tags = call_for_each_element(train_contexts, tags_from_contexts, data_type=data_type)
     test_tags = call_for_each_element(test_contexts, tags_from_contexts, data_type=data_type)
     print('TEST tags', len(test_tags))
@@ -95,7 +96,7 @@ def main(config):
     print('TEST features binary', len(test_features))
     # learning
     if data_type == 'sequential':
-        pass
+        raise NotImplementedError('sequential learning hasnt been implemented yet')
     else:
         logger.info('start training...')
         classifier_type = import_class(config['learning']['classifier']['module'])

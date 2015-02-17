@@ -131,6 +131,7 @@ def token_contexts_to_features(token_contexts, feature_extractors, workers=1):
 
 
 # feature extraction for categorical features with convertation to one-hot representation
+# TODO: this is unused code right now -- remove or update in favor of the new 'data_type' param
 def token_contexts_to_features_categorical(token_contexts, feature_extractors, workers=1):
     #single thread
     if workers == 1:

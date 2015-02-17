@@ -38,10 +38,9 @@ def list_of_lists(a_list):
 # call the same function for the data organised in different structures
 def call_for_each_element(data, function, args=[], data_type='sequential'):
     if data_type == 'plain':
-        assert(not list_of_lists(data[0]))
         return function(data, *args)
     elif data_type == 'sequential':
-        assert(list_of_lists(data[0]))
+        assert(list_of_lists(data))
         return [function(d, *args) for d in data]
     elif data_type == 'token':
         assert(type(data) == dict)

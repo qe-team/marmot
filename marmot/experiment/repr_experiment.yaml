@@ -1,4 +1,4 @@
-workers: 2
+workers: 1
 #tmp_dir: ...
 test:
     output: tiny_test/EN_ES.tgt_ann.test
@@ -70,7 +70,8 @@ representations:
 # if 'sequential', contexts are generated as lists of lists (lists of sequences)
 # if 'plain', a single list of contexts is generated
 # if 'token', a separate list of contexts for every token
-contexts: plain
+# TODO: change the contexts param name to 'data_type' for clarity
+contexts: sequential
 filters:
   - min_count: 100
   - min_label_count: 30
