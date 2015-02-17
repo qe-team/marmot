@@ -10,7 +10,7 @@ from marmot.util.ngram_window_extractor import left_context, right_context
 # all features that require source dictionary
 class AlignmentFeatureExtractor(FeatureExtractor):
 
-    def __init__(self, align_model='', src_file='', tg_file=''):
+    def __init__(self, align_model='', src_file='', tg_file='', context_size=1):
         self.model = ''
 
         # no alignment model
@@ -21,8 +21,9 @@ class AlignmentFeatureExtractor(FeatureExtractor):
                 self.model = train_alignments(src_file, tg_file)
         else:
             self.model = align_model
+        self.context_size = context_size
 
-    def get_features(self, context_obj, context_size=1):
+    def get_features(self, context_obj):
         if 'source' not in context_obj or 'target' not in context_obj or context_obj['source'] is None or context_obj['target'] is None:
             print('Source and/or target sentences are not defined. Not enough information for alignment features extraction')
             return []
@@ -37,12 +38,12 @@ class AlignmentFeatureExtractor(FeatureExtractor):
         source_nums = context_obj['alignments'][context_obj['index']]
         # if word is unaligned - no source and no source contexts
         if source_nums == []:
-            return ['Unaligned', ['Unaligned' for i in range(context_size)], ['Unaligned' for i in range(context_size)]]
+            return ['Unaligned', ['Unaligned' for i in range(self.context_size)], ['Unaligned' for i in range(self.context_size)]]
 
         # TODO: find contexts for all words aligned to the token (now only 1st word)
         else:
-            left = left_context(context_obj['source'], context_obj['source'][source_nums[0]], context_size=context_size, idx=source_nums[0])
-            right = right_context(context_obj['source'], context_obj['source'][source_nums[0]], context_size=context_size, idx=source_nums[0])
+            left = left_context(context_obj['source'], context_obj['source'][source_nums[0]], context_size=self.context_size, idx=source_nums[0])
+            right = right_context(context_obj['source'], context_obj['source'][source_nums[0]], context_size=self.context_size, idx=source_nums[0])
 
         return [context_obj['source'][source_nums[0]], left, right]
 

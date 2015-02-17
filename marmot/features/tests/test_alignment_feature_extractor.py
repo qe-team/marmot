@@ -14,6 +14,7 @@ class AlignmentFeatureExtractorTests(unittest.TestCase):
         self.src_name = os.path.join(self.module_path,'../../preprocessing/test_data/corpus.de.1000')
         self.tg_name = os.path.join(self.module_path,'../../preprocessing/test_data/corpus.en.1000')
         self.aligner_no_model = AlignmentFeatureExtractor()
+        self.aligner_no_model_2 = AlignmentFeatureExtractor(context_size=2)
 
 
     def test_alignment_in_obj(self):
@@ -22,7 +23,7 @@ class AlignmentFeatureExtractorTests(unittest.TestCase):
         self.assertEqual(cont_word, u'un')
         self.assertEqual(left, [u'frappe'])
         self.assertEqual(right, [u'chien'])
-        (cont_word, left, right) = self.aligner_no_model.get_features(obj, context_size=2)
+        (cont_word, left, right) = self.aligner_no_model_2.get_features(obj)
         self.assertEqual(left, [u'garcon',u'frappe'])
         self.assertEqual(right, [u'chien', '_END_'])
 
