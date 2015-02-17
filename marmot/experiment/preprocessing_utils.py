@@ -81,7 +81,6 @@ def create_contexts(data_obj, data_type='plain'):
         #print(data_obj)
         return []
 
-    # TODO: tokenization is performed implicitly here -- this means that files _must_ be whitespace tokenized
     for sents in zip(*data_obj.values()):
         if data_type == 'sequential':
             contexts.append(create_context({data_obj.keys()[i]: sents[i] for i in range(len(sents))}))
