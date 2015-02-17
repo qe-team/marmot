@@ -1,5 +1,8 @@
 # we need numpy to check the type of objects in list_of_lists
 import numpy
+import os
+import errno
+
 
 def import_class(module_name):
     mod_name, class_name = module_name.rsplit('.', 1)
@@ -81,3 +84,18 @@ def build_objects(object_list, root_element='module'):
         obj = build_object(obj_info)
         objects.append(obj)
     return objects
+
+
+# create a directory
+def mkdir(tmp_dir):
+    if tmp_dir is None:
+        tmp_dir = os.getcwd() + '/tmp_dir'
+    try:
+        os.makedirs(tmp_dir)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(tmp_dir):
+            pass
+        else:
+            raise
+
+    return tmp_dir

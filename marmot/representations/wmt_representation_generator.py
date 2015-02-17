@@ -3,18 +3,10 @@ import errno
 from nltk import word_tokenize
 
 from marmot.representations.representation_generator import RepresentationGenerator
+from marmot.experiment.import_utils import mkdir
 
 
 class WMTRepresentationGenerator(RepresentationGenerator):
-
-    def _mkdir_p(self, path):
-        try:
-            os.makedirs(path)
-        except OSError as exc:  # Python >2.5
-            if exc.errno == errno.EEXIST and os.path.isdir(path):
-                pass
-            else:
-                raise
 
     def _write_to_file(self, filename, lofl):
         a_file = open(filename, 'w')
@@ -22,7 +14,7 @@ class WMTRepresentationGenerator(RepresentationGenerator):
             a_file.write('%s\n' % (' '.join([w.encode('utf-8') for w in sentence])))
         a_file.close()
 
-    def _parse_wmt_to_text(self, wmt_file, wmt_source_file, tmp_dir=None, persist=False):
+    def _parse_wmt_to_text(self, wmt_file, wmt_source_file, tmp_dir, persist=False):
 
         # parse source files
         source_sents = {}
@@ -55,9 +47,7 @@ class WMTRepresentationGenerator(RepresentationGenerator):
             tags.append(cur_tags)
 
         if persist:
-            if tmp_dir is None:
-                tmp_dir = os.getcwd()+'/tmp_dir'
-            self._mkdir_p(tmp_dir)
+            tmp_dir = mkdir(tmp_dir)
             target_file = tmp_dir+'/'+os.path.basename(wmt_file)+'.target'
             tags_file = tmp_dir+'/'+os.path.basename(wmt_file)+'.tags'
             source_file = tmp_dir+'/'+os.path.basename(wmt_source_file)+'.txt'
@@ -68,9 +58,7 @@ class WMTRepresentationGenerator(RepresentationGenerator):
         return {'target': target, 'source': source, 'tags': tags}
 
     def __init__(self, tg_file, src_file, tmp_dir=None, persist=False):
-        if tmp_dir is None:
-            tmp_dir = os.getcwd()
-        self.data = self._parse_wmt_to_text(tg_file, src_file, tmp_dir=tmp_dir, persist=persist)
+        self.data = self._parse_wmt_to_text(tg_file, src_file, tmp_dir, persist=persist)
 
     def generate(self, data_obj=None):
         return self.data
