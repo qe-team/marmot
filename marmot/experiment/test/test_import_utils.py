@@ -1,12 +1,10 @@
 import unittest
 import yaml
-import sys,os
+import os
 import inspect
-import numpy as np
 import marmot
-from marmot.experiment import experiment_utils
 from marmot.experiment import import_utils
-import time
+
 
 def join_with_module_path(loader, node):
     """ define custom tag handler to join paths with the path of the marmot module """
@@ -14,7 +12,7 @@ def join_with_module_path(loader, node):
     resolved = loader.construct_scalar(node)
     return os.path.join(module_path, resolved)
 
-## register the tag handler
+# register the tag handler
 yaml.add_constructor('!join', join_with_module_path)
 
 
@@ -41,7 +39,7 @@ class TestRunExperiment(unittest.TestCase):
     def test_call_function(self):
         func_name = 'marmot.preprocessing.parsers.parse_corpus_contexts'
         func = import_utils.import_function(func_name)
-        interesting_tokens = set(['the','it'])
+        interesting_tokens = set(['the', 'it'])
         corpus_path = os.path.join(self.module_path, 'test_data/corpus.en.1000')
         args = [corpus_path, interesting_tokens]
         result = import_utils.call_function(func, args)
@@ -68,12 +66,11 @@ class TestFunctionTree(unittest.TestCase):
         self.interesting_tokens = extract_important_tokens(important_tokens_path)
         self.contexts = parse_corpus_contexts(self.corpus_path, self.interesting_tokens)
 
-
     def test_call_sample_function_tree(self):
         graph_obj = self.config['test_obj']
-        func = experiment_utils.import_function(graph_obj['func'])
+        func = import_utils.import_function(graph_obj['func'])
         args = graph_obj['args']
-        json_contexts = experiment_utils.function_tree(func, args)
+        json_contexts = import_utils.function_tree(func, args)
 
         self.assertTrue(type(json_contexts) == str)
         self.assertListEqual(json.loads(json_contexts), self.contexts)
