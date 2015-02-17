@@ -1,7 +1,7 @@
 import unittest, os
 from marmot.preprocessing.words_from_file import get_tokens
 
-class WordsFromFileTests( unittest.TestCase ):
+class WordsFromFileTests(unittest.TestCase):
     def setUp(self):
         self.interesting_tokens = set(['the','it'])
         module_path = os.path.dirname(__file__)
