@@ -41,6 +41,8 @@ def train_alignments(src_train, tg_train, tmp_dir, align_model='align_model'):
     rev_align.close()
     fwd_err.close()
     rev_err.close()
+    
+    return align_model_full
 
 
 def align_sentence(src_line, tg_line, align_model):
