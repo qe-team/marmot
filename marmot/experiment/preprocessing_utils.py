@@ -38,19 +38,20 @@ def create_context(repr_dict):
     if 'target' not in repr_dict:
         print("No 'target' label in data representations")
         return []
-    if 'tag' not in repr_dict or not (type(repr_dict['tag']) == list or type(repr_dict['tag']) == int):
+    if 'tags' not in repr_dict:
         print("No 'tag' label in data representations or wrong format of tag")
+        print(repr_dict)
         return []
     if 'alignments' in repr_dict:
         repr_dict['alignments'] = convert_alignments(repr_dict['alignments'], len(repr_dict['target']))
 
     active_keys = repr_dict.keys()
-    active_keys.remove('tag')
+    active_keys.remove('tags')
     for idx, word in enumerate(repr_dict['target']):
         c = {}
         c['token'] = word
         c['index'] = idx
-        c['tag'] = repr_dict['tag'] if type(repr_dict['tag']) == int else repr_dict['tag'][idx]
+        c['tag'] = repr_dict['tags'] if type(repr_dict['tags']) == int else repr_dict['tags'][idx]
         for k in active_keys:
             c[k] = repr_dict[k]
         context_list.append(c)
@@ -58,7 +59,8 @@ def create_context(repr_dict):
 
 
 # create context objects from a data_obj -
-#     - a dictionary with representation labels as keys ('target', 'source', etc.) and files as values
+#     - a dictionary with representation labels as keys ('target', 'source', etc.) and 
+#       representations (lists of lists) as values
 # output: if data_type = 'plain', one list of context objects is returned
 #         if data_type = 'sequential', a list of lists of context objects is returned (list of sequences)
 #         if data_type = 'token', a dict {token: <list_of_contexts>} is returned
@@ -74,14 +76,13 @@ def create_contexts(data_obj, data_type='plain'):
         print("No 'target' label in data representations")
         return []
 
-    if 'tag' not in data_obj or not (os.path.isfile(data_obj['tag']) or type(data_obj['tag']) == int):
+    if 'tags' not in data_obj:
         print("No 'tag' label in data representations or wrong format of tag")
-        print(data_obj)
+        #print(data_obj)
         return []
 
     # TODO: tokenization is performed implicitly here -- this means that files _must_ be whitespace tokenized
-    corpora = [SimpleCorpus(d) for d in data_obj.values()]
-    for sents in zip(*[c.get_texts_raw() for c in corpora]):
+    for sents in zip(*data_obj.values()):
         if data_type == 'sequential':
             contexts.append(create_context({data_obj.keys()[i]: sents[i] for i in range(len(sents))}))
         else:
@@ -172,7 +173,7 @@ def fit_binarizers(all_values):
 def binarize(features, binarizers):
     assert(list_of_lists(features))
     num_features = len(features[0])
-    assert(max(binarizers.keys()) < num_features)
+    assert(binarizers == {} or max(binarizers.keys()) < num_features)
     new_features = np.ndarray((len(features), 0))
     for i in range(num_features):
         cur_values = [f[i] for f in features]
