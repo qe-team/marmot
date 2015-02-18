@@ -39,18 +39,18 @@ def main(config):
 
     logger.info('here are your representations: {}'.format(train_data.keys()))
 
+
     # TODO: since there is only one context creator and it does nothing, we don't need it any more
 
     # how to generate the old {token:context_list} representation?
     # Answer: we should do this in 'create_contexts'
     data_type = config['contexts'] if 'contexts' in config else 'plain'
 
-    # TODO: `create_contexts` means 'read the files in the representation generator object'
-
-    # TODO: files are implicitly whitespace tokenized
     # TODO: create_contexts maps a whitespace tokenized, line by line dataset into one of our three data representations
     test_contexts = create_contexts(test_data, data_type=data_type)
     train_contexts = create_contexts(train_data, data_type=data_type)
+
+    # END REPRESENTATION GENERATION
 
 #    for r in representation_generators:
 #        r.cleanup()
@@ -63,10 +63,8 @@ def main(config):
     # test_contexts = filter_contexts(test_contexts, min_total=min_total)
 #    assert set(test_contexts.keys()) == set(train_contexts.keys())
 
-    # TODO: error here for sequential data
     train_tags = call_for_each_element(train_contexts, tags_from_contexts, data_type=data_type)
     test_tags = call_for_each_element(test_contexts, tags_from_contexts, data_type=data_type)
-    print('TEST tags', len(test_tags))
 
     # all of the feature extraction should be parallelizable
     # note that a feature extractor MUST be able to parse the context exchange format, or it should throw an error:
@@ -79,6 +77,11 @@ def main(config):
 
     logger.info('number of training instances: {}'.format(len(train_features)))
     logger.info('number of testing instances: {}'.format(len(test_features)))
+
+    logger.info('All of your features now exist in their raw representation, but they may not be numbers yet')
+    # END RAW FEATURE EXTRACTION
+
+    # BEGIN CONVERTING FEATURES TO NUMBERS
 
     # flatten so that we can properly binarize the features
     all_values = []
@@ -97,9 +100,13 @@ def main(config):
     # TODO: this line hangs with alignment+w2v
     train_features = call_for_each_element(train_features, binarize, [binarizers], data_type=data_type)
 
-    logger.info('training sets successfully generated')
+    logger.info('training and test sets successfully generated')
+    logger.info('All of your features are now scalars')
 
-    # learning
+    # BEGIN LEARNING
+
+    # TODO: different sequence learning modules need different representation, we should wrap them in a class
+    # TODO: create a consistent interface to sequence learners, will need to use *args and **kwargs because APIs are very different
     import ipdb
     from sklearn.metrics import f1_score
     import numpy as np
@@ -130,10 +137,11 @@ def main(config):
         lengths_train = [len(seq) for seq in train_features]
         lengths_test = [len(seq) for seq in test_features]
 
-        clf = StructuredPerceptron(verbose=True, max_iter=100)
+        clf = StructuredPerceptron(verbose=True, max_iter=200)
         clf.fit(x_train, y_train, lengths_train)
 
         structured_predictions = clf.predict(x_test, lengths_test)
+        logger.info('f1 from seqlearn: {}'.format(f1_score(y_test, structured_predictions, average=None)))
         ipdb.set_trace()
 
         # pystruct
