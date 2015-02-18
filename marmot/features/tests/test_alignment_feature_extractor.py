@@ -21,11 +21,11 @@ class AlignmentFeatureExtractorTests(unittest.TestCase):
         obj = {'token':u'hits', 'index':2, 'target':[u'a',u'boy',u'hits',u'a',u'dog'], 'source':[u'un', u'garcon',u'frappe', u'un', u'chien'], 'target_pos':['DT','NN','VBZ', 'DT', 'NN'], 'source_pos':['DT','NN','VBZ', 'DT', 'NN'], 'alignments':[[0],[1],[3],[2],[4]]}
         (cont_word, left, right) = self.aligner_no_model.get_features(obj)
         self.assertEqual(cont_word, u'un')
-        self.assertEqual(left, [u'frappe'])
-        self.assertEqual(right, [u'chien'])
+        self.assertEqual(left, u'frappe')
+        self.assertEqual(right, u'chien')
         (cont_word, left, right) = self.aligner_no_model_2.get_features(obj)
-        self.assertEqual(left, [u'garcon',u'frappe'])
-        self.assertEqual(right, [u'chien', '_END_'])
+        self.assertEqual(left, u'garcon frappe')
+        self.assertEqual(right, u'chien _END_')
 
 
     def test_alignment_on_the_fly(self):
@@ -52,8 +52,8 @@ class AlignmentFeatureExtractorTests(unittest.TestCase):
         obj = {'token':u'hits', 'index':2, 'target':[u'a',u'boy',u'hits',u'a',u'dog'], 'source':[u'un', u'garcon',u'frappe', u'un', u'chien'], 'target_pos':['DT','NN','VBZ', 'DT', 'NN'], 'source_pos':['DT','NN','VBZ', 'DT', 'NN'], 'alignments':[[0],[1],[],[2],[4]]}
         (cont_word, left, right) = self.aligner_no_model.get_features(obj)
         self.assertEqual(cont_word, u'Unaligned')
-        self.assertEqual(left, [u'Unaligned'])
-        self.assertEqual(right, [u'Unaligned'])
+        self.assertEqual(left, u'Unaligned')
+        self.assertEqual(right, u'Unaligned')
 
 
 
