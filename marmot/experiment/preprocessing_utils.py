@@ -1,4 +1,5 @@
 from __future__ import print_function
+
 import os
 import copy
 import multiprocessing as multi
@@ -153,7 +154,6 @@ def fit_binarizers(all_values):
     binarizers = {}
     for f in range(len(all_values[0])):
         cur_features = [context[f] for context in all_values]
-
         # only categorical values need to be binarized, ints/floats are left as they are
         if type(cur_features[0]) == str or type(cur_features[0]) == unicode:
             lb = LabelBinarizer()
@@ -169,21 +169,25 @@ def fit_binarizers(all_values):
 
 
 # convert categorical features to one-hot representations with pre-fitted binarizers
+# TODO: this function implicitly converts the data into a numpy array
 def binarize(features, binarizers):
     assert(list_of_lists(features))
     num_features = len(features[0])
     assert(binarizers == {} or max(binarizers.keys()) < num_features)
-    new_features = np.ndarray((len(features), 0))
+
+    binarized_cols = []
     for i in range(num_features):
+        # get this column
         cur_values = [f[i] for f in features]
+        # if there's a binarizer for this column
         if i in binarizers:
             binarizer = binarizers[i]
             if type(binarizer) == LabelBinarizer:
-                transformed = binarizer.transform(cur_values)
-                new_features = np.hstack((new_features, binarizer.transform(cur_values)))
+                binarized_cols.append(binarizer.transform(cur_values))
             elif type(binarizer) == MultiLabelBinarizer:
                 assert(list_of_lists(cur_values))
                 # MultiLabelBinarizer doesn't support unknown values -- they need to be replaced with a default value
+                # we're going to use the empty list as the default value
                 cur_values_default = []
                 default_value = binarizer.classes_[-1]
                 for a_list in cur_values:
@@ -194,8 +198,13 @@ def binarize(features, binarizers):
                     cur_values_default.append(tuple(new_list))
 
                 transformed = binarizer.transform(cur_values_default)
-                new_features = np.hstack((new_features, transformed))
+                binarized_cols.append(transformed)
+            else:
+                raise NotImplementedError('this function is not implemented for type: {}'.format(type(binarizer)))
         else:
-            cur_values = np.ndarray((len(cur_values),1), buffer=np.array(cur_values))
-            new_features = np.hstack((new_features, cur_values))
+            binarized_cols.append(np.array(cur_values).reshape(len(cur_values),1))
+
+    assert (len(binarized_cols) == num_features), 'the number of columns after binarization must match the number of features'
+    new_features = np.hstack(binarized_cols)
+
     return new_features
