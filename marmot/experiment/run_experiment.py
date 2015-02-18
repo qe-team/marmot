@@ -85,7 +85,7 @@ def main(config):
     if data_type == 'sequential':
         all_values = flatten(train_features)
     elif data_type == 'plain':
-        all_values = copy.deepcopy(train_features)
+        all_values = train_features
     elif data_type == 'token':
         all_values = flatten(train_features.values())
 
@@ -94,6 +94,7 @@ def main(config):
     logger.info('binarizing test data...')
     test_features = call_for_each_element(test_features, binarize, [binarizers], data_type=data_type)
     logger.info('binarizing training data...')
+    # TODO: this line hangs with alignment+w2v
     train_features = call_for_each_element(train_features, binarize, [binarizers], data_type=data_type)
 
     logger.info('training sets successfully generated')
