@@ -29,6 +29,18 @@ representations:
     - module: marmot.representations.alignment_representation_generator.AlignmentRepresentationGenerator
       args:
         - tiny_test/europarl_align_model
+    - module: marmot.representations.pos_representation_generator.POSRepresentationGenerator
+      args:
+        - tiny_test/tree-tagger
+        - tiny_test/spanish-par-linux-3.2-utf8.bin
+        - 'target'
+        - tiny_test/tmp_dir
+    - module: marmot.representations.pos_representation_generator.POSRepresentationGenerator
+      args:
+        - tiny_test/tree-tagger
+        - tiny_test/english-utf8.par
+        - 'source'
+        - tiny_test/tmp_dir
   test:
     - module: marmot.representations.wmt_representation_generator.WMTRepresentationGenerator
       args:
@@ -39,6 +51,18 @@ representations:
     - module: marmot.representations.alignment_representation_generator.AlignmentRepresentationGenerator
       args:
         - tiny_test/europarl_align_model
+    - module: marmot.representations.pos_representation_generator.POSRepresentationGenerator
+      args:
+        - tiny_test/tree-tagger
+        - tiny_test/spanish-par-linux-3.2-utf8.bin
+        - 'target'
+        - tiny_test/tmp_dir
+    - module: marmot.representations.pos_representation_generator.POSRepresentationGenerator
+      args:
+        - tiny_test/tree-tagger
+        - tiny_test/english-utf8.par
+        - 'source'
+        - tiny_test/tmp_dir
 
 #  - module: marmot.experiment.representation_generator.RepresentationGenerator
 #    args: 
