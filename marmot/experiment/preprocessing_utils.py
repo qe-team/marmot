@@ -42,8 +42,8 @@ def create_context(repr_dict):
         print("No 'tag' label in data representations or wrong format of tag")
         print(repr_dict)
         return []
-    if 'alignments' in repr_dict:
-        repr_dict['alignments'] = convert_alignments(repr_dict['alignments'], len(repr_dict['target']))
+#    if 'alignments' in repr_dict:
+#        repr_dict['alignments'] = convert_alignments(repr_dict['alignments'], len(repr_dict['target']))
 
     active_keys = repr_dict.keys()
     active_keys.remove('tags')

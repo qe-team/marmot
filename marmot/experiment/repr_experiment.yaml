@@ -26,13 +26,19 @@ representations:
         - tiny_test/EN_ES.source.train
         - tiny_test/tmp_dir
         - False
+    - module: marmot.representations.alignment_representation_generator.AlignmentRepresentationGenerator
+      args:
+        - tiny_test/europarl_align_model
   test:
     - module: marmot.representations.wmt_representation_generator.WMTRepresentationGenerator
       args:
         - tiny_test/EN_ES.tgt_ann.test
         - tiny_test/EN_ES.source.test
         - tiny_test/tmp_dir
-        - True
+        - False
+    - module: marmot.representations.alignment_representation_generator.AlignmentRepresentationGenerator
+      args:
+        - tiny_test/europarl_align_model
 
 #  - module: marmot.experiment.representation_generator.RepresentationGenerator
 #    args: 
@@ -79,11 +85,11 @@ filters:
 
 feature_extractors:
   - module: marmot.features.token_count_feature_extractor.TokenCountFeatureExtractor
-#  - module: marmot.features.alignment_feature_extractor.AlignmentFeatureExtractor
-#    args:
-#      - ''                                               # alignment model
-#      - ''     # parallel corpus - source
-#      - ''     # parallel corpus - target
+  - module: marmot.features.alignment_feature_extractor.AlignmentFeatureExtractor
+    args:
+      - ''                                               # alignment model
+      - ''     # parallel corpus - source
+      - ''     # parallel corpus - target
   - module: marmot.features.dictionary_feature_extractor.DictionaryFeatureExtractor
     args:
       - 'spanish'              # target language for stopwords extraction
