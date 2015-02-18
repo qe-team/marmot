@@ -100,42 +100,73 @@ def main(config):
     logger.info('training sets successfully generated')
 
     # learning
+    import ipdb
     from sklearn.metrics import f1_score
+    import numpy as np
     if data_type == 'sequential':
-        # raise NotImplementedError('sequential learning hasnt been implemented yet')
-
         logger.info('training sequential model...')
-        from pystruct.models import ChainCRF
-        # from pystruct.models import EdgeFeatureGraphCRF
-
-        from pystruct.learners import OneSlackSSVM
-        from pystruct.learners import StructuredPerceptron
-        from pystruct.learners import SubgradientSSVM
-
-        # Train linear chain CRF
-        model = ChainCRF(directed=True)
-        # structured_predictor = OneSlackSSVM(model=model, C=.1, inference_cache=50, tol=0.1, n_jobs=1)
-        structured_predictor = StructuredPerceptron(model=model, average=True)
 
         # map tags to ints
         tag_map = {u'OK': 1, u'BAD': 0}
-        train_tags = [[tag_map[tag] for tag in seq] for seq in train_tags]
-        test_tags = [[tag_map[tag] for tag in seq] for seq in test_tags]
+        # train_tags = [[tag_map[tag] for tag in seq] for seq in train_tags]
+        # test_tags = [[tag_map[tag] for tag in seq] for seq in test_tags]
 
-        x_train = numpy.array([numpy.array(xi) for xi in train_features])
-        y_train = numpy.array([numpy.array(xi) for xi in train_tags])
-        x_test = numpy.array([numpy.array(xi) for xi in test_features])
-        y_test = numpy.array([numpy.array(xi) for xi in test_tags])
-        structured_predictor.fit(x_train, y_train)
+        # cast the dataset to numpy array (ndarrays)
+        x_train = np.array([numpy.array(xi) for xi in train_features])
+        y_train = np.array([numpy.array(xi) for xi in train_tags])
+        x_test = np.array([numpy.array(xi) for xi in test_features])
+        y_test = np.array([numpy.array(xi) for xi in test_tags])
+
+        # SEQLEARN
+        # seqlearn needs a flat list of instances
+
+        from seqlearn.perceptron import StructuredPerceptron
+        # seqlearn requires the lengths of each sequence
+        x_train = np.array([i for seq in x_train for i in seq])
+        y_train = np.array([i for seq in y_train for i in seq])
+        x_test = np.array([i for seq in x_test for i in seq])
+        y_test = np.array([i for seq in y_test for i in seq])
+
+        lengths_train = [len(seq) for seq in train_features]
+        lengths_test = [len(seq) for seq in test_features]
+
+        clf = StructuredPerceptron(verbose=True, max_iter=100)
+        clf.fit(x_train, y_train, lengths_train)
+
+        structured_predictions = clf.predict(x_test, lengths_test)
+        ipdb.set_trace()
+
+        # pystruct
+
+        # from pystruct.models import ChainCRF
+        # from pystruct.models import EdgeFeatureGraphCRF
+        # from pystruct.learners import OneSlackSSVM
+        #from pystruct.learners import StructuredPerceptron
+        from pystruct.learners import SubgradientSSVM
+        # Train linear chain CRF
+        # model = ChainCRF(directed=True)
+        # structured_predictor = OneSlackSSVM(model=model, C=.1, inference_cache=50, tol=0.1, n_jobs=1)
+        # structured_predictor = StructuredPerceptron(model=model, average=True)
+        # structured_predictor.fit(x_train, y_train)
+
         logger.info('scoring sequential model...')
         print('score: ' + str(structured_predictor.score(x_test, y_test)))
+
+        # TODO: implement this in the config
         # classifier_type = import_class(config['learning']['classifier']['module'])
+
+        # TODO: the flattening is currently a hack to let us use the same evaluation code for structured and plain tasks
         structured_hyp = structured_predictor.predict(x_test)
         flattened_hyp = flatten(structured_hyp)
-        flattened_ref = flatten(y_test)
-        logger.info('f1: ')
-        print(f1_score(flattened_ref, flattened_hyp, average=None))
 
+        # end pystruct
+
+        test_predictions = flattened_hyp
+        flattened_ref = flatten(y_test)
+        test_tags = flattened_ref
+
+        logger.info('Structured prediction f1: ')
+        print(f1_score(flattened_ref, flattened_hyp, average=None))
 
     else:
         # data_type is 'token' or 'plain'
@@ -143,11 +174,12 @@ def main(config):
         classifier_type = import_class(config['learning']['classifier']['module'])
         # train the classifier(s)
         classifier_map = map_classifiers(train_features, train_tags, classifier_type, data_type=data_type)
+        logger.info('classifying the test instances')
+        test_predictions = predict_all(test_features, classifier_map, data_type=data_type)
 
     # Chris: commented for sequential learning
     # TODO: this section only works for 'plain'
-    logger.info('classifying the test instances')
-    test_predictions = predict_all(test_features, classifier_map, data_type=data_type)
+
     print(f1_score(test_predictions, test_tags, average=None))
     # Chris: commented for sequential learning
 
