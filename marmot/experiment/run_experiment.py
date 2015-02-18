@@ -101,7 +101,6 @@ def main(config):
 
     # learning
     from sklearn.metrics import f1_score
-    import ipdb
     if data_type == 'sequential':
         # raise NotImplementedError('sequential learning hasnt been implemented yet')
 
@@ -117,7 +116,6 @@ def main(config):
         model = ChainCRF(directed=True)
         # structured_predictor = OneSlackSSVM(model=model, C=.1, inference_cache=50, tol=0.1, n_jobs=1)
         structured_predictor = StructuredPerceptron(model=model, average=True)
-        # ipdb.set_trace()
 
         # map tags to ints
         tag_map = {u'OK': 1, u'BAD': 0}
@@ -135,7 +133,6 @@ def main(config):
         structured_hyp = structured_predictor.predict(x_test)
         flattened_hyp = flatten(structured_hyp)
         flattened_ref = flatten(y_test)
-        # ipdb.set_trace()
         logger.info('f1: ')
         print(f1_score(flattened_ref, flattened_hyp, average=None))
 
@@ -159,7 +156,6 @@ def main(config):
     good_count = sum(1 for t in test_tags if t == u'OK')
 
     total = len(test_tags)
-    # ipdb.set_trace()
     assert (total == bad_count+good_count), 'tag counts should be correct'
     percent_good = good_count / total
     logger.info('percent good in test set: {}'.format(percent_good))
@@ -174,7 +170,6 @@ def main(config):
         random_class_f1 = f1_score(test_tags, random_tags, average=None)
         random_class_results.append(random_class_f1)
         # logger.info('two class f1 random score ({}): {}'.format(i, random_class_f1))
-        # ipdb.set_trace()
         # random_average_f1 = f1_score(random_tags, test_tags, average='weighted')
         random_average_f1 = weighted_fmeasure(test_tags, random_tags)
         random_weighted_results.append(random_average_f1)
