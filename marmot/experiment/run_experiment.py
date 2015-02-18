@@ -17,13 +17,10 @@ logger = logging.getLogger('experiment_logger')
 
 def main(config):
     workers = config['workers']
-    print(config['representations'])
-    print(config['representations']['training'])
+
     # unify data representations
     # test_data and training_data - lists of dictionaries { target: target_file, source: source_file, tags: tags).
     # <tags> can be a file with tags or a single tag
-#    test_data = import_and_call_function(config['test'][0])
-#    training_data = import_and_call_function(config['training'][0])
 
     # build objects for additional representations
     train_representation_generators = build_objects(config['representations']['training'])
@@ -39,10 +36,13 @@ def main(config):
         train_data = r.generate(train_data)
     for r in test_representation_generators:
         test_data = r.generate(test_data)
-    print(train_data.keys())
+
+    logger.info('here are your representations: {}'.format(train_data.keys()))
 
     # TODO: since there is only one context creator and it does nothing, we don't need it any more
+
     # how to generate the old {token:context_list} representation?
+    # Answer: we should do this in 'create_contexts'
     data_type = config['contexts'] if 'contexts' in config else 'plain'
 
     # TODO: `create_contexts` means 'read the files in the representation generator object'
@@ -77,8 +77,8 @@ def main(config):
     logger.info('mapping the feature extractors over the contexts for train...')
     train_features = call_for_each_element(train_contexts, contexts_to_features, [feature_extractors, workers], data_type=data_type)
 
-    logger.info('number of training instances: '.format(len(train_features)))
-    logger.info('number of testing instances: '.format(len(test_features)))
+    logger.info('number of training instances: {}'.format(len(train_features)))
+    logger.info('number of testing instances: {}'.format(len(test_features)))
 
     # flatten so that we can properly binarize the features
     all_values = []
