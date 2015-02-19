@@ -2,6 +2,7 @@ from nltk import ngrams, word_tokenize
 import codecs
 
 from marmot.features.feature_extractor import FeatureExtractor
+from marmot.util.ngram_window_extractor import extract_window, left_context, right_context
 
 
 # Class that extracts various LM features
@@ -13,7 +14,7 @@ class LMFeatureExtractor(FeatureExtractor):
         self.order = order
         self.lm = [set() for i in range(order)]
         for line in codecs.open(corpus_file, encoding='utf-8'):
-            words = word_tokenize(line[:-1])
+            words = [u'_START_'] + word_tokenize(line[:-1]) + [u'_END_']
             for i in range(1, order):
                 self.lm[i] = self.lm[i].union(ngrams(words, i+1))
             self.lm[0] = self.lm[0].union(words)
@@ -51,12 +52,21 @@ class LMFeatureExtractor(FeatureExtractor):
     #                       highest order ngram including the word and its RIGHT context
     def get_features(self, context_obj):
         idx = context_obj['index']
-        left_ngram = self.check_lm(context_obj['target'][:idx+1], side='left')
-        right_ngram = self.check_lm(context_obj['target'][idx:], side='right')
-        backoff_left = self.get_backoff(context_obj['target'][idx-2:idx+1])
-        backoff_middle = self.get_backoff(context_obj['target'][idx-1:idx+2])
-        backoff_right = self.get_backoff(context_obj['target'][idx:idx+3])
-        return [left_ngram, right_ngram, backoff_left, backoff_middle, backoff_right]
+
+        left_ngram = left_context(context_obj['target'], context_obj['token'], context_size=self.order-1, idx=idx) + [context_obj['token']]
+        right_ngram = [context_obj['token']] + right_context(context_obj['target'], context_obj['token'], context_size=self.order-1, idx=idx)
+        left_ngram_order = self.check_lm(left_ngram, side='left')
+        right_ngram_order = self.check_lm(right_ngram, side='right')
+
+        left_trigram = left_context(context_obj['target'], context_obj['token'], context_size=2, idx=idx) + [context_obj['token']]
+        middle_trigram = extract_window(context_obj['target'], context_obj['token'], idx=idx)
+        right_trigram = [context_obj['token']] + right_context(context_obj['target'], context_obj['token'], context_size=2, idx=idx)
+
+        backoff_left = self.get_backoff(left_trigram)
+        backoff_middle = self.get_backoff(middle_trigram)
+        backoff_right = self.get_backoff(right_trigram)
+
+        return [left_ngram_order, right_ngram_order, backoff_left, backoff_middle, backoff_right]
 
     def get_feature_names(self):
         return ['highest_order_ngram_left', 'highest_order_ngram_right', 'backoff_behavior_left', 'backoff_behavior_middle', 'backoff_behavior_right']

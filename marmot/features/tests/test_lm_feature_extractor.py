@@ -27,7 +27,7 @@ class LMFeatureExtractorTests(unittest.TestCase):
         self.assertEqual(right5, 2)
 
     def test_backoff(self):
-        context_obj = {'token':'for', 'index':2, 'source':[u'c',u'\'',u'est',u'un',u'garçon'], 'target':[u'It', u'becomes', u'more', u'more', u'difficult', u'for', u'us', u'to', u'protect', u'her', u'brands', u'in', u'China', '.'], 'tag':'G'}
+        context_obj = {'token':'more', 'index':2, 'source':[u'c',u'\'',u'est',u'un',u'garçon'], 'target':[u'It', u'becomes', u'more', u'more', u'difficult', u'for', u'us', u'to', u'protect', u'her', u'brands', u'in', u'China', '.'], 'tag':'G'}
         (left3, right3, back_l, back_m, back_r) = self.lm3Extractor.get_features(context_obj)
         self.assertAlmostEqual(back_l, 1.0)
         self.assertAlmostEqual(back_m, 0.4)
@@ -41,6 +41,12 @@ class LMFeatureExtractorTests(unittest.TestCase):
         (left3, right3, back_l, back_m, back_r) = self.lm3Extractor.get_features(context_obj)
         self.assertAlmostEqual(back_l, 0.1)
         self.assertAlmostEqual(back_m, 0.2)
+        self.assertAlmostEqual(back_r, 0.3)
+
+    def test_start_end(self):
+        (left3, right3, back_l, back_m, back_r) = self.lm3Extractor.get_features({'token':'short', 'index':0, 'source':[u'c',u'\'',u'est',u'un',u'garçon'], 'target':[u'short', u'sentence'], 'tag':'G'})
+        self.assertAlmostEqual(back_l, 0.3)
+        self.assertAlmostEqual(back_m, 0.3)
         self.assertAlmostEqual(back_r, 0.3)
 
 
