@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+
+        <title>Context objects - MARMOT - feature extraction and machine learning for NLP</title>
+
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome-4.0.3.css" rel="stylesheet">
+        <link href="../css/prettify-1.0.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+        
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            
+
+            <!-- Main title -->
+            <a class="navbar-brand" href="..">MARMOT - feature extraction and machine learning for NLP</a>
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+            
+                <!-- Main navigation -->
+                <ul class="nav navbar-nav">
+                
+                
+                    <li class="active">
+                        <a href=".">Context objects</a>
+                    </li>
+                
+                
+                
+                    <li >
+                        <a href="../feature_extractors">Feature extractors</a>
+                    </li>
+                
+                
+                
+                    <li >
+                        <a href="../representations">Representations</a>
+                    </li>
+                
+                
+                </ul>
+            
+
+            
+            <!-- Search, Navigation and Repo links -->
+            <ul class="nav navbar-nav navbar-right">
+                
+                
+                <li >
+                    <a rel="next" href="..">
+                        <i class="fa fa-arrow-left"></i> Previous
+                    </a>
+                </li>
+                <li >
+                    <a rel="prev" href="../feature_extractors">
+                        Next <i class="fa fa-arrow-right"></i>
+                    </a>
+                </li>
+                
+                
+            </ul>
+            
+        </div>
+    </div>
+</div>
+
+        <div class="container">
+            <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+    
+        <li class="main active"><a href="#qeobj-and-nlpobj-the-qe-and-nlp-data-json-exchange-format">QEObj and NLPObj - The QE and NLP Data JSON Exchange Format:</a></li>
+        
+    
+    </ul>
+</div></div>
+            <div class="col-md-9" role="main">
+
+<h3 id="qeobj-and-nlpobj-the-qe-and-nlp-data-json-exchange-format">QEObj and NLPObj - The QE and NLP Data JSON Exchange Format:</h3>
+<ul>
+<li>We propose the following object representation for exchanging QE data (and for the general exchange of NLP data of all kinds).
+ <code>{ 'token': &lt;token&gt;, index: &lt;idx&gt;, 'source': [&lt;source toks&gt;]', 'target': [&lt;target toks&gt;], 'tag': &lt;tag&gt;}</code>
+Any of the fields in a QEObj may be missing (i.e. may be null), so the components that use them should ensure that the objects they consume have the neccessary fields populated. Of course, you are free to add fields, but it may limit the extensibility of your code.</li>
+</ul>
+<p>We allow all fields to be nullable to account for the reality of missing or unnecessary data, and to give maximum flexibility to implementations. However, this design decision means that feature extractors must ensure that a QEObj has the fields that the feature extractor requires.</p>
+<p>Feature Extractors should throw an error when the data they need is missing.
+<!-- insert an example of how a feature extractor should fail if it gets called with a contextObj that has missing fields --></p>
+</div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            
+            <p>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+
+        
+
+        <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+        <script src="../js/bootstrap-3.0.3.min.js"></script>
+        <script src="../js/prettify-1.0.min.js"></script>
+        <script src="../js/base.js"></script>
+    </body>
+</html>
