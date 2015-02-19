@@ -9,7 +9,7 @@
         
         <link rel="shortcut icon" href="../img/favicon.ico">
 
-        <title>Another page - MARMOT - feature extraction and machine learning for NLP</title>
+        <title>Representations - MARMOT - feature extraction and machine learning for NLP</title>
 
         <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
         <link href="../css/font-awesome-4.0.3.css" rel="stylesheet">
@@ -54,7 +54,7 @@
                 
                 
                     <li class="active">
-                        <a href=".">Another page</a>
+                        <a href=".">Representations</a>
                     </li>
                 
                 
@@ -88,14 +88,16 @@
             <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
     
-        <li class="main active"><a href="#this-is-another-page">this is another page</a></li>
+        <li class="main active"><a href="#representations">Representations</a></li>
         
     
     </ul>
 </div></div>
             <div class="col-md-9" role="main">
 
-<h2 id="this-is-another-page">this is another page</h2>
+<h3 id="representations">Representations</h3>
+<p>A representation is exactly what it sounds like -- a way of representing your data. For many NLP tasks, a model must be learned before the data can be mapped into a new representation. This applies to parsing, POS tagging, chunking, alignment, etc...     </p>
+<p>It often makes more sense to compute representations offline -- i.e. not when we are trying to learn our models, because computing the representation at feature extraction time can make things much slower. For this reason, we introduce the concept of <em>representation generators</em>. A representation generator adds some data to your context objects, data that will be used to compute some feature values later in the experiment pipeline. </p>
 </div>
         </div>
 
