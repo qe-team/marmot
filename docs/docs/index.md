@@ -2,6 +2,8 @@
 <center> <h1>Welcome to Marmot</h1> </center>
 <!-- ![Marmot Picture](http://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Marmot-edit1.jpg/1024px-Marmot-edit1.jpg) -->
 
+[github repo](https://github.com/qe-team/marmot)
+
 ## Design Philosophy
 
 
