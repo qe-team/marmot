@@ -29,12 +29,12 @@ class POSFeatureExtractor(FeatureExtractor):
 
     def get_features(self, context_obj):
         if 'target_pos' not in context_obj:
-            if 'target' in context_obj and context_obj['target'] is not None:
+            if 'target' in context_obj and context_obj['target'] is not None and self.tagger is not None and self.par_tg is not None:
                 context_obj['target_pos'] = self._call_tagger(context_obj['target'])
             else:
                 context_obj['target_pos'] = []
         if 'source_pos' not in context_obj:
-            if 'source' in context_obj and context_obj['source'] is not None:
+            if 'source' in context_obj and context_obj['source'] is not None and self.tagger is not None and self.par_tg is not None:
                 context_obj['source_pos'] = self._call_tagger(context_obj['source'], lang='src')
             else:
                 context_obj['source_pos'] = []
