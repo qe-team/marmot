@@ -23,18 +23,17 @@ def main(config):
     # <tags> can be a file with tags or a single tag
 
     # build objects for additional representations
-    train_representation_generators = build_objects(config['representations']['training'])
-    test_representation_generators = build_objects(config['representations']['test'])
+    representation_generators = build_objects(config['representations'])
 
     # get additional representations
     # generators return a pair (label, representation)
-    # TODO: generators should return data, not filenames
     # TODO: generators can check if the file they are trying to make already exists, if so, they should read it, if not, build the representation, and persist according to a flag
-    train_data = {}
-    test_data = {}
-    for r in train_representation_generators:
+    train_data_generator = build_object(config['datasets']['training'][0])
+    test_data_generator = build_object(config['datasets']['test'][0])
+    train_data = train_data_generator.generate({})
+    test_data = test_data_generator.generate({})
+    for r in representation_generators:
         train_data = r.generate(train_data)
-    for r in test_representation_generators:
         test_data = r.generate(test_data)
 
     logger.info('here are your representations: {}'.format(train_data.keys()))
@@ -49,7 +48,7 @@ def main(config):
     # TODO: create_contexts maps a whitespace tokenized, line by line dataset into one of our three data representations
     test_contexts = create_contexts(test_data, data_type=data_type)
     train_contexts = create_contexts(train_data, data_type=data_type)
-
+ 
     # END REPRESENTATION GENERATION
 
 #    for r in representation_generators:
@@ -69,6 +68,7 @@ def main(config):
     # all of the feature extraction should be parallelizable
     # note that a feature extractor MUST be able to parse the context exchange format, or it should throw an error:
     # { 'token': <token>, index: <idx>, 'source': [<source toks>]', 'target': [<target toks>], 'tag': <tag>}
+    logger.info('creating feature extractors...')
     feature_extractors = build_objects(config['feature_extractors'])
     logger.info('mapping the feature extractors over the contexts for test...')
     test_features = call_for_each_element(test_contexts, contexts_to_features, [feature_extractors, workers], data_type=data_type)

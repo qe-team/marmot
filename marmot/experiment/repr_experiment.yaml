@@ -1,107 +1,43 @@
-workers: 2
-#tmp_dir: ...
+workers: 10
+tmp: &tmp_dir tiny_test/tmp_dir
 test:
     output: tiny_test/EN_ES.tgt_ann.test
-#  - func: marmot.preprocessing.parsers.parse_wmt_to_text
-#    args:
-#      - tiny_test/EN_ES.tgt_ann.test
-#      - tiny_test/EN_ES.source.test
 
-#training:
-#   - func: marmot.preprocessing.parsers.parse_wmt_to_text
-#     args:
-#      - tiny_test/EN_ES.tgt_ann.train
-#       - tiny_test/EN_ES.source.train
-#   - func: get_corpus
-#     args:
-#       - target
-#       - source
-#       - 0
-
-representations:
+datasets:
   training:
     - module: marmot.representations.wmt_representation_generator.WMTRepresentationGenerator
       args:
         - tiny_test/EN_ES.tgt_ann.train
         - tiny_test/EN_ES.source.train
-        - tiny_test/tmp_dir
+        - *tmp_dir
         - False
-    - module: marmot.representations.alignment_representation_generator.AlignmentRepresentationGenerator
-      args:
-        - tiny_test/europarl_align_model
-    - module: marmot.representations.pos_representation_generator.POSRepresentationGenerator
-      args:
-        - tiny_test/tree-tagger
-        - tiny_test/spanish-par-linux-3.2-utf8.bin
-        - 'target'
-        - tiny_test/tmp_dir
-    - module: marmot.representations.pos_representation_generator.POSRepresentationGenerator
-      args:
-        - tiny_test/tree-tagger
-        - tiny_test/english-utf8.par
-        - 'source'
-        - tiny_test/tmp_dir
-    - module: marmot.representations.google_translate_representation_generator.GoogleTranslateRepresentationGenerator
-      args:
-        - 'es'
   test:
     - module: marmot.representations.wmt_representation_generator.WMTRepresentationGenerator
       args:
         - tiny_test/EN_ES.tgt_ann.test
         - tiny_test/EN_ES.source.test
-        - tiny_test/tmp_dir
+        - *tmp_dir
         - False
-    - module: marmot.representations.alignment_representation_generator.AlignmentRepresentationGenerator
-      args:
-        - tiny_test/europarl_align_model
-    - module: marmot.representations.pos_representation_generator.POSRepresentationGenerator
-      args:
-        - tiny_test/tree-tagger
-        - tiny_test/spanish-par-linux-3.2-utf8.bin
-        - 'target'
-        - tiny_test/tmp_dir
-    - module: marmot.representations.pos_representation_generator.POSRepresentationGenerator
-      args:
-        - tiny_test/tree-tagger
-        - tiny_test/english-utf8.par
-        - 'source'
-        - tiny_test/tmp_dir
-    - module: marmot.representations.google_translate_representation_generator.GoogleTranslateRepresentationGenerator
-      args:
-        - 'es'
 
-#  - module: marmot.experiment.representation_generator.RepresentationGenerator
-#    args: 
-#      - marmot.preprocessing.parsers.get_pos_tagging # function to use
-#      - 'target'                                     # data to use (source, target, tags or combinations)
-#      - tiny_test/tree-tagger                                  # parameters of the function, any number
-#      - tiny_test/spanish-par-linux-3.2-utf8.bin
-#      - 'target_pos'
-#  - module: marmot.experiment.representation_generator.RepresentationGenerator
-#    args:
-#      - marmot.preprocessing.parsers.get_pos_tagging
-#      - 'source'
-#     - tiny_test/tree-tagger
-#      - tiny_test/english-utf8.par
-#      - 'source_pos'
-#  - module: marmot.experiment.representation_generator.RepresentationGenerator
-#    args:
-#      - marmot.preprocessing.parsers.get_alignments
-#      - ['source', 'target']
-#     - tiny_test/europarl_align_model
-
-#  - module: marmot.experiment.representation_generator.RepresentationGenerator
-#    args:
-#      - marmot.preprocessing.parsers.get_alignments
-#      - ['source', 'target']
-#      - type: function_output
-#        func: marmot.util.alignments.train_alignments
-#        args:
-#          - tiny_test/europarl.1000.en
-#          - tiny_test/europarl.1000.es
-#          - align_model
-#      - '' # this is not a placeholder, this parameter should be an empty string
-#      - ''
+representations:
+  - module: marmot.representations.alignment_representation_generator.AlignmentRepresentationGenerator
+    args:
+      - tiny_test/europarl_align_model
+  - module: marmot.representations.pos_representation_generator.POSRepresentationGenerator
+    args:
+      - tiny_test/tree-tagger
+      - tiny_test/spanish-par-linux-3.2-utf8.bin
+      - 'target'
+      - *tmp_dir
+  - module: marmot.representations.pos_representation_generator.POSRepresentationGenerator
+    args:
+      - tiny_test/tree-tagger
+      - tiny_test/english-utf8.par
+      - 'source'
+      - *tmp_dir
+  - module: marmot.representations.google_translate_representation_generator.GoogleTranslateRepresentationGenerator
+    args:
+      - 'es'
 
 # if 'sequential', contexts are generated as lists of lists (lists of sequences)
 # if 'plain', a single list of contexts is generated
@@ -125,16 +61,23 @@ feature_extractors:
       - 'spanish'              # target language for stopwords extraction
   - module: marmot.features.lm_feature_extractor.LMFeatureExtractor
     args:
-      - tiny_test/europarl.1000.es # file for LM
+      - /export/data/varvara/corpora/europarl-full/europarl-v7.es-en.es.true # file for LM
+      - 3                                            # LM order
+  - module: marmot.features.source_lm_feature_extractor.SourceLMFeatureExtractor
+    args:
+      - /export/data/varvara/corpora/europarl-full/europarl-v7.es-en.en.true # file for LM
       - 3                                            # LM order
   - module: marmot.features.google_translate_feature_extractor.GoogleTranslateFeatureExtractor
     args:
       - 'es'
-#  - module: marmot.features.pos_feature_extractor.POSFeatureExtractor
-#    args:
-#      - tiny_test/tree-tagger
-#      - tiny_test/english-utf8.par
-#      - tiny_test/spanish-par-linux-3.2-utf8.bin
+  - module: marmot.features.pos_feature_extractor.POSFeatureExtractor
+    args:
+      - tiny_test/tree-tagger
+      - tiny_test/english-utf8.par
+      - tiny_test/spanish-par-linux-3.2-utf8.bin
+  - module: marmot.features.wordnet_feature_extractor.WordnetFeatureExtractor
+      - 'en'
+      - 'spa'
 
 learning:
   classifier:
