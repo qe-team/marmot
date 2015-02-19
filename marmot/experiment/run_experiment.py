@@ -128,16 +128,16 @@ def main(config):
         # seqlearn needs a flat list of instances
 
         from seqlearn.perceptron import StructuredPerceptron
-        # seqlearn requires the lengths of each sequence
         x_train = np.array([i for seq in x_train for i in seq])
         y_train = np.array([i for seq in y_train for i in seq])
         x_test = np.array([i for seq in x_test for i in seq])
         y_test = np.array([i for seq in y_test for i in seq])
 
+        # seqlearn requires the lengths of each sequence
         lengths_train = [len(seq) for seq in train_features]
         lengths_test = [len(seq) for seq in test_features]
 
-        clf = StructuredPerceptron(verbose=True, max_iter=200)
+        clf = StructuredPerceptron(verbose=True, max_iter=400)
         clf.fit(x_train, y_train, lengths_train)
 
         structured_predictions = clf.predict(x_test, lengths_test)
@@ -207,6 +207,7 @@ def main(config):
     random_weighted_results = []
     for i in range(20):
         random_tags = list(np.random.choice([u'OK', u'BAD'], total, [percent_good, 1-percent_good]))
+        # random_tags = [u'GOOD' for i in range(total)]
         random_class_f1 = f1_score(test_tags, random_tags, average=None)
         random_class_results.append(random_class_f1)
         # logger.info('two class f1 random score ({}): {}'.format(i, random_class_f1))

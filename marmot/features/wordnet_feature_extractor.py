@@ -30,9 +30,9 @@ class WordnetFeatureExtractor(FeatureExtractor):
     def get_features(self, context_obj):
         if self.pos_dict is not None and 'target_pos' in context_obj:
             cur_pos = context_obj['target_pos'][context_obj['index']]
-            return len(wn.wordnet.synsets(context_obj['token'], pos=self.pos_dict[cur_pos], lang=self.lang))
+            return [len(wn.wordnet.synsets(context_obj['token'], pos=self.pos_dict[cur_pos], lang=self.lang))]
         else:
-            return len(wn.wordnet.synsets(context_obj['token'], lang=self.lang))
+            return [len(wn.wordnet.synsets(context_obj['token'], lang=self.lang))]
 
     def get_feature_names(self):
-        return ["polysemy count"]
+        return ["polysemy_count"]
