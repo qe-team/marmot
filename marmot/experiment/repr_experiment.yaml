@@ -76,6 +76,7 @@ feature_extractors:
       - tiny_test/english-utf8.par
       - tiny_test/spanish-par-linux-3.2-utf8.bin
   - module: marmot.features.wordnet_feature_extractor.WordnetFeatureExtractor
+    args:
       - 'en'
       - 'spa'
 
