@@ -1,4 +1,4 @@
-workers: 1
+workers: 2
 #tmp_dir: ...
 test:
     output: tiny_test/EN_ES.tgt_ann.test
@@ -41,6 +41,9 @@ representations:
         - tiny_test/english-utf8.par
         - 'source'
         - tiny_test/tmp_dir
+    - module: marmot.representations.google_translate_representation_generator.GoogleTranslateRepresentationGenerator
+      args:
+        - 'es'
   test:
     - module: marmot.representations.wmt_representation_generator.WMTRepresentationGenerator
       args:
@@ -63,6 +66,9 @@ representations:
         - tiny_test/english-utf8.par
         - 'source'
         - tiny_test/tmp_dir
+    - module: marmot.representations.google_translate_representation_generator.GoogleTranslateRepresentationGenerator
+      args:
+        - 'es'
 
 #  - module: marmot.experiment.representation_generator.RepresentationGenerator
 #    args: 
@@ -101,7 +107,7 @@ representations:
 # if 'plain', a single list of contexts is generated
 # if 'token', a separate list of contexts for every token
 # TODO: change the contexts param name to 'data_type' for clarity
-contexts: sequential
+contexts: plain
 filters:
   - min_count: 100
   - min_label_count: 30
@@ -121,6 +127,9 @@ feature_extractors:
     args:
       - tiny_test/europarl.1000.es # file for LM
       - 3                                            # LM order
+  - module: marmot.features.google_translate_feature_extractor.GoogleTranslateFeatureExtractor
+    args:
+      - 'es'
 #  - module: marmot.features.pos_feature_extractor.POSFeatureExtractor
 #    args:
 #      - tiny_test/tree-tagger

@@ -66,6 +66,7 @@ def create_context(repr_dict):
 #         if data_type = 'sequential', a list of lists of context objects is returned (list of sequences)
 #         if data_type = 'token', a dict {token: <list_of_contexts>} is returned
 # TODO: this function requires the 'target' and 'tag' keys, but the user may wish to specify other keys
+# TODO: 'target' and 'tag' don't make sense for every task
 def create_contexts(data_obj, data_type='plain'):
     '''
     :param data_obj: an object representing a dataset consisting of files
@@ -79,7 +80,6 @@ def create_contexts(data_obj, data_type='plain'):
 
     if 'tags' not in data_obj:
         print("No 'tag' label in data representations or wrong format of tag")
-        #print(data_obj)
         return []
 
     for sents in zip(*data_obj.values()):

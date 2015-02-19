@@ -2,12 +2,12 @@ from nltk import ngrams, word_tokenize
 import codecs
 
 from marmot.features.feature_extractor import FeatureExtractor
-from marmot.util.ngram_window_extractor import extract_window, left_context, right_context
+from marmot.util.ngram_window_extractor import left_context, right_context
 
 
 # Class that extracts various LM features
 # Calling an external LM is very slow, so a new lm is constructed with nltk
-class LMFeatureExtractor(FeatureExtractor):
+class SourceLMFeatureExtractor(FeatureExtractor):
 
     def __init__(self, corpus_file, order=3):
 
@@ -51,22 +51,34 @@ class LMFeatureExtractor(FeatureExtractor):
     # currently extracting: highest order ngram including the word and its LEFT context,
     #                       highest order ngram including the word and its RIGHT context
     def get_features(self, context_obj):
-        idx = context_obj['index']
+        if 'source' not in context_obj or 'alignments' not in context_obj:
+            print("No source and/or alignment information for extraction of source LM features")
+            return []
+        align = sorted(context_obj['alignments'][context_obj['index']])
+        # unaligned
+        if align == []:
+            return [0, 0]
+        idx_first = align[0]
+        idx_last = align[-1]
+        words_number = idx_last - idx_first
+        tokens = context_obj['source'][idx_first:idx_last+1]
 
-        left_ngram = left_context(context_obj['target'], context_obj['token'], context_size=self.order-1, idx=idx) + [context_obj['token']]
-        right_ngram = [context_obj['token']] + right_context(context_obj['target'], context_obj['token'], context_size=self.order-1, idx=idx)
+        left_ngram = left_context(context_obj['source'], tokens[0], context_size=self.order-1-words_number, idx=idx_first) + tokens
+        right_ngram = tokens + right_context(context_obj['source'], tokens[-1], context_size=self.order-1-words_number, idx=idx_last)
         left_ngram_order = self.check_lm(left_ngram, side='left')
         right_ngram_order = self.check_lm(right_ngram, side='right')
 
-        left_trigram = left_context(context_obj['target'], context_obj['token'], context_size=2, idx=idx) + [context_obj['token']]
-        middle_trigram = extract_window(context_obj['target'], context_obj['token'], idx=idx)
-        right_trigram = [context_obj['token']] + right_context(context_obj['target'], context_obj['token'], context_size=2, idx=idx)
+        #left_trigram = left_context(context_obj['target'], context_obj['token'], context_size=2, idx=idx) + [context_obj['token']]
+        #middle_trigram = extract_window(context_obj['target'], context_obj['token'], idx=idx)
+        #right_trigram = [context_obj['token']] + right_context(context_obj['target'], context_obj['token'], context_size=2, idx=idx)
 
-        backoff_left = self.get_backoff(left_trigram)
-        backoff_middle = self.get_backoff(middle_trigram)
-        backoff_right = self.get_backoff(right_trigram)
+        #backoff_left = self.get_backoff(left_trigram)
+        #backoff_middle = self.get_backoff(middle_trigram)
+        #backoff_right = self.get_backoff(right_trigram)
 
-        return [left_ngram_order, right_ngram_order, backoff_left, backoff_middle, backoff_right]
+        #return [left_ngram_order, right_ngram_order, backoff_left, backoff_middle, backoff_right]
+        return [left_ngram_order, right_ngram_order]
 
     def get_feature_names(self):
-        return ['highest_order_ngram_left', 'highest_order_ngram_right', 'backoff_behavior_left', 'backoff_behavior_middle', 'backoff_behavior_right']
+        return ['source_highest_order_ngram_left', 'source_highest_order_ngram_right']
+#        return ['highest_order_ngram_left', 'highest_order_ngram_right', 'backoff_behavior_left', 'backoff_behavior_middle', 'backoff_behavior_right']
