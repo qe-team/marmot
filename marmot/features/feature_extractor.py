@@ -8,11 +8,6 @@
 
 from abc import ABCMeta, abstractmethod
 
-# this is an abstract class which extracts contexts according to a user-provided implementation
-# a negative context is a context that is representative of a WRONG usage of a word
-# a negative context for a word may have nothing to do with a positive context (i.e. it may just be random)
-
-
 class FeatureExtractor(object):
 
     __metaclass__ = ABCMeta
