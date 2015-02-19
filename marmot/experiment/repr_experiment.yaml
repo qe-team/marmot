@@ -61,11 +61,11 @@ feature_extractors:
       - 'spanish'              # target language for stopwords extraction
   - module: marmot.features.lm_feature_extractor.LMFeatureExtractor
     args:
-      - /export/data/varvara/corpora/europarl-full/europarl-v7.es-en.es.true # file for LM
+      - tiny_test/europarl.1000.es # file for LM
       - 3                                            # LM order
   - module: marmot.features.source_lm_feature_extractor.SourceLMFeatureExtractor
     args:
-      - /export/data/varvara/corpora/europarl-full/europarl-v7.es-en.en.true # file for LM
+      - tiny_test/europarl.1000.en # file for LM
       - 3                                            # LM order
   - module: marmot.features.google_translate_feature_extractor.GoogleTranslateFeatureExtractor
     args:
