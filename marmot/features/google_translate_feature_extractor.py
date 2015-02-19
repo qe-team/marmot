@@ -3,6 +3,7 @@ from nltk import word_tokenize
 import ipdb
 
 from marmot.features.feature_extractor import FeatureExtractor
+from marmot.exceptions.no_data_error import NoDataError
 
 
 class GoogleTranslateFeatureExtractor(FeatureExtractor):
@@ -12,8 +13,7 @@ class GoogleTranslateFeatureExtractor(FeatureExtractor):
 
     def get_features(self, context_obj):
         if 'source' not in context_obj:
-            print("No source for translation")
-            return []
+            raise NoDataError('source', context_obj, 'GoogleTranslateFeatureExtractor')
         
         if 'pseudo-reference' in context_obj:
             translation = context_obj['pseudo-reference']

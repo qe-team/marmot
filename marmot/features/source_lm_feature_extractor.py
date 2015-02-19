@@ -3,6 +3,7 @@ import codecs
 
 from marmot.features.feature_extractor import FeatureExtractor
 from marmot.util.ngram_window_extractor import left_context, right_context
+from marmot.exceptions.no_data_error import NoDataError
 
 
 # Class that extracts various LM features
@@ -51,9 +52,10 @@ class SourceLMFeatureExtractor(FeatureExtractor):
     # currently extracting: highest order ngram including the word and its LEFT context,
     #                       highest order ngram including the word and its RIGHT context
     def get_features(self, context_obj):
-        if 'source' not in context_obj or 'alignments' not in context_obj:
-            print("No source and/or alignment information for extraction of source LM features")
-            return []
+        if 'source' not in context_obj:
+            raise NoDataError('source', context_obj, 'SourceLMFeatureExtractor') 
+        if 'alignments' not in context_obj:
+            raise NoDataError('alignments', context_obj, 'SourceLMFeatureExtractor') 
         align = sorted(context_obj['alignments'][context_obj['index']])
         # unaligned
         if align == []:

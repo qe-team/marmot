@@ -6,6 +6,7 @@ import errno
 from marmot.features.feature_extractor import FeatureExtractor
 from marmot.util.alignments import train_alignments, align_sentence
 from marmot.util.ngram_window_extractor import left_context, right_context
+from marmot.exceptions.no_data_error import NoDataError
 
 
 # all features that require source dictionary
@@ -36,14 +37,14 @@ class AlignmentFeatureExtractor(FeatureExtractor):
         self.context_size = context_size
 
     def get_features(self, context_obj):
-        if 'source' not in context_obj or 'target' not in context_obj or context_obj['source'] is None or context_obj['target'] is None:
-            print('Source and/or target sentences are not defined. Not enough information for alignment features extraction')
-            return []
+        if 'source' not in context_obj or context_obj['source'] is None:
+            raise NoDataError('source', context_obj, 'AlignmentFeatureExtractor')
+        if 'target' not in context_obj or context_obj['source'] is None or context_obj['target'] is None:
+            raise NoDataError('target', context_obj, 'AlignmentFeatureExtractor')
 
         if 'alignments' not in context_obj:
             if self.model == '':
-                print('No alignment model specified and no pre-defined alignments in context object')
-                return []
+                raise NoDataError('alignments', context_obj, 'AlignmentFeatureExtractor')
             context_obj['alignments'] = align_sentence(context_obj['source'], context_obj['target'], self.model)
 
         # source word(s)
