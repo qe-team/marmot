@@ -9,6 +9,7 @@ from marmot.experiment.import_utils import *
 from marmot.experiment.preprocessing_utils import *
 from marmot.experiment.learning_utils import map_classifiers, predict_all
 from marmot.evaluation.evaluation_metrics import weighted_fmeasure
+from marmot.evaluation.evaluation_utils import compare_vocabulary
 from marmot.evaluation.evaluation_utils import write_res_to_file
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
@@ -34,12 +35,12 @@ def main(config):
 
     logger.info('here are the keys in your representations: {}'.format(train_data.keys()))
 
+    # the data_type is the format corresponding to the model of the data that the user wishes to learn
     data_type = config['contexts'] if 'contexts' in config else 'plain'
 
     test_contexts = create_contexts(test_data, data_type=data_type)
     train_contexts = create_contexts(train_data, data_type=data_type)
 
-    from marmot.evaluation.evaluation_utils import compare_vocabulary
     logger.info('Vocabulary comparison -- coverage for each dataset: ')
     logger.info(compare_vocabulary([train_data['target'], test_data['target']]))
  
@@ -98,6 +99,23 @@ def main(config):
         logger.info('All of your features are now scalars in numpy arrays')
 
     logger.info('training and test sets successfully generated')
+
+    # the way that we persist depends upon the structure of the data (plain/sequence/token_dict)
+    # TODO: remove this once we have a list containing all datasets
+    if config['features']['persist']:
+        experiment_datasets = [{'name': 'test', 'features': test_features}, {'name': 'train', 'features': train_features}]
+        # persist features to csv with the labels as the last column
+        if config['features']['persist_dir']:
+            persist_dir = config['features']['persist_dir']
+        else:
+            persist_dir = os.path.getcwd()
+        logger.info('persisting your features to: '.format(persist_dir))
+        # for each dataset, write a file and persist the features
+        for dataset_obj in experiment_datasets:
+            pass
+            # save_features()
+
+
 
     # TODO: we should only learn and evaluate the model if this is what the user wants
     # TODO: we should be able to dump the features for each of the user's datasets to a file specified by the user
