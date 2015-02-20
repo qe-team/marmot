@@ -6,8 +6,18 @@ import yaml
 import os
 import shutil
 
+import marmot
 from marmot.representations.wmt_representation_generator import WMTRepresentationGenerator
 from marmot.experiment.import_utils import build_object
+
+def join_with_module_path(loader, node):
+    """ define custom tag handler to join paths with the path of the marmot module """
+    module_path = os.path.dirname(marmot.representations.tests.__file__)
+    resolved = loader.construct_scalar(node)
+    return os.path.join(module_path, resolved)
+
+## register the tag handler
+yaml.add_constructor('!join', join_with_module_path)
 
 
 class WMTRepresentationGeneratorTests(unittest.TestCase):
@@ -20,9 +30,13 @@ class WMTRepresentationGeneratorTests(unittest.TestCase):
         with open(test_config, "r") as cfg_file:
             self.config = yaml.load(cfg_file.read())
 
+        self.target = os.path.join(module_path, 'test_data/EN_ES.tgt_ann.train')
+        self.source = os.path.join(module_path, 'test_data/EN_ES.tgt_ann.train')
+        self. = os.path.join(module_path, 'test_data/EN_ES.tgt_ann.train')
+
     def test_load_from_config(self):
         generator = build_object(self.config['representations']['training'][0])
-        data_obj = generator.generate({})
+        data_obj = generator.generate()
         self.assertTrue('target' in data_obj)
         self.assertTrue('source' in data_obj)
         self.assertTrue('tags' in data_obj)
@@ -31,7 +45,7 @@ class WMTRepresentationGeneratorTests(unittest.TestCase):
 
     def test_no_saved_files(self):
         generator = WMTRepresentationGenerator('../../experiment/tiny_test/EN_ES.tgt_ann.train', '../../experiment/tiny_test/EN_ES.source.train')
-        data_obj = generator.generate({})
+        data_obj = generator.generate()
         self.assertTrue('target' in data_obj)
         self.assertTrue('source' in data_obj)
         self.assertTrue('tags' in data_obj)
@@ -41,7 +55,7 @@ class WMTRepresentationGeneratorTests(unittest.TestCase):
     def test_save_files(self):
         tmp = os.path.join(self.module_path, 'tmp_dir')
         generator = WMTRepresentationGenerator(os.path.join(self.module_path, '../../experiment/tiny_test/EN_ES.tgt_ann.train'), os.path.join(self.module_path, '../../experiment/tiny_test/EN_ES.source.train'), tmp_dir=tmp, persist=True)
-        data_obj = generator.generate({})
+        data_obj = generator.generate()
         target = os.path.join(tmp, 'EN_ES.tgt_ann.train.target')
         tags = os.path.join(tmp, 'EN_ES.tgt_ann.train.tags')
         source = os.path.join(tmp, 'EN_ES.source.train.txt')
