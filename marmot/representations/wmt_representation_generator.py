@@ -2,7 +2,7 @@ import os
 from nltk import word_tokenize
 
 from marmot.representations.representation_generator import RepresentationGenerator
-from marmot.experiment.import_utils import mkdir
+from marmot.experiment.import_utils import mk_tmp_dir
 
 
 class WMTRepresentationGenerator(RepresentationGenerator):
@@ -46,7 +46,7 @@ class WMTRepresentationGenerator(RepresentationGenerator):
             tags.append(cur_tags)
 
         if persist:
-            tmp_dir = mkdir(tmp_dir)
+            tmp_dir = mk_tmp_dir(tmp_dir)
             target_file = tmp_dir+'/'+os.path.basename(wmt_file)+'.target'
             tags_file = tmp_dir+'/'+os.path.basename(wmt_file)+'.tags'
             source_file = tmp_dir+'/'+os.path.basename(wmt_source_file)+'.txt'

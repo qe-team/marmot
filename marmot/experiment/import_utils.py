@@ -85,7 +85,7 @@ def build_objects(object_list, root_element='module'):
 
 
 # create a directory
-def mkdir(tmp_dir):
+def mk_tmp_dir(tmp_dir):
     if tmp_dir is None:
         tmp_dir = os.getcwd() + '/tmp_dir'
     try:

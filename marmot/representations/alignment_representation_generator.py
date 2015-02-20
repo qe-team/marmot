@@ -1,14 +1,14 @@
 from marmot.util.alignments import train_alignments
 from marmot.util.force_align import Aligner
 from marmot.representations.representation_generator import RepresentationGenerator
-from marmot.experiment.import_utils import mkdir
+from marmot.experiment.import_utils import mk_tmp_dir
 
 
 class AlignmentRepresentationGenerator(RepresentationGenerator):
 
     def __init__(self, align_model=None, src_file=None, tg_file=None, tmp_dir=None):
 
-        tmp_dir = mkdir(tmp_dir)
+        tmp_dir = mk_tmp_dir(tmp_dir)
 
         if align_model is None:
             if src_file is not None and tg_file is not None:

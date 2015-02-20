@@ -2,7 +2,7 @@ from subprocess import Popen
 import os
 
 from marmot.representations.representation_generator import RepresentationGenerator
-from marmot.experiment.import_utils import mkdir
+from marmot.experiment.import_utils import mk_tmp_dir
 
 
 class POSRepresentationGenerator(RepresentationGenerator):
@@ -50,7 +50,7 @@ class POSRepresentationGenerator(RepresentationGenerator):
     # <parameters> -- parameters of tree-tagger
     # <data_label> -- which data should be tagged ('source' or 'target')
     def __init__(self, tagger, parameters, data_label, tmp_dir=None):
-        self.tmp_dir = mkdir(tmp_dir)
+        self.tmp_dir = mk_tmp_dir(tmp_dir)
 
         self.tagger = tagger
         self.parameters = parameters
