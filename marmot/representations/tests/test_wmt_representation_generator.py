@@ -34,8 +34,9 @@ class WMTRepresentationGeneratorTests(unittest.TestCase):
         self.wmt_source = os.path.join(module_path, 'test_data/EN_ES.source.train')
         self.tmp_dir = os.path.join(module_path, 'tmp_dir')
 
-    # def tearDown(self):
-    #     shutil.rmtree(self.tmp_dir)
+    def tearDown(self):
+        if os.path.exists(self.tmp_dir) and os.path.isdir(self.tmp_dir):
+            shutil.rmtree(self.tmp_dir)
 
     def test_load_from_config(self):
         generator = build_object(self.config['representations']['training'][0])
