@@ -1,8 +1,6 @@
 import codecs
 
 from marmot.representations.representation_generator import RepresentationGenerator
-from nltk.tokenize import WhitespaceTokenizer
-from marmot.experiment.import_utils import mkdir
 
 
 class WordQERepresentationGenerator(RepresentationGenerator):
@@ -11,19 +9,19 @@ class WordQERepresentationGenerator(RepresentationGenerator):
     '''
 
     def __init__(self, source_file, target_file, tags_file):
-        self.tokenizer = WhitespaceTokenizer()
         self.data = self.parse_files(source_file, target_file, tags_file)
 
-    def parse_files(self, source_file, target_file, tags_file):
+    @staticmethod
+    def parse_files(source_file, target_file, tags_file):
 
         with codecs.open(source_file, encoding='utf8') as source:
-            source_lines = [self.tokenizer.tokenize(line) for line in source]
+            source_lines = [line.split() for line in source]
 
         with codecs.open(target_file, encoding='utf8') as target:
-            target_lines = [self.tokenizer.tokenize(line) for line in target]
+            target_lines = [line.split() for line in target]
 
         with codecs.open(tags_file, encoding='utf8') as tags:
-            tags_lines = [self.tokenizer.tokenize(line) for line in tags]
+            tags_lines = [line.split() for line in tags]
 
         return {'target': target_lines, 'source': source_lines, 'tags': tags_lines}
 
