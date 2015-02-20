@@ -38,6 +38,10 @@ def main(config):
 
     test_contexts = create_contexts(test_data, data_type=data_type)
     train_contexts = create_contexts(train_data, data_type=data_type)
+
+    from marmot.evaluation.evaluation_utils import compare_vocabulary
+    logger.info('Vocabulary comparison -- coverage for each dataset: ')
+    logger.info(compare_vocabulary([train_data['target'], test_data['target']]))
  
     # END REPRESENTATION GENERATION
 
