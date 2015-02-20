@@ -10,6 +10,7 @@ from marmot.experiment.preprocessing_utils import *
 from marmot.experiment.learning_utils import map_classifiers, predict_all
 from marmot.evaluation.evaluation_metrics import weighted_fmeasure
 from marmot.evaluation.evaluation_utils import compare_vocabulary
+from marmot.util.persist_features import persist_features
 from marmot.evaluation.evaluation_utils import write_res_to_file
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
@@ -104,7 +105,8 @@ def main(config):
     # TODO: remove this once we have a list containing all datasets
     if config['features']['persist']:
         experiment_datasets = [{'name': 'test', 'features': test_features}, {'name': 'train', 'features': train_features}]
-        # persist features to csv with the labels as the last column
+        feature_names = [f for extractor in feature_extractors for f in extractor.get_feature_names()]
+
         if config['features']['persist_dir']:
             persist_dir = config['features']['persist_dir']
         else:
@@ -112,8 +114,7 @@ def main(config):
         logger.info('persisting your features to: '.format(persist_dir))
         # for each dataset, write a file and persist the features
         for dataset_obj in experiment_datasets:
-            pass
-            # save_features()
+            persist_features(dataset_obj['name'], dataset_obj['features'], persist_dir, feature_names=feature_names)
 
 
 
@@ -124,7 +125,6 @@ def main(config):
 
     # TODO: different sequence learning modules need different representation, we should wrap them in a class
     # TODO: create a consistent interface to sequence learners, will need to use *args and **kwargs because APIs are very different
-    import ipdb
     from sklearn.metrics import f1_score
     import numpy as np
     if data_type == 'sequential':
@@ -163,7 +163,6 @@ def main(config):
         #
         # structured_predictions = clf.predict(x_test, lengths_test)
         # logger.info('f1 from seqlearn: {}'.format(f1_score(y_test, structured_predictions, average=None)))
-        # ipdb.set_trace()
 
         # END SEQLEARN
 
@@ -212,7 +211,6 @@ def main(config):
     good_count = sum(1 for t in test_tags if t == u'OK' or t == 1)
 
     total = len(test_tags)
-    ipdb.set_trace()
     assert (total == bad_count+good_count), 'tag counts should be correct'
     percent_good = good_count / total
     logger.info('percent good in test set: {}'.format(percent_good))
@@ -275,6 +273,6 @@ if __name__ == '__main__':
     cfg_path = args.configuration_file
     # read configuration file
     with open(cfg_path, "r") as cfg_file:
-        config = yaml.load(cfg_file.read())
+        experiment_config = yaml.load(cfg_file.read())
     main(experiment_config)
 

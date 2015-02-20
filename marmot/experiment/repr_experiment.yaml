@@ -51,6 +51,8 @@ filters:
 
 features:
   binarize: True
+  persist: False
+  persist_dir: marmot_feature_dump
 
 feature_extractors:
   - module: marmot.features.token_count_feature_extractor.TokenCountFeatureExtractor
