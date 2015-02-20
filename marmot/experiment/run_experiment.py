@@ -18,42 +18,30 @@ logger = logging.getLogger('experiment_logger')
 def main(config):
     workers = config['workers']
 
-    # unify data representations
-    # test_data and training_data - lists of dictionaries { target: target_file, source: source_file, tags: tags).
-    # <tags> can be a file with tags or a single tag
-
+    # REPRESENTATION GENERATION
     # build objects for additional representations
     representation_generators = build_objects(config['representations'])
 
     # get additional representations
     # generators return a pair (label, representation)
-    # TODO: generators can check if the file they are trying to make already exists, if so, they should read it, if not, build the representation, and persist according to a flag
     train_data_generator = build_object(config['datasets']['training'][0])
     test_data_generator = build_object(config['datasets']['test'][0])
-    train_data = train_data_generator.generate({})
-    test_data = test_data_generator.generate({})
+    train_data = train_data_generator.generate()
+    test_data = test_data_generator.generate()
     for r in representation_generators:
         train_data = r.generate(train_data)
         test_data = r.generate(test_data)
 
-    logger.info('here are your representations: {}'.format(train_data.keys()))
+    logger.info('here are the keys in your representations: {}'.format(train_data.keys()))
 
-
-    # TODO: since there is only one context creator and it does nothing, we don't need it any more
-
-    # how to generate the old {token:context_list} representation?
-    # Answer: we should do this in 'create_contexts'
     data_type = config['contexts'] if 'contexts' in config else 'plain'
 
-    # TODO: create_contexts maps a whitespace tokenized, line by line dataset into one of our three data representations
     test_contexts = create_contexts(test_data, data_type=data_type)
     train_contexts = create_contexts(train_data, data_type=data_type)
  
     # END REPRESENTATION GENERATION
 
-#    for r in representation_generators:
-#        r.cleanup()
-
+    # FEATURE EXTRACTION
     # make sure the test_context and train_context keys are in sync
     # TODO: this is important when we are learning token-level classifiers
 #    experiment_utils.sync_keys(train_contexts, test_contexts)
@@ -79,29 +67,33 @@ def main(config):
     logger.info('number of testing instances: {}'.format(len(test_features)))
 
     logger.info('All of your features now exist in their raw representation, but they may not be numbers yet')
-    # END RAW FEATURE EXTRACTION
+    # END FEATURE EXTRACTION
 
     # BEGIN CONVERTING FEATURES TO NUMBERS
 
+    logger.info('binarization flag: {}'.format(config['features']['binarize']))
     # flatten so that we can properly binarize the features
-    all_values = []
-    if data_type == 'sequential':
-        all_values = flatten(train_features)
-    elif data_type == 'plain':
-        all_values = train_features
-    elif data_type == 'token':
-        all_values = flatten(train_features.values())
+    if config['features']['binarize'] is True:
+        logger.info('Binarizing your features...')
+        all_values = []
+        if data_type == 'sequential':
+            all_values = flatten(train_features)
+        elif data_type == 'plain':
+            all_values = train_features
+        elif data_type == 'token':
+            all_values = flatten(train_features.values())
 
-    logger.info('fitting binarizers...')
-    binarizers = fit_binarizers(all_values)
-    logger.info('binarizing test data...')
-    test_features = call_for_each_element(test_features, binarize, [binarizers], data_type=data_type)
-    logger.info('binarizing training data...')
-    # TODO: this line hangs with alignment+w2v
-    train_features = call_for_each_element(train_features, binarize, [binarizers], data_type=data_type)
+        logger.info('fitting binarizers...')
+        binarizers = fit_binarizers(all_values)
+        logger.info('binarizing test data...')
+        test_features = call_for_each_element(test_features, binarize, [binarizers], data_type=data_type)
+        logger.info('binarizing training data...')
+        # TODO: this line hangs with alignment+w2v
+        train_features = call_for_each_element(train_features, binarize, [binarizers], data_type=data_type)
+
+        logger.info('All of your features are now scalars')
 
     logger.info('training and test sets successfully generated')
-    logger.info('All of your features are now scalars')
 
     # BEGIN LEARNING
 
@@ -191,6 +183,8 @@ def main(config):
     print(f1_score(test_predictions, test_tags, average=None))
     # Chris: commented for sequential learning
 
+    # EVALUATION
+
     logger.info('evaluating your results')
     bad_count = sum(1 for t in test_tags if t == u'BAD')
     good_count = sum(1 for t in test_tags if t == u'OK')
@@ -243,6 +237,8 @@ def main(config):
         # print(f1)
 
     # write_res_to_file(config['test']['output'], test_predictions)
+
+    # END EVALUATION
 
 
 if __name__ == '__main__':
