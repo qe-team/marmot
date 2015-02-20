@@ -1,5 +1,6 @@
-from __future__ import print_function
+from __future__ import print_function, division
 from sklearn.metrics import f1_score
+
 
 
 def write_res_to_file(test_file, test_predictions, output_file=''):
@@ -19,6 +20,24 @@ def write_res_to_file(test_file, test_predictions, output_file=''):
         output.close()
 
     return output_file
+
+
+def compare_vocabulary(datasets):
+    '''
+    :param datasets: a list of datasets, which are all lists of token sequences
+    :return: a list of objects describing each dataset
+    '''
+
+    def get_vocab(dataset):
+        return set([w for seq in dataset for w in seq])
+
+    vocabs = [get_vocab(dataset) for dataset in datasets]
+    common_vocab = set.intersection(*vocabs)
+    out = []
+    for i, vocab in enumerate(vocabs):
+        out.append({'coverage': len(common_vocab) / len(vocab)})
+
+    return out
 
 
 # evaluation without checking the sentence numbers
