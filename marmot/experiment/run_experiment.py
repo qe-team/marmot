@@ -91,9 +91,12 @@ def main(config):
         # TODO: this line hangs with alignment+w2v
         train_features = call_for_each_element(train_features, binarize, [binarizers], data_type=data_type)
 
-        logger.info('All of your features are now scalars')
+        logger.info('All of your features are now scalars in numpy arrays')
 
     logger.info('training and test sets successfully generated')
+
+    # TODO: we should only learn and evaluate the model if this is what the user wants
+    # TODO: we should be able to dump the features for each of the user's datasets to a file specified by the user
 
     # BEGIN LEARNING
 
@@ -105,58 +108,56 @@ def main(config):
     if data_type == 'sequential':
         logger.info('training sequential model...')
 
-        # map tags to ints
+        # TODO: move the tag and array conversion code to the utils of this module
+        # TODO: check if X and y are in the format we expect
+        # TODO: don't hardcode the dictionary
         tag_map = {u'OK': 1, u'BAD': 0}
-        # train_tags = [[tag_map[tag] for tag in seq] for seq in train_tags]
-        # test_tags = [[tag_map[tag] for tag in seq] for seq in test_tags]
+        train_tags = [[tag_map[tag] for tag in seq] for seq in train_tags]
+        test_tags = [[tag_map[tag] for tag in seq] for seq in test_tags]
 
+        # make sure that everything is numpy
         # cast the dataset to numpy array (ndarrays)
-        x_train = np.array([numpy.array(xi) for xi in train_features])
-        y_train = np.array([numpy.array(xi) for xi in train_tags])
+        # note that these are _NOT_ matrices, because the inner sequences have different lengths
+        x_train = np.array([np.array(xi) for xi in train_features])
+        y_train = np.array([np.array(xi) for xi in train_tags])
         x_test = np.array([numpy.array(xi) for xi in test_features])
         y_test = np.array([numpy.array(xi) for xi in test_tags])
 
         # SEQLEARN
-        # seqlearn needs a flat list of instances
+        # from seqlearn.perceptron import StructuredPerceptron
+        #
+        # # seqlearn needs a flat list of instances
+        # x_train = np.array([i for seq in x_train for i in seq])
+        # y_train = np.array([i for seq in y_train for i in seq])
+        # x_test = np.array([i for seq in x_test for i in seq])
+        # y_test = np.array([i for seq in y_test for i in seq])
+        #
+        # # seqlearn requires the lengths of each sequence
+        # lengths_train = [len(seq) for seq in train_features]
+        # lengths_test = [len(seq) for seq in test_features]
+        #
+        # clf = StructuredPerceptron(verbose=True, max_iter=400)
+        # clf.fit(x_train, y_train, lengths_train)
+        #
+        # structured_predictions = clf.predict(x_test, lengths_test)
+        # logger.info('f1 from seqlearn: {}'.format(f1_score(y_test, structured_predictions, average=None)))
+        # ipdb.set_trace()
 
-        from seqlearn.perceptron import StructuredPerceptron
-        x_train = np.array([i for seq in x_train for i in seq])
-        y_train = np.array([i for seq in y_train for i in seq])
-        x_test = np.array([i for seq in x_test for i in seq])
-        y_test = np.array([i for seq in y_test for i in seq])
-
-        # seqlearn requires the lengths of each sequence
-        lengths_train = [len(seq) for seq in train_features]
-        lengths_test = [len(seq) for seq in test_features]
-
-        clf = StructuredPerceptron(verbose=True, max_iter=400)
-        clf.fit(x_train, y_train, lengths_train)
-
-        structured_predictions = clf.predict(x_test, lengths_test)
-        logger.info('f1 from seqlearn: {}'.format(f1_score(y_test, structured_predictions, average=None)))
-        ipdb.set_trace()
+        # END SEQLEARN
 
         # pystruct
-
-        # from pystruct.models import ChainCRF
-        # from pystruct.models import EdgeFeatureGraphCRF
-        # from pystruct.learners import OneSlackSSVM
-        #from pystruct.learners import StructuredPerceptron
-        from pystruct.learners import SubgradientSSVM
-        # Train linear chain CRF
-        # model = ChainCRF(directed=True)
-        # structured_predictor = OneSlackSSVM(model=model, C=.1, inference_cache=50, tol=0.1, n_jobs=1)
-        # structured_predictor = StructuredPerceptron(model=model, average=True)
-        # structured_predictor.fit(x_train, y_train)
+        from marmot.learning.pystruct_sequence_learner import PystructSequenceLearner
+        sequence_learner = PystructSequenceLearner()
+        sequence_learner.fit(x_train, y_train)
+        structured_hyp = sequence_learner.predict(x_test)
 
         logger.info('scoring sequential model...')
-        print('score: ' + str(structured_predictor.score(x_test, y_test)))
+        # print('score: ' + str(structured_predictor.score(x_test, y_test)))
 
         # TODO: implement this in the config
         # classifier_type = import_class(config['learning']['classifier']['module'])
 
         # TODO: the flattening is currently a hack to let us use the same evaluation code for structured and plain tasks
-        structured_hyp = structured_predictor.predict(x_test)
         flattened_hyp = flatten(structured_hyp)
 
         # end pystruct
@@ -177,19 +178,19 @@ def main(config):
         logger.info('classifying the test instances')
         test_predictions = predict_all(test_features, classifier_map, data_type=data_type)
 
-    # Chris: commented for sequential learning
     # TODO: this section only works for 'plain'
 
     print(f1_score(test_predictions, test_tags, average=None))
-    # Chris: commented for sequential learning
 
     # EVALUATION
-
     logger.info('evaluating your results')
-    bad_count = sum(1 for t in test_tags if t == u'BAD')
-    good_count = sum(1 for t in test_tags if t == u'OK')
+
+    # TODO: remove the hard coding of the tags here
+    bad_count = sum(1 for t in test_tags if t == u'BAD' or t == 0)
+    good_count = sum(1 for t in test_tags if t == u'OK' or t == 1)
 
     total = len(test_tags)
+    ipdb.set_trace()
     assert (total == bad_count+good_count), 'tag counts should be correct'
     percent_good = good_count / total
     logger.info('percent good in test set: {}'.format(percent_good))
