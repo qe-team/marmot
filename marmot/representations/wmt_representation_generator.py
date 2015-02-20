@@ -1,5 +1,4 @@
 import os
-import errno
 from nltk import word_tokenize
 
 from marmot.representations.representation_generator import RepresentationGenerator
@@ -60,5 +59,5 @@ class WMTRepresentationGenerator(RepresentationGenerator):
     def __init__(self, tg_file, src_file, tmp_dir=None, persist=False):
         self.data = self._parse_wmt_to_text(tg_file, src_file, tmp_dir, persist=persist)
 
-    def generate(self, data_obj=None):
+    def generate(self):
         return self.data

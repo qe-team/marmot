@@ -12,7 +12,7 @@ class AlignmentRepresentationGenerator(RepresentationGenerator):
 
         if align_model is None:
             if src_file is not None and tg_file is not None:
-                self.align_model = train_alignments(src_train, tg_train, tmp_dir, align_model=align_model)
+                self.align_model = train_alignments(src_file, tg_file, tmp_dir, align_model=align_model)
             else:
                 print("Alignment model not defined, no files for training")
                 return
