@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+
+        <title>Configuration - MARMOT - feature extraction and machine learning for NLP</title>
+
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome-4.0.3.css" rel="stylesheet">
+        <link href="../css/prettify-1.0.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+        
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            
+
+            <!-- Main title -->
+            <a class="navbar-brand" href="..">MARMOT - feature extraction and machine learning for NLP</a>
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+            
+                <!-- Main navigation -->
+                <ul class="nav navbar-nav">
+                
+                
+                    <li class="active">
+                        <a href=".">Configuration</a>
+                    </li>
+                
+                
+                
+                    <li >
+                        <a href="../context_objects">Context objects</a>
+                    </li>
+                
+                
+                
+                    <li >
+                        <a href="../feature_extractors">Feature extractors</a>
+                    </li>
+                
+                
+                
+                    <li >
+                        <a href="../representations">Representations</a>
+                    </li>
+                
+                
+                </ul>
+            
+
+            
+            <!-- Search, Navigation and Repo links -->
+            <ul class="nav navbar-nav navbar-right">
+                
+                
+                <li >
+                    <a rel="next" href="..">
+                        <i class="fa fa-arrow-left"></i> Previous
+                    </a>
+                </li>
+                <li >
+                    <a rel="prev" href="../context_objects">
+                        Next <i class="fa fa-arrow-right"></i>
+                    </a>
+                </li>
+                
+                
+            </ul>
+            
+        </div>
+    </div>
+</div>
+
+        <div class="container">
+            <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+    
+        <li class="main active"><a href="#configuration">Configuration</a></li>
+        
+            <li><a href="#pipeline">Pipeline</a></li>
+        
+            <li><a href="#config-file-format">Config file format</a></li>
+        
+            <li><a href="#expressing-the-pipeline-in-the-config">Expressing the pipeline in the config</a></li>
+        
+            <li><a href="#feature-extractors">Feature extractors</a></li>
+        
+            <li><a href="#list-of-variables">List of Variables</a></li>
+        
+    
+    </ul>
+</div></div>
+            <div class="col-md-9" role="main">
+
+<h1 id="configuration">Configuration</h1>
+<p>We provide an example pipeline which performs the data preparation, feature extraction, model training, tagging of the test data and evaluation of result. User does not have to use this pipeline or the configuration file format described below, the functions and classes provided in Marmot can be used any other way. However, the tool has a set of utilities designed to organise the experiment and a config file format that helps to use them efficiently.</p>
+<p>The pipeline is managed with the config. It has blocks corresponding to each of the experiment stages. By managing their content user defines which features should be extracted from the data and which training algorithms should be used.</p>
+<h2 id="pipeline">Pipeline</h2>
+<p>The pipeline consists of the following stages:</p>
+<ul>
+<li>
+<p>parsing of the data files into the internal representation. Internal representation is a Python dictionary where keys are names of representations ("target", "source", "tags", etc.) and values are lists of sequences. Each sequence is a representation of a sentence. All representations must have the same number of sequences. The corresponding sequences themselves, however, do not always have to be of the same length. For example, source and target sentences can have different number of words. The internal representation is generated by RepresentationGenerator object, it should be specified in the config for each dataset that user wants to include.</p>
+</li>
+<li>
+<p>generation of additional representations of the data. The representations are generated by RepresentationGenerator objects. Additional representations are generated with RepresentationGenerator objects as well. In this case they take they take the internal representation of the data and extend it by adding new representations. </p>
+</li>
+<li>
+<p>generation of context objects from the internal representations. Context object is an object that contains all the information needed to extract features for a training example (a word for word-level QE). For word-level QE context objects contain all representations of a sentence the token belongs to. This step does not need any user-defined parameters, so it does not appear in the config file.</p>
+</li>
+</ul>
+<p>Alternatively, the data files can be parsed directly to context objects, if no additional representations are needed, or if all the additional representations are already provided in plain-text sentence-aligned files. Parsing</p>
+<ul>
+<li>
+<p>extraction of features. The user has to specify the set of feature extractors to use and make sure the context objects provide all the data needed to extract the chosen features.</p>
+</li>
+<li>
+<p>binarization of features. An optional step which converts categorical features to numerical form (for strings it will be a one-hot vector).</p>
+</li>
+<li>
+<p>learning of a model. The user needs to specify which model to use.</p>
+</li>
+<li>
+<p>tagging the test data.</p>
+</li>
+</ul>
+<h2 id="config-file-format">Config file format</h2>
+<h3 id="yaml-file-format">YAML file format</h3>
+<p>The config file is written in [YAML format] (http://www.yaml.org/). A YAML document can be parsed by the Python yaml module into a dictionary object. This dictionary can be nested, i.e. values themselves can be dictionaries or lists of dictionaries.</p>
+<p>The simplest example of a YAML file entry is a string with key and label separated by a colon:
+    key: value</p>
+<p>Value can be a list of strings, in this case every string should start with a dash:
+    key:
+        -- value1
+        -- value2
+        -- value3   </p>
+<p>Analogously, a value can be a dictionary:
+    key:
+        inner_key1: value1
+        inner_key2: value2
+        inner_key3: value3</p>
+<p>For more detailed YAML format description see the [YAML guide] (http://www.yaml.org/spec/1.2/spec.html).</p>
+<h3 id="declaration-of-a-module">Declaration of a module</h3>
+<p>One of the core features of the config format is the ability to specify objects in the form that allows to load them and call directly during the script execution. I.e. if a new representation generator is created, no changes in the pipeline code are required to use the new object, it only has to be specified in the configuration file.</p>
+<p>A new object can be included into the code by declaring a module that contains it.</p>
+<p>The declaration of a module means that the script will load a Python class and create an instance of this class with the provided parameters.
+The keyword <strong>module</strong> is the path to the Python class. It can belong to any Python library and does not need to be in the Marmot directory.
+The keyword <strong>args</strong> is the list of arguments that are needed for this class initialisation. </p>
+<pre class="prettyprint well"><code>  -- module: marmot.representations.pos_representation_generator.POSRepresentationGenerator
+     args:
+       -- tiny_test/tree-tagger
+       -- tiny_test/english-utf8.par
+       -- 'source'
+       -- tiny_test/tmp_dir
+</code></pre>
+<p>Code in the example above will generate the instance of POSRepresentationGenerator which is located in /MARMOT_HOME/marmot/representations.pos_representation_generator.py. This declaration is equivalent to the following Python code:</p>
+<pre class="prettyprint well"><code>from marmot.representations.pos_representation_generator import POSRepresentationGenerator
+r = POSRepresentationGenerator('tiny_test/tree-tagger', 'tiny_test/english-utf8.par', 'source', 'tiny_test/tmp_dir')
+</code></pre>
+<p>The <strong>args</strong> format does not support the keyword arguments, so all the arguments should be declared in the order they appear in the <strong>init</strong> function of the class. However, the keyword arguments can be omitted. For example, in order to create the LogisticRegression classifier object with the penalty 'l1' you need to write the following code in the config:</p>
+<pre class="prettyprint well"><code>-- module: sklearn.linear_model.LogisticRegression
+   args:
+     -- 'l1'
+</code></pre>
+<p>Compare this notation with the full list of parameters:</p>
+<pre class="prettyprint well"><code>sklearn.linear_model.LogisticRegression(penalty='l2', dual=False, tol=0.0001, C=1.0, fit_intercept=True, intercept_scaling=1, class_weight=None, random_state=None)
+</code></pre>
+<p>If the initialisation has no parameters, no <strong>args</strong> keyword is needed:</p>
+<pre class="prettyprint well"><code>module: sklearn.linear_model.LogisticRegression
+</code></pre>
+<h3 id="declaration-of-a-function">Declaration of a function</h3>
+<p>An argument of a module can be the output of a function. A function is defined analogously to a class. If the value of a variable needs to be computed by a function, this variable should be declared in the config with two fields: <strong>func</strong> and <strong>args</strong>. <strong>func</strong> is the path to the function (can be a path to any Python function), <strong>args</strong> is the list of arguments for this function (can be omitted, if the function is called without arguments).</p>
+<pre class="prettyprint well"><code>interesting_tokens:
+    func: marmot.preprocessing.parsers.extract_important_tokens_wmt
+    args:
+      - word_level_quality_estimation/data/en_es/EN_ES.tgt_ann.test
+      - 1
+</code></pre>
+<p>This declaration will envoke the execution of the following code:</p>
+<pre class="prettyprint well"><code>from marmot.preprocessing.parsers import extract_important_tokens_wmt
+interesting_tokens = extract_important_tokens_wmt('word_level_quality_estimation/data/en_es/EN_ES.tgt_ann.test', 1)
+</code></pre>
+<p>An argument of a function or a class can be a function as well. In that case the <strong>type</strong> of the argument should be declared as <strong>function_output</strong>:</p>
+<pre class="prettyprint well"><code>module: marmot.util.corpus_context_creator.CorpusContextCreator
+args:
+    -- type: function_output
+       func: marmot.preprocessing.parsers.parse_wmt14_data
+       args:
+         -- word_level_quality_estimation/data/en_es/EN_ES.tgt_ann.train
+         -- word_level_quality_estimation/data/en_es/EN_ES.source.train
+         -- type: function_output
+            func: marmot.preprocessing.parsers.extract_important_tokens
+            args:
+              -- word_level_quality_estimation/data/en_es/EN_ES.tgt_ann.test
+              -- 1
+</code></pre>
+<p>In this example the class CorpusContextCreator is created with one argument, which is the output of the function parse_wmt14_data. This function is called with three arguments, last of which is the output of the function extract_important_tokens. As you can see in this example, the declaration of a function can be recursive, i.e. its arguments can be outputs of a function as well. In this case the parser will go through the whole function tree calling the functions and returning their values where appropriate. </p>
+<h2 id="expressing-the-pipeline-in-the-config">Expressing the pipeline in the config</h2>
+<p>The config file has several blocks that correspond to experiment stages:</p>
+<ul>
+<li>
+<p><strong>datasets</strong> block defines the data files to load and classes that should be used for that.</p>
+</li>
+<li>
+<p><strong>representations</strong> block defines the set of objects that create the additional representations of the loaded data (POS tags, alignments).</p>
+</li>
+<li>
+<p><strong>feature_extractors</strong> block defines the set of feature extractors.</p>
+</li>
+</ul>
+<h3 id="datasets">Datasets</h3>
+<p>This block contains the datasets that should be used for the experiment and the objects that are needed to load these datasets.
+The block has to contain sublists each of which stands for a specific part of data (training, test, development, etc.). The "training" and "test" sections are compulsory in the example experiment run provided. 
+Each dataset needs the declaration of a module:</p>
+<pre class="prettyprint well"><code>training:
+    - module: marmot.representations.wmt_representation_generator.WMTRepresentationGenerator
+      args:
+        - tiny_test/EN_ES.tgt_ann.train
+        - tiny_test/EN_ES.source.train
+        - tiny_test/tmp_dir
+        - False
+</code></pre>
+<p>Several modules can be declared in each section. There can be any number of sections.</p>
+<p>If any additional representations of the data are needed, the data needs to be parsed with subclasses of RepresentationGenerator, which return the dictionary of internal representations. If the data can be parsed directly to context objects, the subclasses of the Parser class can be used.</p>
+<p>If there is no representation generator for the data format you want to use, you should create a new appropriate representation generator.</p>
+<h3 id="representation-generators">Representation Generators</h3>
+<p>In this block the additional representation generators are declared. The declaration uses the same <strong>module</strong> notation.</p>
+<p>While the generators listed in the <strong>datasets</strong> block should take data files as inputs and return the internal representation of the data, the additional generators take the internal representations and extend them.</p>
+<p>These representation generators are applied to all datasets declared in <strong>datasets</strong> block. </p>
+<p>All generators declared in this section have to use the data generated earlier by the generators from <strong>datasets</strong> block. So all additional generators have pre-requisites: they need a particular data field to generate a representation (e.g. AlignmentDataGenerator needs both source and target exist). If there is no needed datafield, the generator will throw an error.</p>
+<h2 id="feature-extractors">Feature extractors</h2>
+<p>The feature extractors are declared using the <strong>module</strong> notation. Every extractor takes a context object (an object that contains a training instance and all information about it) and extracts one or more features from it. Like representation generators, they look for particular data fields in the context object and throw an error if they are not able to find it. Some data fields can be generated on the fly -- e.g. if there is no part-of-speech tagging for a given example, but the POSFeatureExtractor is given a POS-tagger and parameters for it, it will generate the tagging and extract the POS features. However, this is usually inefficient. First of all, the features are extracted for each word, whereas the additional representations are usually generated for the whole sentence. Therefore, if a sentence contains 20 words, it will be tagged 20 times, if the POSFeatureExtractor is declared and no POS representation was generated in advance. Secondly, when calling the external tools much time is spent on the call operation itself, so calling Tree-Tagger once for 100 sentences (as it is done in a representation generator) is much faster than calling it 100 times for one sentence (which a feature extractor will do).</p>
+<p>So acquiring all the needed representations in advance (by declaring relevant representation generators) will save much time.</p>
+<h2 id="list-of-variables">List of Variables</h2>
+<p>There is a set of variables that should be declared in the config file:</p>
+<ul>
+<li>
+<p>workers -- the number of workers that Marmot can use, defaults to 1.</p>
+</li>
+<li>
+<p>tmp_dir -- the directory to store temporary files produced by the script, default is /script_dir/tmp_dir.</p>
+</li>
+<li>
+<p>datasets -- the list of datasets used in the experiment.</p>
+</li>
+<li>
+<p>contexts -- the type of organisation of data, possible values are <strong>plain</strong>, <strong>token</strong>, and <strong>sequential</strong>. If set to <strong>plain</strong>, the examples are organised into a flat list for the training of one classifier. If set to <strong>token</strong>, the data is stored in a list of lists, where each list is a set of examples for one specific word (i.e. it will contain a set of training examples for the word "he", another set for the word "it", etc.). In this case a separate classifier for every token will be trained. <strong>sequential</strong> means that the data will be stored in a list of sequences (list of lists of examples) to train a sequence labelling model.</p>
+</li>
+<li>
+<p>filters -- settings to filter out some training examples. 3 filters currently exist (all active only in <strong>token</strong> mode):</p>
+<ul>
+<li>
+<p>min_count -- minimum number of training instances per token</p>
+</li>
+<li>
+<p>min_label_count -- minimum number of training instances of each label per token</p>
+</li>
+<li>
+<p>proportion -- maximum possible ratio of counts of "BAD" and "GOOD" labels in the list of training instances.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>feature_extractors -- the list of feature extractors.</p>
+</li>
+<li>
+<p>learning -- the learning model to use. Has to contain either a field <strong>classifier</strong> or <strong>sequence_labeller</strong>. Both need to be defined as modules.</p>
+</li>
+</ul>
+</div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            
+            <p>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+
+        
+
+        <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+        <script src="../js/bootstrap-3.0.3.min.js"></script>
+        <script src="../js/prettify-1.0.min.js"></script>
+        <script src="../js/base.js"></script>
+    </body>
+</html>
