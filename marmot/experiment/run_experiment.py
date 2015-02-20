@@ -251,12 +251,12 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument("configuration_file", action="store", help="path to the config file (in YAML format).")
     args = parser.parse_args()
-    config = {}
+    experiment_config = {}
 
     # Experiment hyperparams
     cfg_path = args.configuration_file
     # read configuration file
     with open(cfg_path, "r") as cfg_file:
         config = yaml.load(cfg_file.read())
-    main(config)
+    main(experiment_config)
 
