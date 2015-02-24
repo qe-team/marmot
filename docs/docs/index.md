@@ -6,6 +6,8 @@
 
 ## Design Philosophy
 
+Marmot is a modular toolkit for extracting features and learning models. The toolkit is targeted at word-level quality estimation of machine translation output, but it can be used for any NLP task where features are extracted from raw text, and machine learning is done with the extracted features. 
+
 
 #### Testing Philosophy
 
