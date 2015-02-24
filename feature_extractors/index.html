@@ -9,7 +9,7 @@
         
         <link rel="shortcut icon" href="../img/favicon.ico">
 
-        <title>Feature extractors - MARMOT - feature extraction and machine learning for NLP</title>
+        <title>Feature extractors - MARMOT</title>
 
         <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
         <link href="../css/font-awesome-4.0.3.css" rel="stylesheet">
@@ -43,7 +43,7 @@
             
 
             <!-- Main title -->
-            <a class="navbar-brand" href="..">MARMOT - feature extraction and machine learning for NLP</a>
+            <a class="navbar-brand" href="..">MARMOT</a>
         </div>
 
         <!-- Expanded navigation -->
@@ -108,6 +108,10 @@
     
         <li class="main active"><a href="#feature-extractors">Feature Extractors</a></li>
         
+            <li><a href="#interface">Interface</a></li>
+        
+            <li><a href="#available-feature-extractors">Available feature extractors</a></li>
+        
     
     </ul>
 </div></div>
@@ -116,6 +120,73 @@
 <h3 id="feature-extractors">Feature Extractors</h3>
 <p>Feature extractors take a context object as input, and output a list of values. For NLP tasks, feature values are typically scalars or strings. If your feature values are not scalars, it's likely that you'll need to do something like binarization to convert them to numbers, in order to learn models with them.  </p>
 <p>The features that are extracted for a particular experiment should be configured in the Marmot experiment config.</p>
+<h4 id="interface">Interface</h4>
+<p>All feature extractors have two methods:</p>
+<ul>
+<li>
+<p>get_features(self, context_obj) -- extracts one or more features for a given context_obj. Throws an error if the context object does not have any of the required fields.</p>
+</li>
+<li>
+<p>get_feature_names(self) -- returns names of features returned by get_features.</p>
+</li>
+</ul>
+<p>The methods have the same parameters for all feature extractors. So they can be called uniformly for a list of feature extractors, none of them requires special handling:</p>
+<pre class="prettyprint well"><code>features = []
+for f_e in feature_extractors:
+    features.extend(f_e.get_features(context_obj))
+</code></pre>
+<h4 id="available-feature-extractors">Available feature extractors</h4>
+<ul>
+<li>
+<p>FeatureExtractor -- the abstract feature extractor class. All feature extractors should inherit from it.</p>
+</li>
+<li>
+<p>AlignmentFeatureExtractor -- extracts the alignments. Can either extract the alignments from context object or align source and target sentence on the fly. For the alignment it can use a pre-trained model or train a model itself if the training data is provided.</p>
+</li>
+</ul>
+<p>Features extracted:</p>
+<pre class="prettyprint well"><code>* source word aligned to the target token. If the target token is aligned to multiple words, they are concatenated.
+* the left context of the source word aligned to the target token. In case of multiple alignments the context of the leftmost aligned source word is returned.
+* the right context of the source word aligned to the target token. In case of multiple alignments the context of the rightmost aligned source word is returned.
+</code></pre>
+<ul>
+<li>DictionaryFeatureExtractor -- extracts a set of binary features indicating if a token belongs (1) or does not belong (0) to some closed class.</li>
+</ul>
+<p>Features extracted:</p>
+<pre class="prettyprint well"><code>* token is a stopword (1 - is a stopword, 0 - is not as stopword)
+* token is punctuation
+* token is a proper noun
+* token is a number
+</code></pre>
+<ul>
+<li>GoogleTranslateFeatureExtractor -- extracts the automatic translation by Google Translate. Looks for the representation "pseudo-reference" in the context object, if it is missing, performs the translation on the fly. In this case the "source" field has to exist in the context object.</li>
+</ul>
+<p>Features extracted:</p>
+<pre class="prettyprint well"><code>* binary feature indicating whether the token occurs or does not occur in the pseudo-reference
+</code></pre>
+<ul>
+<li>LMFeatureExtractor -- extracts the LM features. </li>
+</ul>
+<p>Features extracted:</p>
+<pre class="prettyprint well"><code>* length of the longest sequence of left context of the token that occurs in the LM.
+* length of the longest sequence of right context of the token that occurs in the LM.
+* backoff behaviour features as described in [Raybaud et al. 2011] (http://perso.crans.org/raybaud/cm-springer-utf8.pdf):
+    * for ngram w&lt;sub&gt;&lt;/sub&gt; w&lt;sub&gt;&lt;/sub&gt; w&lt;sub&gt;&lt;/sub&gt;
+</code></pre>
+<ul>
+<li>
+<p>POSFeatureExtractor</p>
+</li>
+<li>
+<p>SourceLMFeatureExtractor</p>
+</li>
+<li>
+<p>TokenCountFeatureExtractor</p>
+</li>
+<li>
+<p>WordnetFeatureExtractor</p>
+</li>
+</ul>
 </div>
         </div>
 
