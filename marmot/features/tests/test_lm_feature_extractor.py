@@ -3,6 +3,7 @@
 
 import unittest
 import os
+import shutil
 from marmot.features.lm_feature_extractor import LMFeatureExtractor
 
 
@@ -12,8 +13,9 @@ class LMFeatureExtractorTests(unittest.TestCase):
     def setUp(self):
         module_path = os.path.dirname(os.path.realpath(__file__))
         self.module_path = module_path
-        self.lm3Extractor = LMFeatureExtractor(os.path.join(module_path, 'test_data/training.txt'))
-        self.lm5Extractor = LMFeatureExtractor(os.path.join(module_path, 'test_data/training.txt'), order=5)
+        self.tmp_dir = os.path.join(module_path, 'tmp_dir')
+        self.lm3Extractor = LMFeatureExtractor(os.path.join(module_path, 'test_data/training.txt'), srilm=os.environ['SRILM'], tmp_dir=self.tmp_dir)
+        self.lm5Extractor = LMFeatureExtractor(os.path.join(module_path, 'test_data/training.txt'), srilm=os.environ['SRILM'], tmp_dir=self.tmp_dir, order=5)
 
 
     def test_get_features(self):
@@ -48,6 +50,9 @@ class LMFeatureExtractorTests(unittest.TestCase):
         self.assertAlmostEqual(back_l, 0.3)
         self.assertAlmostEqual(back_m, 0.3)
         self.assertAlmostEqual(back_r, 0.3)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp_dir, ignore_errors=True)
 
 
 if __name__ == '__main__':
