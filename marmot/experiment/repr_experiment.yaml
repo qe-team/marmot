@@ -67,6 +67,8 @@ feature_extractors:
   - module: marmot.features.lm_feature_extractor.LMFeatureExtractor
     args:
       - tiny_test/europarl.1000.es # file for LM
+      - 
+      - 
       - 3                                            # LM order
   - module: marmot.features.source_lm_feature_extractor.SourceLMFeatureExtractor
     args:
