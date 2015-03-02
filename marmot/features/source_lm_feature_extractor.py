@@ -11,24 +11,33 @@ from marmot.experiment.import_utils import mk_tmp_dir
 # Class that extracts various LM features for source
 class SourceLMFeatureExtractor(FeatureExtractor):
 
-    def __init__(self, corpus_file, srilm=None, tmp_dir=None, order=3):
-        if srilm is None:
-            if 'SRILM' in os.environ:
-                srilm = os.environ['SRILM']
-            else:
-                print("No SRILM found")
+    def __init__(self, ngram_file=None, corpus_file=None, srilm=None, tmp_dir=None, order=3):
+        # generate ngram counts
+        if ngram_file is None:
+            if srilm is None:
+                if 'SRILM' in os.environ:
+                    srilm = os.environ['SRILM']
+                else:
+                    print("No SRILM found")
+                    return
+            if corpus_file is None:
+                print ("No corpus for LM generation")
                 return
-        srilm_ngram_count = os.path.join(srilm, 'ngram-count')
-        
-        tmp_dir = mk_tmp_dir(tmp_dir)
-        lm_file = os.path.join(tmp_dir, 'lm_file')
-        ngram_file = os.path.join(tmp_dir, 'ngram_count_file')
-        call([srilm_ngram_count, '-text', corpus_file, '-lm', lm_file, '-order', str(order), '-write', ngram_file])
-
+            
+            srilm_ngram_count = os.path.join(srilm, 'ngram-count')
+            
+            tmp_dir = mk_tmp_dir(tmp_dir)
+            lm_file = os.path.join(tmp_dir, 'lm_file')
+            ngram_file = os.path.join(tmp_dir, 'ngram_count_file')
+            call([srilm_ngram_count, '-text', corpus_file, '-lm', lm_file, '-order', str(order), '-write', ngram_file])
+            
         self.lm = defaultdict(int)
         for line in codecs.open(ngram_file, encoding='utf-8'):
             chunks = line[:-1].split('\t')
-            self.lm[chunks[0]] == chunks[1]
+            if len(chunks) == 2:
+                self.lm[chunks[0]] == chunks[1]
+            else:
+                print("Wrong ngram-counts file format at line '", line[:-1], "'")
         self.order = order
 
     def check_lm(self, ngram, side='left'):
