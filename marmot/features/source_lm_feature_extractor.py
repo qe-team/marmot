@@ -18,7 +18,6 @@ class SourceLMFeatureExtractor(FeatureExtractor):
             else:
                 print("No SRILM found")
                 return
-        print("SRILM", srilm)
         srilm_ngram_count = os.path.join(srilm, 'ngram-count')
         
         tmp_dir = mk_tmp_dir(tmp_dir)
@@ -80,11 +79,6 @@ class SourceLMFeatureExtractor(FeatureExtractor):
         idx_last = align[-1]
         words_number = idx_last - idx_first
         tokens = context_obj['source'][idx_first:idx_last+1]
-
-        left_ngram = left_context(context_obj['source'], context_obj['token'], context_size=self.order-1, idx=idx) + [context_obj['token']]
-        right_ngram = [context_obj['token']] + right_context(context_obj['source'], context_obj['token'], context_size=self.order-1, idx=idx)
-        left_ngram_order = self.check_lm(left_ngram, side='left')
-        right_ngram_order = self.check_lm(right_ngram, side='right')
 
         left_ngram = left_context(context_obj['source'], tokens[0], context_size=self.order-1-words_number, idx=idx_first) + tokens
         right_ngram = tokens + right_context(context_obj['source'], tokens[-1], context_size=self.order-1-words_number, idx=idx_last)
