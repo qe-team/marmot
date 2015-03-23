@@ -51,14 +51,14 @@ class AlignmentFeatureExtractor(FeatureExtractor):
         source_nums = sorted(context_obj['alignments'][context_obj['index']])
         # if word is unaligned - no source and no source contexts
         if source_nums == []:
-            return ['__unaligned__', ' '.join(['__unaligned__' for i in range(self.context_size)]), ' '.join(['__unaligned__' for i in range(self.context_size)])]
+            return ['__unaligned__', '|'.join(['__unaligned__' for i in range(self.context_size)]), '|'.join(['__unaligned__' for i in range(self.context_size)])]
 
         # TODO: find contexts for all words aligned to the token (now only 1st word)
         else:
-            left = ' '.join(left_context(context_obj['source'], context_obj['source'][source_nums[0]], context_size=self.context_size, idx=source_nums[0]))
-            right = ' '.join(right_context(context_obj['source'], context_obj['source'][source_nums[-1]], context_size=self.context_size, idx=source_nums[-1]))
+            left = '|'.join(left_context(context_obj['source'], context_obj['source'][source_nums[0]], context_size=self.context_size, idx=source_nums[0]))
+            right = '|'.join(right_context(context_obj['source'], context_obj['source'][source_nums[-1]], context_size=self.context_size, idx=source_nums[-1]))
 
-        aligned_to = ' '.join([context_obj['source'][i] for i in source_nums])
+        aligned_to = '|'.join([context_obj['source'][i] for i in source_nums])
         return [aligned_to, left, right]
 
     def get_feature_names(self):
