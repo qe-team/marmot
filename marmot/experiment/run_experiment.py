@@ -114,7 +114,7 @@ def main(config):
     # the way that we persist depends upon the structure of the data (plain/sequence/token_dict)
     # TODO: remove this once we have a list containing all datasets
     if config['features']['persist']:
-        experiment_datasets = [{'name': 'test', 'features': test_features}, {'name': 'train', 'features': train_features}]
+        experiment_datasets = [{'name': 'test', 'features': test_features, 'tags': test_tags}, {'name': 'train', 'features': train_features, 'tags': train_tags}]
         feature_names = [f for extractor in feature_extractors for f in extractor.get_feature_names()]
 
         if config['features']['persist_dir']:
@@ -124,7 +124,7 @@ def main(config):
         logger.info('persisting your features to: '.format(persist_dir))
         # for each dataset, write a file and persist the features
         for dataset_obj in experiment_datasets:
-            persist_features(dataset_obj['name'], dataset_obj['features'], persist_dir, feature_names=feature_names)
+            persist_features(dataset_obj['name'], dataset_obj['features'], persist_dir, feature_names=feature_names, tags=dataset_obj['tags'])
 
 
 
