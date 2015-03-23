@@ -21,15 +21,25 @@ def main(config):
     workers = config['workers']
 
     # REPRESENTATION GENERATION
-    # build objects for additional representations
-    representation_generators = build_objects(config['representations'])
-
-    # get additional representations
-    # generators return a pair (label, representation)
-    train_data_generator = build_object(config['datasets']['training'][0])
+    # main representations (source, target, tags)
+    # training
+    train_data_generators = build_objects(config['datasets']['training'])
+    train_data = {}
+    for gen in train_data_generators:
+        data = gen.generate()
+        for key in data:
+            if key not in train_data:
+                train_data[key] = []
+            train_data[key].extend(data[key])
+    # test
     test_data_generator = build_object(config['datasets']['test'][0])
-    train_data = train_data_generator.generate()
     test_data = test_data_generator.generate()
+
+    # additional representations
+    if 'representations' in config:
+        representation_generators = build_objects(config['representations'])
+    else:
+        representation_generators = []
     for r in representation_generators:
         train_data = r.generate(train_data)
         test_data = r.generate(test_data)
