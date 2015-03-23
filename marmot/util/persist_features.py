@@ -15,14 +15,16 @@ logger = logging.getLogger('experiment_logger')
 
 
 # TODO: make sure to check the type of the features
-def persist_features(dataset_name, features, persist_dir, tags=None, feature_names=None):
+def persist_features(dataset_name, features, persist_dir, tags=None, feature_names=None, file_format='crf++'):
     '''
     persist the features to persist_dir -- use dataset_name as the prefix for the persisted files
-    :param dataset_name:
-    :param features:
-    :param persist_dir:
-    :param feature_names:
-    :return:
+    :param dataset_name: prefix of the output file
+    :param features: dataset
+    :param persist_dir: directory of output file(s)
+    :param tags: tags for the dataset
+    :param feature_names: names of features in the dataset
+    :param file_format: format of the output file for sequences. Values -- 'crf++' or 'crf_suite'
+    :return: 
     '''
     try:
         os.makedirs(persist_dir)
@@ -32,8 +34,6 @@ def persist_features(dataset_name, features, persist_dir, tags=None, feature_nam
         else:
             raise
 
-#    print "FEATURES", features[0][0]
-#    print "NAMES", feature_names
     # for the 'plain' datatype
     if type(features) == np.ndarray and features.shape[1] == len(feature_names):
         output_df = pd.DataFrame(data=features, columns=feature_names)
@@ -43,7 +43,8 @@ def persist_features(dataset_name, features, persist_dir, tags=None, feature_nam
 
     # for the 'sequential' datatype
     elif list_of_lists(features):
-        output = open(dataset_name + '.crf', 'w')
+        output_path = os.path.join(persist_dir, dataset_name + '.crf')
+        output = open(output_path, 'w')
         if tags is not None:
             assert(len(features) == len(tags)), "Different numbers of tag and feature sequences"
             for s_idx, (seq, tag_seq) in enumerate(zip(features, tags)):
@@ -57,8 +58,15 @@ def persist_features(dataset_name, features, persist_dir, tags=None, feature_nam
                             feature_str.append(f.encode('utf-8'))
                         else:
                             feature_str.append(str(f))
-                    feature_str = '\t'.join(feature_str)
-                    output.write('%s\t%s\n' % (feature_str, tag))
+                    if file_format == 'crf++':
+                        feature_str = '\t'.join(feature_str)
+                        output.write('%s\t%s\n' % (feature_str, tag))
+                    elif file_format =='crf_suite':
+                        feature_str = [feature_name[i] + '=' + feature_str[i] for i in range(len(feature_str))]
+                        output.write("%s\t%s\n" % (tag, feature_str))
+                    else:
+                        print("Unknown data format:", file_format)
+                        return False
                 output.write("\n")
         else:
             for s_idx, seq in enumerate(features):
@@ -70,10 +78,16 @@ def persist_features(dataset_name, features, persist_dir, tags=None, feature_nam
                             feature_str.append(f.encode('utf-8'))
                         else:
                             feature_str.append(str(f))
-                    feature_str = '\t'.join(feature_str)
-                    output.write('%s\n' % feature_str.encode('utf-8'))
+                    if file_format == 'crf++':
+                        feature_str = '\t'.join(feature_str)
+                    elif file_format =='crf_suite':
+                        feature_str = [feature_name[i] + '=' + feature_str[i] for i in range(len(feature_str))]
+                    else:
+                        print("Unknown data format:", file_format)
+                        return False
+                    output.write("%s\n" % feature_str)
                 output.write("\n")
-        output_features = open(dataset_name + '.features', 'w')
+        output_features = open(os.path.join(persist_dir, dataset_name + '.features'), 'w')
         for f_name in feature_names:
             output_features.write("%s\n" % f_name.encode('utf-8'))
         output.close()

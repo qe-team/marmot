@@ -114,6 +114,10 @@ def main(config):
     # the way that we persist depends upon the structure of the data (plain/sequence/token_dict)
     # TODO: remove this once we have a list containing all datasets
     if config['features']['persist']:
+        if 'persist_format' in config['features']:
+            persist_format = config['features']['persist_format']
+        else:
+            persist_format = 'crf++'
         experiment_datasets = [{'name': 'test', 'features': test_features, 'tags': test_tags}, {'name': 'train', 'features': train_features, 'tags': train_tags}]
         feature_names = [f for extractor in feature_extractors for f in extractor.get_feature_names()]
 
@@ -124,7 +128,7 @@ def main(config):
         logger.info('persisting your features to: '.format(persist_dir))
         # for each dataset, write a file and persist the features
         for dataset_obj in experiment_datasets:
-            persist_features(dataset_obj['name'], dataset_obj['features'], persist_dir, feature_names=feature_names, tags=dataset_obj['tags'])
+            persist_features(dataset_obj['name'], dataset_obj['features'], persist_dir, feature_names=feature_names, tags=dataset_obj['tags'], file_format=persist_format)
 
 
 
@@ -231,11 +235,11 @@ def main(config):
     random_class_results = []
     random_weighted_results = []
     for i in range(20):
-        random_tags = list(np.random.choice([u'OK', u'BAD'], total, [percent_good, 1-percent_good]))
+        random_tags = list(np.random.choice([1, 0], total, [percent_good, 1-percent_good]))
         # random_tags = [u'GOOD' for i in range(total)]
         random_class_f1 = f1_score(test_tags, random_tags, average=None)
         random_class_results.append(random_class_f1)
-        # logger.info('two class f1 random score ({}): {}'.format(i, random_class_f1))
+        logger.info('two class f1 random score ({}): {}'.format(i, random_class_f1))
         # random_average_f1 = f1_score(random_tags, test_tags, average='weighted')
         random_average_f1 = weighted_fmeasure(test_tags, random_tags)
         random_weighted_results.append(random_average_f1)
