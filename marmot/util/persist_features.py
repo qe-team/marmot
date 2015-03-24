@@ -62,7 +62,8 @@ def persist_features(dataset_name, features, persist_dir, tags=None, feature_nam
                         feature_str = '\t'.join(feature_str)
                         output.write('%s\t%s\n' % (feature_str, tag))
                     elif file_format =='crf_suite':
-                        feature_str = [feature_name[i] + '=' + feature_str[i] for i in range(len(feature_str))]
+                        feature_str = [feature_names[i] + '=' + feature_str[i] for i in range(len(feature_str))]
+                        feature_str = '\t'.join(feature_str)
                         output.write("%s\t%s\n" % (tag, feature_str))
                     else:
                         print("Unknown data format:", file_format)
@@ -82,6 +83,7 @@ def persist_features(dataset_name, features, persist_dir, tags=None, feature_nam
                         feature_str = '\t'.join(feature_str)
                     elif file_format =='crf_suite':
                         feature_str = [feature_name[i] + '=' + feature_str[i] for i in range(len(feature_str))]
+                        feature_str = '\t'.join(feature_str)
                     else:
                         print("Unknown data format:", file_format)
                         return False
