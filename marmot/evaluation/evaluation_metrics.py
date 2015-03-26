@@ -45,7 +45,7 @@ def get_spans(sentence, good_label=1, bad_label=0):
 
 def intersect_spans(true_span, pred_span):
     # connectivity matrix for all pairs of spans from the reference and prediction
-    connections = [[min(t_end, p_end) - max(t_start, p_start) for (p_start, p_end) in pred_span] for (t_start, t_end) in true_span]
+    connections = [[max(0, min(t_end, p_end) - max(t_start, p_start)) for (p_start, p_end) in pred_span] for (t_start, t_end) in true_span]
     adjacency = np.array(connections)
     res = 0
     # while there are non-zero elements == there are unused spans

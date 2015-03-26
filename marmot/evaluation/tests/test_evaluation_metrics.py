@@ -48,9 +48,9 @@ class TestEvaluationUtils(unittest.TestCase):
 
     def test_sequence_correlation(self):
         sent_scores, total = sequence_correlation(self.references, self.predictions, good_label='OK', bad_label='BAD')
-        self.assertAlmostEqual(sent_scores[0], 0.316)
+        self.assertAlmostEqual(sent_scores[0], 0.31578947)
         self.assertAlmostEqual(sent_scores[1], 0.8)
-        self.assertEqual(total, 0.558)
+        self.assertAlmostEqual(total, 0.55789473)
 
 
 #    def test_alternative_label(self):
