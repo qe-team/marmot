@@ -24,8 +24,8 @@ class AlignmentFeatureExtractorTests(unittest.TestCase):
         self.assertEqual(left, u'frappe')
         self.assertEqual(right, u'chien')
         (cont_word, left, right) = self.aligner_no_model_2.get_features(obj)
-        self.assertEqual(left, u'garcon frappe')
-        self.assertEqual(right, u'chien _END_')
+        self.assertEqual(left, u'garcon|frappe')
+        self.assertEqual(right, u'chien|_END_')
 
     def test_alignment_on_the_fly(self):
         obj = {'token': u'boy', 'index': 1, 'source': [u'ein', u'junge', u'schlägt', u'einen', u'Hund'], 'target': [u'a', u'boy', u'hits', u'a', u'dog']}
@@ -55,14 +55,14 @@ class AlignmentFeatureExtractorTests(unittest.TestCase):
     def test_align_two_adjacent(self):
         obj = {'token': u'hits', 'index': 2, 'target': [u'a',u'boy',u'hits',u'a',u'dog'], 'source': [u'un', u'garcon',u'frappe', u'un', u'chien'], 'target_pos': ['DT','NN','VBZ', 'DT', 'NN'], 'source_pos': ['DT','NN','VBZ', 'DT', 'NN'], 'alignments': [[0],[1],[1, 2],[3],[4]]}
         (cont_word, left, right) = self.aligner_no_model.get_features(obj)
-        self.assertEqual(cont_word, u'garcon frappe')
+        self.assertEqual(cont_word, u'garcon|frappe')
         self.assertEqual(left, u'un')
         self.assertEqual(right, 'un')
 
     def test_align_two_gap(self):
         obj = {'token': u'hits', 'index': 2, 'target': [u'a',u'boy',u'hits',u'a',u'dog'], 'source': [u'un', u'garcon',u'frappe', u'un', u'chien'], 'target_pos': ['DT','NN','VBZ', 'DT', 'NN'], 'source_pos': ['DT','NN','VBZ', 'DT', 'NN'], 'alignments': [[0],[1],[2, 4],[3],[4]]}
         (cont_word, left, right) = self.aligner_no_model.get_features(obj)
-        self.assertEqual(cont_word, u'frappe chien')
+        self.assertEqual(cont_word, u'frappe|chien')
         self.assertEqual(left, u'garcon')
         self.assertEqual(right, u'_END_')
 
