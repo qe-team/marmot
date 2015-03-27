@@ -7,6 +7,7 @@ import logging
 import numpy as np
 from collections import defaultdict
 from sklearn.preprocessing.label import LabelBinarizer, MultiLabelBinarizer
+import ipdb
 
 from marmot.util.simple_corpus import SimpleCorpus
 from marmot.experiment.import_utils import list_of_lists
@@ -23,6 +24,7 @@ def convert_alignments(align_list, n_words):
         two_digits = pair.split('-')
         new_align[int(two_digits[1])].append(int(two_digits[0]))
     return new_align
+
 
 # TODO: this function adds keys to the context object, but maybe the user wants different keys
 # TODO: the function should be agnostic about which keys it adds -- why does it care?
@@ -52,7 +54,14 @@ def create_context(repr_dict):
         c = {}
         c['token'] = word
         c['index'] = idx
-        c['tag'] = repr_dict['tags'] if type(repr_dict['tags']) == int else repr_dict['tags'][idx]
+        if type(repr_dict['tags']) == list or type(repr_dict['tags']) == np.ndarray:
+            c['tag'] = repr_dict['tags'][idx]
+            c['sequence_tags'] = repr_dict['tags']
+        elif type(repr_dict['tags']) == int:
+            c['tag'] = repr_dict['tags'][idx]
+        else:
+            print("Unknown type of tags representation:", type(repr_dict['tags']))
+            return []
         for k in active_keys:
             c[k] = repr_dict[k]
         context_list.append(c)
@@ -126,11 +135,13 @@ def contexts_to_features(contexts, feature_extractors, workers=1):
     else:
         # resulting object
         res_list = []
+        #ipdb.set_trace()
         pool = multi.Pool(workers)
         logger.info('Multithreaded - Extracting the features for: ' + str(len(contexts)) + ' contexts...')
         # each context is paired with all feature extractors
         for extractor in feature_extractors:
             context_list = [(cont, extractor) for cont in contexts]
+            #ipdb.set_trace()
             features = pool.map(map_feature_extractor, context_list)
             res_list.append(features)
         # np.hstack and np.vstack can't be used because lists have objects of different types
@@ -202,7 +213,7 @@ def binarize(features, binarizers):
             else:
                 raise NotImplementedError('this function is not implemented for type: {}'.format(type(binarizer)))
         else:
-            binarized_cols.append(np.array(cur_values).reshape(len(cur_values),1))
+            binarized_cols.append(np.array(cur_values).reshape(len(cur_values), 1))
 
     assert (len(binarized_cols) == num_features), 'the number of columns after binarization must match the number of features'
     new_features = np.hstack(binarized_cols)
