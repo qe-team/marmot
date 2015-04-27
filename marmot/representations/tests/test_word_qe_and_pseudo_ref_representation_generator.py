@@ -55,7 +55,5 @@ class WordQEAndPseudoRefRepresentationGeneratorTests(unittest.TestCase):
         self.assertTrue(len(data_obj['target']) == len(data_obj['source']) == len(data_obj['tags'])
                         == len(data_obj['pseudo_ref']))
 
-    # TODO: test that tokenization of the pseudo ref happens like we expect
-
 if __name__ == '__main__':
     unittest.main()

@@ -1,5 +1,5 @@
 import codecs
-from nltk import word_tokenize
+from nltk import wordpunct_tokenize
 
 from marmot.representations.representation_generator import RepresentationGenerator
 
@@ -26,7 +26,7 @@ class WordQEAndPseudoRefRepresentationGenerator(RepresentationGenerator):
             tags_lines = [line.split() for line in tags]
 
         with codecs.open(pseudo_ref_file, encoding='utf8') as pseudo_ref:
-            pseudo_ref_lines = [word_tokenize(line.strip()) for line in pseudo_ref]
+            pseudo_ref_lines = [wordpunct_tokenize(line.strip()) for line in pseudo_ref]
 
         assert len(source_lines) == len(target_lines) == len(tags_lines) == len(pseudo_ref_lines)
 
