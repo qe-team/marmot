@@ -30,7 +30,7 @@ def convert_alignments(align_list, n_words):
 # TODO: the function should be agnostic about which keys it adds -- why does it care?
 # there is a difference between 'sequence fields' and 'token fields'
 # this method creates a context for each token
-def create_context(repr_dict):
+def create_context(repr_dict, sentence_id=None):
     '''
     :param repr_dict: a dict representing a 'line' or 'sentence' or a 'segment'
     :return: a list of context objects representing the data for each token in the sequence
@@ -54,6 +54,8 @@ def create_context(repr_dict):
         c = {}
         c['token'] = word
         c['index'] = idx
+        if sentence_id is not None:
+            c['sentence_id'] = sentence_id
         if type(repr_dict['tags']) == list or type(repr_dict['tags']) == np.ndarray:
             c['tag'] = repr_dict['tags'][idx]
             c['sequence_tags'] = repr_dict['tags']
@@ -91,11 +93,11 @@ def create_contexts(data_obj, data_type='plain'):
         print("No 'tag' label in data representations or wrong format of tag")
         return []
 
-    for sents in zip(*data_obj.values()):
+    for s_idx, sents in enumerate(zip(*data_obj.values())):
         if data_type == 'sequential':
-            contexts.append(create_context({data_obj.keys()[i]: sents[i] for i in range(len(sents))}))
+            contexts.append(create_context({data_obj.keys()[i]: sents[i] for i in range(len(sents))}, sentence_id=s_idx))
         else:
-            contexts.extend(create_context({data_obj.keys()[i]: sents[i] for i in range(len(sents))}))
+            contexts.extend(create_context({data_obj.keys()[i]: sents[i] for i in range(len(sents))}, sentence_id=s_idx))
 
             # TODO: there is an error here
             if data_type == 'token':
@@ -129,6 +131,17 @@ def map_feature_extractor((context, extractor)):
 def contexts_to_features(contexts, feature_extractors, workers=1):
     # single thread
     if workers == 1:
+#        print("Extractors:", type(feature_extractors))
+#        print("Contexts:", type(contexts))
+        #context = contexts[0]
+#        all_return = []
+#        for context in contexts:
+#            aaa = [map_feature_extractor((context, extractor)) for extractor in feature_extractors]
+#            all_return.append(x for a_list in aaa for x in a_list)
+#            print("Context:", type(aaa[0][0]))
+#        print("One context:", aaa[0])
+#        return all_return
+#        return [[x for a_list in [map_feature_extractor((context, extractor)) for extractor in feature_extractors] for x in a_list] for context in contexts]
         return [[x for a_list in [map_feature_extractor((context, extractor)) for extractor in feature_extractors] for x in a_list] for context in contexts]
 
     # multiple threads
@@ -184,6 +197,10 @@ def fit_binarizers(all_values):
 def binarize(features, binarizers):
     assert(list_of_lists(features))
     num_features = len(features[0])
+    if binarizers != {} and max(binarizers.keys()) >= num_features:     
+        print("Binarizers keys max: ", max(binarizers.keys()))
+        print("Total feature number: ", num_features)
+        print("Features:", features[0])
     assert(binarizers == {} or max(binarizers.keys()) < num_features)
 
     binarized_cols = []
