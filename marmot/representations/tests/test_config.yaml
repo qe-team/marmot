@@ -11,3 +11,9 @@ representations:
         - !join test_data/dev.source
         - !join test_data/dev.target
         - !join test_data/dev.target.tags
+    - module: marmot.representations.word_qe_and_pseudo_ref_representation_generator.WordQEAndPseudoRefRepresentationGenerator
+      args:
+        - !join test_data/dev.source
+        - !join test_data/dev.target
+        - !join test_data/dev.target.tags
+        - !join test_data/dev.pseudo_refs
