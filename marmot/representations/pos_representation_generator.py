@@ -1,5 +1,6 @@
 from subprocess import Popen
 import os
+import time
 
 from marmot.representations.representation_generator import RepresentationGenerator
 from marmot.experiment.import_utils import mk_tmp_dir
@@ -7,17 +8,20 @@ from marmot.experiment.import_utils import mk_tmp_dir
 
 class POSRepresentationGenerator(RepresentationGenerator):
 
+    def _get_random_name(self, suffix=''):
+        return 'tmp_'+suffix+str(time.time())
+
     def _get_pos_tagging(self, src, tagger, par_file, tmp_dir):
         # tokenize and add the sentence end marker
         # tokenization is done with nltk
-        tmp_tokenized_name = os.path.join(tmp_dir, 'tmp_tok')
+        tmp_tokenized_name = os.path.join(tmp_dir, self._get_random_name('tok'))
         tmp_tok = open(tmp_tokenized_name, 'wr+')
         for words in src:
             tmp_tok.write('%s\nSentenceEndMarker\n' % '\n'.join([w.encode('utf-8') for w in words]))
         tmp_tok.seek(0)
 
         # pass to tree-tagger
-        tmp_tagged_name = os.path.join(tmp_dir, 'tmp_tag')
+        tmp_tagged_name = os.path.join(tmp_dir, self._get_random_name('tag'))
         tmp_tagged = open(tmp_tagged_name, 'wr+')
         tagger_call = Popen([tagger, '-token', par_file], stdin=tmp_tok, stdout=tmp_tagged)
         tagger_call.wait()
