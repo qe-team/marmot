@@ -23,7 +23,12 @@ class WordQERepresentationGenerator(RepresentationGenerator):
         with codecs.open(tags_file, encoding='utf8') as tags:
             tags_lines = [line.split() for line in tags]
 
-        return {'target': target_lines, 'source': source_lines, 'tags': tags_lines}
+        dd = {'target': target_lines, 'source': source_lines, 'tags': tags_lines, 'target_file': target_file, 'source_file': source_file}
+        print("DATA FILES INIT")
+        print(dd['target_file'])
+        print(dd['source_file'])
+#        return {'target': target_lines, 'source': source_lines, 'tags': tags_lines, 'target_file': target_file, 'source_file': source_file}
+        return dd
 
     def generate(self, data_obj=None):
         return self.data
