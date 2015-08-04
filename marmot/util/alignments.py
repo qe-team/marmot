@@ -41,7 +41,7 @@ def train_alignments(src_train, tg_train, tmp_dir, align_model='align_model'):
     rev_align.close()
     fwd_err.close()
     rev_err.close()
-    
+
     return align_model_full
 
 
@@ -61,3 +61,16 @@ def align_sentence(src_line, tg_line, align_model):
     aligner.close()
 
     return cur_alignments
+
+
+def align_files(src_file, tg_file, align_model, align_file):
+    '''
+    align 2 files and put the alignments in a new file
+    :align_model: - alignment model prefix
+    :align_file: - new file to store the alignments
+    '''
+    aligner = Aligner(align_model+'.fwd_params', align_model+'.fwd_err', align_model+'.rev_params', align_model+'.rev_err')
+    align_out = open(align_file, 'w')
+    for src_line, tg_line in zip(open(src_file), open(tg_file)):
+        align_out.write(aligner.align(src_line, tg_line))
+    align_out.close()
