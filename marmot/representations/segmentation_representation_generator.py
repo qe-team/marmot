@@ -36,6 +36,9 @@ class SegmentationRepresentationGenerator(RepresentationGenerator):
     def write_command_file(self, data_obj, alignments_file):
         command_name = os.path.join(self.tmp_dir, 'extract_phrases.'+self.time_stamp+'.sh')
         command = open(command_name, 'w')
+        # cd to the dir of the script (it doesn't work from any other places because of gzip)
+        # TODO: what's the problem with gzip?
+        command.write("CUR_DIR=$PWD\ncd %s\n" % self.tmp_dir)
         # extract phrases
         command.write('%s/scripts/generic/extract-parallel.perl 1 split "sort    " %s/bin/extract %s %s %s %s/extract.%s 5 orientation --model wbe-msd --GZOutput\n' % (self.moses_dir, self.moses_dir, data_obj['target_file'], data_obj['source_file'], alignments_file, self.tmp_dir, self.time_stamp))
 
@@ -54,6 +57,8 @@ class SegmentationRepresentationGenerator(RepresentationGenerator):
         # binarize the phrase table
         command.write('gzip -cd %s/phrase-table.%s.gz | LC_ALL=C sort -T %s/binarized | %s/bin/processPhraseTable -ttable 0 0 - -nscores 4 -out %s/binarized/phrase-table.%s\n' % (self.tmp_dir, self.time_stamp, self.tmp_dir, self.moses_dir, self.tmp_dir, self.time_stamp))
         command.write('rm %s/phrase-table.%s.half.*\n' % (self.tmp_dir, self.time_stamp))
+        # return back to where the script was run from
+        command.write('cd $CUR_DIR\n')
         command.close()
         phrase_table = os.path.join(self.tmp_dir, 'binarized/phrase-table.{}'.format(self.time_stamp))
         return command_name, phrase_table
@@ -132,7 +137,7 @@ class SegmentationRepresentationGenerator(RepresentationGenerator):
         moses_seg_file_name = os.path.join(self.tmp_dir, 'segmentation.'+self.time_stamp)
         moses_seg_file = open(moses_seg_file_name, 'w')
         src = open(data_obj['source_file'])
-        call([os.path.join(self.moses_dir, 'bin/moses'), '-f', moses_config, '-v', '0', '-t', '-threads', str(self.workers)], stdin=src, stdout=moses_seg_file)
+        call([os.path.join(self.moses_dir, 'bin/moses'), '-f', moses_config, '-v', '0', '-t'], stdin=src, stdout=moses_seg_file)
         moses_seg_file.close()
         src.close()
 
