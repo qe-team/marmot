@@ -102,22 +102,44 @@ class SegmentationRepresentationGenerator(RepresentationGenerator):
 
     def get_segments(self, data_obj, segmentation_file):
         seg_regexp = re.compile("\|\d+-\d+\|")
-        segments = []
+        source_segments = []
+        target_segments = []
+        segment_alignments = []
         with codecs.open(segmentation_file, encoding='utf-8') as segmentation:
             for idx, line in enumerate(segmentation):
                 # no Moses output for this line - every word is a separate segment
                 if line == "\n":
-                    segments.append([(i, i+1) for i in range(len(data_obj['target'][idx]))])
-                seg_strings = seg_regexp.findall(line)
-                seg_list = []
-                for a_seg in seg_strings:
+                    source_segments.append([])
+                    target_segments.append([(i, i+1) for i in range(len(data_obj['target'][idx]))])
+                    continue
+
+                # get source segments
+                source_seg_strings = seg_regexp.findall(line)
+                source_seg_list = []
+                for a_seg in source_seg_strings:
                     a_pair = a_seg.strip('|').split('-')
-                    seg_list.append((int(a_pair[0]), int(a_pair[1])+1))
-                segments.append(seg_list)
-        return segments
+                    source_seg_list.append((int(a_pair[0]), int(a_pair[1])+1))
+
+                # get target segments
+                target_seg_strings = [ll for ll in [l.strip() for l in seg_regexp.split(line)] if ll != '']
+                target_seg_list = []
+                cur_pos = 0
+                for a_seg in target_seg_strings:
+                    seg_words = a_seg.split()
+                    assert(all([s_w.lower() == t_w.lower() for (s_w, t_w) in zip(seg_words, data_obj['target'][idx][cur_pos:len(seg_words)])]))
+                    target_seg_list.append((cur_pos, cur_pos+len(seg_words)))
+                    cur_pos += len(seg_words)
+
+                # compare source and target segments
+                # the number of segments for the source and the target should match
+                assert(len(source_seg_list) == len(target_seg_list)), "The numbers of source and target segments don't match: {} and {}".format(len(source_seg_list), len(target_seg_list))
+
+                source_segments.append(source_seg_list)
+                target_segments.append(target_seg_list)
+        return target_segments, source_segments
 
     def generate(self, data_obj):
-
+        data_time_stamp = str(time.time())
         if 'target' not in data_obj or 'source' not in data_obj:
             print("No target or source")
         assert(len(data_obj['target']) == len(data_obj['source']))
@@ -134,13 +156,13 @@ class SegmentationRepresentationGenerator(RepresentationGenerator):
 
         # call Moses MT
         moses_config = self.write_moses_config(phrase_table, data_obj['target_file'])
-        moses_seg_file_name = os.path.join(self.tmp_dir, 'segmentation.'+self.time_stamp)
+        moses_seg_file_name = os.path.join(self.tmp_dir, 'segmentation.'+self.time_stamp+'.'+data_time_stamp)
         moses_seg_file = open(moses_seg_file_name, 'w')
         src = open(data_obj['source_file'])
         call([os.path.join(self.moses_dir, 'bin/moses'), '-f', moses_config, '-v', '0', '-t'], stdin=src, stdout=moses_seg_file)
         moses_seg_file.close()
         src.close()
 
-        data_obj['segmentation'] = self.get_segments(data_obj, moses_seg_file_name)
+        data_obj['segmentation'], data_obj['source_segmentation'] = self.get_segments(data_obj, moses_seg_file_name)
 
         return data_obj
