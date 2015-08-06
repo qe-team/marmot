@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 
 import logging
 from gensim.models import Word2Vec
@@ -66,6 +67,13 @@ class Word2VecFeatureExtractor(FeatureExtractor):
 
     # extract the word2vec features for a window of tokens around the target token
     def get_features(self, context_obj):
+        if 'token' not in context_obj or len(context_obj['token']) == 0:
+            print("No token in context object ", context_obj)
+            sys.exit()
+        if 'index' not in context_obj or len(context_obj['index']) == 0:
+            print("No index in context object ", context_obj)
+            sys.exit()
+
         if context_obj['index'][0] == context_obj['index'][1]:
             print("Invalid token indices in sentence: ", context_obj['target'])
             print("Indices: {}, {}".format(context_obj['index'][0], context_obj['index'][1]))

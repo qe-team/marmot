@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 
 import logging
 from gensim.models import Word2Vec
@@ -65,7 +66,7 @@ class SourceWord2VecFeatureExtractor(FeatureExtractor):
             return self.default_vector
 
     # extract the word2vec features for a window of tokens around the target token
-    def get_features(self, context_obj):
+    def get_features_(self, context_obj):
         if context_obj['index'][0] == context_obj['index'][1]:
             print("Invalid token indices in sentence: ", context_obj['target'])
             print("Indices: {}, {}".format(context_obj['index'][0], context_obj['index'][1]))
@@ -98,6 +99,58 @@ class SourceWord2VecFeatureExtractor(FeatureExtractor):
             phrase_vector = self.extract_word2vec_vector(src_token)
         else:
             print("Golakteko opasnoste!!!!!11")
+
+        vector = []
+        for tok in left_window:
+            vector.extend(self.extract_word2vec_vector(tok))
+        vector.extend(phrase_vector)
+        for tok in right_window:
+            vector.extend(self.extract_word2vec_vector(tok))
+        return np.hstack(vector)
+
+    def get_features(self, context_obj):
+        if context_obj['index'][0] == context_obj['index'][1]:
+            print("Invalid token indices in sentence: ", context_obj['target'])
+            print("Indices: {}, {}".format(context_obj['index'][0], context_obj['index'][1]))
+
+        left_window, right_window = [], []
+        phrase_vector = []
+        # source phrase exists
+        if 'source_token' in context_obj:
+            phrase_vector = [self.extract_word2vec_vector(tok) for tok in context_obj['source_token']]
+            phrase_vector = self.combine(phrase_vector, axis=0)
+            if self.context_size > 0:
+                left_window = left_context(context_obj['source'], context_obj['source_token'][0], self.context_size, context_obj['source_index'][0])
+                right_window = right_context(context_obj['source'], context_obj['source_token'][-1], self.context_size, context_obj['source_index'][-1])
+        # no source phrase -- test data
+        else:
+            alignments = []
+            if 'alignments' not in context_obj:
+                print("No alignment provided")
+                sys.exit()
+            # if 'token' contains more than 1 string, 'index' should be an interval
+            if type(context_obj['token']) is list or type(context_obj['token']) is np.ndarray:
+                for i in range(context_obj['index'][0], context_obj['index'][1]):
+                    alignments.extend(context_obj['alignments'][i])
+            else:
+                alignments = context_obj['alignments'][context_obj['index']]
+            alignments = sorted(alignments)
+            if len(alignments) == 0:
+                left_window = ['_unaligned_' for i in range(self.context_size)]
+                right_window = ['_unaligned_' for i in range(self.context_size)]
+                phrase_vector = self.extract_word2vec_vector('_unaligned_')
+            elif len(alignments) > 1:
+                left_window = left_context(context_obj['source'], context_obj['source'][alignments[0]], self.context_size, alignments[0])
+                right_window = right_context(context_obj['source'], context_obj['source'][alignments[-1]], self.context_size, alignments[-1])
+                phrase_vector = [self.extract_word2vec_vector(tok) for tok in context_obj['source'][alignments[0]:alignments[-1]+1]]
+                phrase_vector = self.combine(phrase_vector, axis=0)
+            elif len(alignments) == 1:
+                src_token = context_obj['source'][alignments[0]]
+                left_window = left_context(context_obj['source'], src_token, self.context_size, alignments[0])
+                right_window = right_context(context_obj['source'], src_token, self.context_size, alignments[0])
+                phrase_vector = self.extract_word2vec_vector(src_token)
+            else:
+                print("Golakteko opasnoste!!!!!11")
 
         vector = []
         for tok in left_window:

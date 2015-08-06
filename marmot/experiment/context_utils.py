@@ -27,7 +27,7 @@ def negative_window(my_list, start, end):
     return res
 
 
-def create_context_ngram(repr_dict, order):
+def create_context_ngram(repr_dict, order, test=False, all_bad=False):
     '''
     :param repr_dict: a dict representing a 'line' or 'sentence' or a 'segment'
     :return: a list of context objects representing the data for each token in the sequence
@@ -71,7 +71,10 @@ def create_context_ngram(repr_dict, order):
 
 # we don't really need the order here, it should always be None
 # or anything else
-def create_context_phrase(repr_dict, order=None):
+# :test: -- True if data is test data, False if training
+# :all_bad: -- tag all phrases with at least one bad word as "BAD"
+#              if seg to False - only phrases with 50% or more bad words are tagged as "BAD"
+def create_context_phrase(repr_dict, order=None, test=False, all_bad=False):
     '''
     :param repr_dict: a dict representing a 'line' or 'sentence' or a 'segment'
     :return: a list of context objects representing the data for each token in the sequence
@@ -90,35 +93,49 @@ def create_context_phrase(repr_dict, order=None):
         print("No 'segmentation' label in data representations")
         return []
 
+    if len(repr_dict['segmentation']) == 0:
+        print("No segmentation: ", repr_dict)
+    # no source segmentation means that no Moses segmentation was produced
+    # in the training data we leave these sentences out
+    # in the test data they are processed as normal
+    # assuming that every target word is a separate segment
+    if 'source_segmentation' not in repr_dict or len(repr_dict['source_segmentation']) == 0:
+        if not test:
+            print("Sentence withdrawn")
+            return []
     active_keys = repr_dict.keys()
     active_keys.remove('tags')
     active_keys.remove('segmentation')
     tag_map = {'OK': 1, 'BAD': 0}
-    for i, j in repr_dict['segmentation']:
+    for idx, (i, j) in enumerate(repr_dict['segmentation']):
+
         c = {}
         c['token'] = repr_dict['target'][i:j]
+        if 'source_segmentation' in repr_dict:
+            src_seg = repr_dict['source_segmentation'][idx]
+            c['source_token'] = repr_dict['source'][src_seg[0]:src_seg[1]]
+            c['source_index'] = (src_seg[0], src_seg[1])
+        if len(c['token']) == 0:
+            print("No token: from {} to {} in target: ".format(i, j), repr_dict['target'], repr_dict['source'], repr_dict['segmentation'])
         c['index'] = [i, j]
         if j == 0:
             print("j==0!")
             print("Target: '{}', segmentation: {}, {}".format(' '.join(repr_dict['target'], i, j)))
-#        c['tag'] = repr_dict['tags'][i:j]
-#        tags = [tag_map[t] for t in repr_dict['tags'][i:j]]
-#        c['tag'] = np.average(tags)
         tags_cnt = Counter(repr_dict['tags'][i:j])
         
-        # pessimistic tagging -- if BAD occurs more often or as much as OK -- the final tag is BAD
-        if tags_cnt['OK'] > tags_cnt['BAD']:
-            c['tag'] = 'OK'
-        else:
-            c['tag'] = 'BAD'
         # super-pessimistic tagging -- if BAD occurs any number of times - the final tag is BAD
-#        if tags_cnt['BAD'] > 0:
-#            c['tag'] = 'BAD'
-#        else:
-#            c['tag'] = 'OK'
+        if all_bad:
+            if tags_cnt['BAD'] > 0:
+                c['tag'] = 'BAD'
+            else:
+                c['tag'] = 'OK'
+        # pessimistic tagging -- if BAD occurs more often or as much as OK -- the final tag is BAD
+        else:
+            if tags_cnt['OK'] > tags_cnt['BAD']:
+                c['tag'] = 'OK'
+            else:
+                c['tag'] = 'BAD'
 
-        #c['tag'] = tags_cnt.keys()[np.argmax(tags_cnt.values())]
- 
         for k in active_keys:
             c[k] = repr_dict[k]
         context_list.append(c)
@@ -130,7 +147,7 @@ def create_context_phrase(repr_dict, order=None):
 # :order: -- order of ngram
 # :data_type: -- 'plain' - data is a flat list
 #                'sequential' - data is a list of sequences (used for dev and test)
-def create_contexts_ngram(data_obj, order=None, data_type='plain'):
+def create_contexts_ngram(data_obj, order=None, data_type='plain', test=False, all_bad=False):
     '''
     :param data_obj: an object representing a dataset consisting of files
     :param data_type:
@@ -153,13 +170,17 @@ def create_contexts_ngram(data_obj, order=None, data_type='plain'):
             return []
         context_generator = create_context_ngram
 
+    overall = 0
     if data_type == 'plain':
         for s_idx, sents in enumerate(zip(*data_obj.values())):
-            contexts.extend(context_generator({data_obj.keys()[i]: sents[i] for i in range(len(sents))}, order))
+            cont = context_generator({data_obj.keys()[i]: sents[i] for i in range(len(sents))}, order, test=test, all_bad=all_bad)
+            overall += len(cont)
+            contexts.extend(cont)
+            print("Contexts: {}".format(overall))
 #            print(contexts)
     elif data_type == 'sequential':
         for s_idx, sents in enumerate(zip(*data_obj.values())):
-            contexts.append(context_generator({data_obj.keys()[i]: sents[i] for i in range(len(sents))}, order))
+            contexts.append(context_generator({data_obj.keys()[i]: sents[i] for i in range(len(sents))}, order, test=test, all_bad=all_bad))
 
     return contexts
 
