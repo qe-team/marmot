@@ -72,5 +72,6 @@ def align_files(src_file, tg_file, align_model, align_file):
     aligner = Aligner(align_model+'.fwd_params', align_model+'.fwd_err', align_model+'.rev_params', align_model+'.rev_err')
     align_out = open(align_file, 'w')
     for src_line, tg_line in zip(open(src_file), open(tg_file)):
-        align_out.write(aligner.align(src_line, tg_line))
+        align_out.write('%s\n' % aligner.align(src_line[:-1].decode('utf-8') + u' ||| ' + tg_line[:-1].decode('utf-8')))
+    aligner.close()
     align_out.close()
