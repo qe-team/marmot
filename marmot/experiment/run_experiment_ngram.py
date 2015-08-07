@@ -33,6 +33,30 @@ def label_test(flat_labels, new_test_name, text_file, method_name):
             new_test_ext.write('%s\t%d\t%d\t%s\t%s\n' % (method_name, s_idx, t_idx, word.encode('utf-8'), tag))
 
 
+# check that everything in a data_obj matches:
+#  - all source and target sentences exist
+#  - alignments don't hit out of bounds
+#  - target tokens really exist and are in their places
+#def check_data_objects(data_obj):
+#    # all representations have the same number of sentences
+#    right_len = data_obj['target']
+#    for a_key in data_obj:
+#        assert(len(data_obj[a_key] == right_len), "Wrong number of sentences for the representation {}: expected {}, got {}".format(a_key, right_len, len(data_obj[a_key])))
+#
+#    # all source and target sentences exist
+#    for i in range(right_len):
+ #       # target sentence exists
+#        assert(len(data_obj['target'][i]) > 0), "Target sentence doesn't exist for the object #{}".format(i)
+#        # source sentence exists
+#        assert(len(data_obj['source'][i]) > 0), "Source sentence doesn't exist for the object #{}".format(i)
+#        # alignments match the target side
+#        assert(len(data_obj['alignments'][i]) == len(data_obj['target'][i])), "Wrong alignments number at line #{}: expected {}, got {}".format(i, len(data_obj['target'][i]), len(data_obj['alignments'][i]))
+#        # alignments match the source
+#        for tok_list in data_obj['alignments'][i]:
+#            for c in tok_list:
+#                assert(c < len(data_obj['source'][i])), "Alignment goes out of source side bounds at line #{}: len is {}, got {}".format(i, len(data_obj['source'][i]), c)
+#
+
 def main(config):
     time_stamp = str(time.time())
     workers = config['workers']
@@ -41,14 +65,19 @@ def main(config):
     # REPRESENTATION GENERATION
     # main representations (source, target, tags)
     # training
-    train_data_generators = build_objects(config['datasets']['training'])
-    train_data = {}
-    for gen in train_data_generators:
-        data = gen.generate()
-        for key in data:
-            if key not in train_data:
-                train_data[key] = []
-            train_data[key].extend(data[key])
+    # many generators
+#    train_data_generators = build_objects(config['datasets']['training'])
+#    train_data = {}
+#    for gen in train_data_generators:
+#        data = gen.generate()
+#        for key in data:
+#            if key not in train_data:
+#                train_data[key] = []
+#            train_data[key].extend(data[key])
+    # one generator
+    train_data_generator = build_object(config['datasets']['training'][0])
+    train_data = train_data_generator.generate()
+
     # test
     test_data_generator = build_object(config['datasets']['test'][0])
     test_data = test_data_generator.generate()
@@ -66,6 +95,9 @@ def main(config):
         train_data = r.generate(train_data)
         test_data = r.generate(test_data)
 
+    #check_data_objects(train_data)
+    #check_data_objects(test_data)
+
     borders = config['borders'] if 'borders' in config else False
 
     logger.info('here are the keys in your representations: {}'.format(train_data.keys()))
@@ -73,9 +105,17 @@ def main(config):
     # the data_type is the format corresponding to the model of the data that the user wishes to learn
     data_type = config['contexts'] if 'contexts' in config else 'plain'
 
-    test_contexts = create_contexts_ngram(test_data, data_type=data_type)
-    test_contexts_seq = create_contexts_ngram(test_data, data_type='sequential')
+    test_contexts = create_contexts_ngram(test_data, data_type=data_type, test=True)
+#    test_contexts_seq = create_contexts_ngram(test_data, data_type='sequential')
+    print("Objects in the train data: {}".format(len(train_data['target'])))
+
+    print("\tTraining data")
+    for i in range(len(train_data['target'])):
+        print("\ttarget {}, source {}, segmentation {}, source segmentation {}, alignments {}".format(len(train_data['target'][i]), len(train_data['source'][i]), len(train_data['segmentation'][i]), len(train_data['source_segmentation'][i]), len(train_data['alignments'][i])))
+
     train_contexts = create_contexts_ngram(train_data, data_type=data_type)
+    print("Train contexts: {}".format(len(train_contexts)))
+    print("1st context:", train_contexts[0])
 
     # the list of context objects' 'target' field lengths
     # to restore the word-level tags from the phrase-level
