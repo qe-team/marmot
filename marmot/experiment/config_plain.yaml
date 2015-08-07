@@ -1,0 +1,81 @@
+workers: 1
+tmp_dir: &tmp /export/data/varvara/marmot/marmot/experiment/tmp
+
+datasets:
+  training:
+    - module: marmot.representations.word_qe_files_representation_generator.WordQEFilesRepresentationGenerator
+      args:
+        - /export/data/varvara/phrase_level/data/wmt14/EN_ES.source.train.txt.true
+        - /export/data/varvara/phrase_level/data/wmt14/EN_ES.tgt_ann.train.target.true
+        - /export/data/varvara/phrase_level/data/wmt14/EN_ES.tgt_ann.train.tags
+  test:
+    - module: marmot.representations.word_qe_files_representation_generator.WordQEFilesRepresentationGenerator
+      args:
+        - /export/data/varvara/phrase_level/data/wmt14/EN_ES.source.test.txt
+        - /export/data/varvara/phrase_level/data/wmt14/EN_ES.tgt_ann.test.target.true
+        - /export/data/varvara/phrase_level/data/wmt14/EN_ES.tgt_ann.test.tags
+
+representations:
+  - module: marmot.representations.segmentation_representation_generator.SegmentationRepresentationGenerator
+    args:
+      - /export/data/varvara/marmot/marmot/experiment/test_data/europarl_align_model 
+      - 
+      - 
+      - /export/data/varvara/europarl-sys/english_spanish/model/lex.1
+      - *tmp
+      - /export/tools/moses
+      - /export/data/varvara/phrase_level/moses.ini.wmt14
+      - 8
+#  - module: marmot.representations.alignment_representation_generator.AlignmentRepresentationGenerator
+#    args:
+#      - /export/data/varvara/marmot/marmot/experiment/test_data/europarl_align_model
+#  - module: marmot.representations.pos_representation_generator.POSRepresentationGenerator
+#   args:
+#      - tiny_test/tree-tagger
+#      - tiny_test/spanish-par-linux-3.2-utf8.bin
+#      - 'target'
+#      - *tmp
+#  - module: marmot.representations.pos_representation_generator.POSRepresentationGenerator
+#    args:
+#      - tiny_test/tree-tagger
+#      - tiny_test/english-utf8.par
+#      - 'source'
+#      - *tmp
+#  - module: marmot.representations.google_translate_representation_generator.GoogleTranslateRepresentationGenerator
+#    args:
+#      - 'es'
+
+# if 'sequential', contexts are generated as lists of lists (lists of sequences)
+# if 'plain', a single list of contexts is generated
+# if 'token', a separate list of contexts for every token
+# TODO: change the contexts param name to 'data_type' for clarity
+contexts: plain
+filters:
+  - min_count: 100
+  - min_label_count: 30
+  - proportion: 2
+
+#multiply_data: duplicate
+#long_test: False
+ 
+features:
+  binarize: False
+  persist: False
+  persist_dir: marmot_feature_dump
+  persist_format: crf++
+
+feature_extractors:
+  - module: marmot.features.word2vec_feature_extractor.Word2VecFeatureExtractor
+    args:
+      - /export/data/varvara/big_w2v/w2v_model.es
+      - sum
+      - 1
+  - module: marmot.features.source_word2vec_feature_extractor.SourceWord2VecFeatureExtractor
+    args:
+      - /export/data/varvara/big_w2v/w2v_model.en
+      - sum
+      - 0
+
+learning:
+  classifier:
+     module: sklearn.ensemble.RandomForestClassifier
