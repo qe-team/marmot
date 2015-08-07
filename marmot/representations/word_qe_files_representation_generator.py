@@ -3,7 +3,7 @@ import codecs
 from marmot.representations.representation_generator import RepresentationGenerator
 
 
-class WordQERepresentationGenerator(RepresentationGenerator):
+class WordQEFilesRepresentationGenerator(RepresentationGenerator):
     '''
     The standard word-level format: 3 files, source, target, tags, one line per file, whitespace tokenized
     '''
@@ -23,7 +23,7 @@ class WordQERepresentationGenerator(RepresentationGenerator):
         with codecs.open(tags_file, encoding='utf8') as tags:
             tags_lines = [line.split() for line in tags]
 
-        return {'target': target_lines, 'source': source_lines, 'tags': tags_lines}
+        return {'target': target_lines, 'source': source_lines, 'tags': tags_lines, 'target_file': target_file, 'source_file': source_file}
 
     def generate(self, data_obj=None):
         return self.data

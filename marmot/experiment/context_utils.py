@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import sys
 import numpy as np
 from collections import Counter
 
@@ -100,18 +101,26 @@ def create_context_phrase(repr_dict, order=None, test=False, all_bad=False):
     # in the test data they are processed as normal
     # assuming that every target word is a separate segment
     if 'source_segmentation' not in repr_dict or len(repr_dict['source_segmentation']) == 0:
-        if not test:
-            print("Sentence withdrawn")
+        if test:
+            print("Test sentence with no source segmentation")
+        else:
+            print("Sentence withdrawn: ", repr_dict)
             return []
     active_keys = repr_dict.keys()
     active_keys.remove('tags')
+    if 'source_segmentation' in repr_dict:
+        active_keys.remove('source_segmentation')
     active_keys.remove('segmentation')
-    tag_map = {'OK': 1, 'BAD': 0}
+    if len(repr_dict['source_segmentation']) != len(repr_dict['segmentation']) and not test:
+        print("Wrong segmentation lengths: ", repr_dict)
+        sys.exit()
+    print("Generating the contexts for sentence, {} segments".format(len(repr_dict['segmentation'])))
+    print(repr_dict)
     for idx, (i, j) in enumerate(repr_dict['segmentation']):
 
         c = {}
         c['token'] = repr_dict['target'][i:j]
-        if 'source_segmentation' in repr_dict:
+        if 'source_segmentation' in repr_dict and len(repr_dict['source_segmentation']) != 0:
             src_seg = repr_dict['source_segmentation'][idx]
             c['source_token'] = repr_dict['source'][src_seg[0]:src_seg[1]]
             c['source_index'] = (src_seg[0], src_seg[1])
@@ -139,6 +148,7 @@ def create_context_phrase(repr_dict, order=None, test=False, all_bad=False):
         for k in active_keys:
             c[k] = repr_dict[k]
         context_list.append(c)
+        print("New context: ", c)
     return context_list
 
 
@@ -170,9 +180,17 @@ def create_contexts_ngram(data_obj, order=None, data_type='plain', test=False, a
             return []
         context_generator = create_context_ngram
 
+    print("Sentences in the data: {}".format(len(data_obj['target'])))
+    if 'target_file' in data_obj:
+        data_obj.pop('target_file')
+    if 'source_file' in data_obj:
+        data_obj.pop('source_file')
     overall = 0
+#    for a_key in data_obj:
+#        if type(data_obj[a_key]) is not list:
     if data_type == 'plain':
         for s_idx, sents in enumerate(zip(*data_obj.values())):
+            print("SENTENCE {}".format(s_idx))
             cont = context_generator({data_obj.keys()[i]: sents[i] for i in range(len(sents))}, order, test=test, all_bad=all_bad)
             overall += len(cont)
             contexts.extend(cont)

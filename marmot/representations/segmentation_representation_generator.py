@@ -104,9 +104,10 @@ class SegmentationRepresentationGenerator(RepresentationGenerator):
         seg_regexp = re.compile("\|\d+-\d+\|")
         source_segments = []
         target_segments = []
-        segment_alignments = []
         with codecs.open(segmentation_file, encoding='utf-8') as segmentation:
             for idx, line in enumerate(segmentation):
+                print("REAL string: ", ' '.join([w.encode('utf-8') for w in data_obj['target'][idx]]))
+                print("SEGMENTED: ", line[:-1].encode('utf-8'))
                 # no Moses output for this line - every word is a separate segment
                 if line == "\n":
                     source_segments.append([])
@@ -126,7 +127,9 @@ class SegmentationRepresentationGenerator(RepresentationGenerator):
                 cur_pos = 0
                 for a_seg in target_seg_strings:
                     seg_words = a_seg.split()
-                    assert(all([s_w.lower() == t_w.lower() for (s_w, t_w) in zip(seg_words, data_obj['target'][idx][cur_pos:len(seg_words)])]))
+                    for (s_w, t_w) in zip(seg_words, data_obj['target'][idx][cur_pos:len(seg_words)]):
+                        assert(s_w.lower() == t_w.lower()), "Words don't match at line {}: {} and {}".format(idx, s_w.lower(), t_w.lower())
+#                    assert(all([s_w.lower() == t_w.lower() for (s_w, t_w) in zip(seg_words, data_obj['target'][idx][cur_pos:len(seg_words)])])), "Words don't match at line {}: {} and {}".format(idx, )
                     target_seg_list.append((cur_pos, cur_pos+len(seg_words)))
                     cur_pos += len(seg_words)
 
