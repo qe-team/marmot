@@ -1,4 +1,5 @@
 import codecs
+import os
 
 from marmot.representations.representation_generator import RepresentationGenerator
 
@@ -23,7 +24,7 @@ class WordQEFilesRepresentationGenerator(RepresentationGenerator):
         with codecs.open(tags_file, encoding='utf8') as tags:
             tags_lines = [line.split() for line in tags]
 
-        return {'target': target_lines, 'source': source_lines, 'tags': tags_lines, 'target_file': target_file, 'source_file': source_file}
+        return {'target': target_lines, 'source': source_lines, 'tags': tags_lines, 'target_file': os.path.abspath(target_file), 'source_file': os.path.abspath(source_file)}
 
     def generate(self, data_obj=None):
         return self.data
