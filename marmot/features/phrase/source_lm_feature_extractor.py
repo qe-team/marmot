@@ -8,7 +8,10 @@ class SourceLMFeatureExtractor(FeatureExtractor):
         self.model = kenlm.LanguageModel(lm_file)
 
     def get_features(self, context_obj):
-        return [self.model.score(' '.join(context_obj['source_token']))]
+        if len(context_obj['source_token']) > 0:
+            return [self.model.score(' '.join(context_obj['source_token']))]
+        else:
+            return [0.0]
 
     def get_feature_names(self):
         return ['source_log_prob']

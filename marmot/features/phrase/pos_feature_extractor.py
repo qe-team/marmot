@@ -47,23 +47,24 @@ class POSFeatureExtractor(FeatureExtractor):
         source_idx = context_obj['source_index']
         target_idx = context_obj['target_index']
         # check if source words are nouns, verbs, content words
-        for word in context_obj['source_pos'][source_idx[0]:source_idx[1]]:
-            content = False
-            if self.belongs_to(word, self.pronouns_src):
-                pronouns_src += 1
-            if self.belongs_to(word, self.nouns_src):
-                nouns_src += 1
+        if len(source_idx) > 0:
+            for word in context_obj['source_pos'][source_idx[0]:source_idx[1]]:
+                content = False
+                if self.belongs_to(word, self.pronouns_src):
+                    pronouns_src += 1
+                if self.belongs_to(word, self.nouns_src):
+                    nouns_src += 1
+                    if not content:
+                        content_src += 1
+                        content = True
+                if self.belongs_to(word, self.verbs_src):
+                    verbs_src += 1
+                    if not content:
+                        content_src += 1
+                        content = True
                 if not content:
-                    content_src += 1
-                    content = True
-            if self.belongs_to(word, self.verbs_src):
-                verbs_src += 1
-                if not content:
-                    content_src += 1
-                    content = True
-            if not content:
-                if self.belongs_to(word, self.content_src):
-                    content_src += 1
+                    if self.belongs_to(word, self.content_src):
+                        content_src += 1
         # check if target words are nouns, verbs, content words
         for word in context_obj['target_pos'][target_idx[0]:target_idx[1]]:
             content = False
@@ -82,14 +83,19 @@ class POSFeatureExtractor(FeatureExtractor):
             if not content:
                 if self.belongs_to(word, self.content_tg):
                     content_tg += 1
-        content_src_percent = ontent_src/len(context_obj['source_token'])
         content_tg_percent = content_tg/len(context_obj['token'])
-        verbs_src_percent = verbs_src/len(context_obj['source_token'])
         verbs_tg_percent = verbs_tg/len(context_obj['token'])
-        nouns_src_percent = nouns_src/len(context_obj['source_token'])
         nouns_tg_percent = nouns_tg/len(context_obj['token'])]
-        pronouns_src_percent = pronouns_src/len(context_obj['source_token'])
         pronouns_tg_percent = pronouns_tg/len(context_obj['token'])
+        content_src_percent = 0
+        verbs_src_percent = 0
+        nouns_src_percent = 0
+        pronouns_src_percent = 0
+       if len(context_obj['source_token']) > 0:
+            content_src_percent = ontent_src/len(context_obj['source_token'])
+            verbs_src_percent = verbs_src/len(context_obj['source_token'])
+            nouns_src_percent = nouns_src/len(context_obj['source_token'])
+            pronouns_src_percent = pronouns_src/len(context_obj['source_token'])
 
         return [content_src_percent, content_tg_percent,
                 verbs_src_percent, verbs_tg_percent,

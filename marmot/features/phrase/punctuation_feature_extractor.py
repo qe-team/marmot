@@ -22,7 +22,14 @@ class PunctuationFeatureExtractor(FeatureExtractor):
             punct_target.append(tmp_target)
         punct_source_norm = [p/len(context_obj['token']) for p in punct_source]
         punct_target_norm = [p/len(context_obj['token']) for p in punct_target]
-        return punct_source + punct_source_norm + punct_target + punct_target_norm + [sum(punct_source)/len(context_obj['source_token']), sum(punct_target)/len(context_obj['token']), (sum(punct_source) - sum(punct_target))/len(context_obj['token'])]
+        other_features = []
+        if len(context_obj['source_token']) > 0:
+            other_features.append(sum(punct_source)/len(context_obj['source_token']))
+        else:
+            other_features.append(0)
+        other_features.append(sum(punct_target)/len(context_obj['token']))
+        other_features.append((sum(punct_source) - sum(punct_target))/len(context_obj['token']))
+        return punct_source + punct_source_norm + punct_target + punct_target_norm + other_features
 
     def get_feature_names(self):
         return ['num_period_source',
