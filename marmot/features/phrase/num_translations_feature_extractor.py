@@ -12,7 +12,7 @@ class NumTranslationsFeatureExtractor(FeatureExtractor):
 
     # .f2e file
     def __init__(self, lex_prob_file, corpus_file):
-        self.lex_prob = defaultdict(lambda: defaultdict(float))
+        self.lex_prob = defaultdict(list)
         for line in open(lex_prob_file):
             chunks = line[:-1].split()
             self.lex_prob[chunks[0]].append(float(chunks[2]))
@@ -26,7 +26,7 @@ class NumTranslationsFeatureExtractor(FeatureExtractor):
 
         translations, translations_weighted = [], []
         for thr in self.thresholds:
-            all_words, all_words_weighted = []
+            all_words, all_words_weighted = [], []
             for word in context_obj['source_token']:
                 translations = [fl for fl in self.lex_prob[word] if fl > thr]
                 all_words.append(len(translations))
