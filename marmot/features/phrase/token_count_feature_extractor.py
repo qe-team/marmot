@@ -11,11 +11,11 @@ class TokenCountFeatureExtractor(FeatureExtractor):
 
     def get_features(self, context_obj):
         target_len = len(context_obj['token'])
-        target_tok_len = np.average([len(context_obj['token'])])
+        target_tok_len = np.average([len(word) for word in context_obj['token']])
         source_len, source_tok_len = 0, 0
-        if 'source_token' in context_obj:
+        if 'source_token' in context_obj and len(context_obj['source_token']) > 0:
             source_len = len(context_obj['source_token'])
-            source_tok_len = np.average([len(context_obj['source_token'])])
+            source_tok_len = np.average([len(word) for word in context_obj['source_token']])
 
         target_occur = []
         for word in context_obj['token']:
