@@ -30,7 +30,7 @@ class NumTranslationsFeatureExtractor(FeatureExtractor):
             for word in context_obj['source_token']:
                 translations = [fl for fl in self.lex_prob[word] if fl > thr]
                 all_words.append(len(translations))
-                all_words_weighted.append(len(translations)/self.corpus_freq.freq(word))
+                all_words_weighted.append(len(translations)*self.corpus_freq.freq(word))
             translations.append(np.average(all_words))
             translations_weighted.append(np.average(all_words_weighted))
         return translations + translations_weighted
