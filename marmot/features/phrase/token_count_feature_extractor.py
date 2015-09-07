@@ -17,7 +17,24 @@ class TokenCountFeatureExtractor(FeatureExtractor):
             source_len = len(context_obj['source_token'])
             source_tok_len = np.average([len(context_obj['source_token'])])
 
-        return [target_len, source_len, source_len/target_len, target_tok_len, source_tok_len]
+        target_occur = []
+        for word in context_obj['token']:
+            target_occur.append(context_obj['target'].count(word))
+        avg_occur = np.average(target_occur)
+
+        return [target_len,
+                source_len,
+                source_len/target_len,
+                target_len/source_len,
+                target_tok_len,
+                source_tok_len,
+                avg_occur]
 
     def get_feature_names(self):
-        return ['target_phrase_len', 'source_phrase_len', 'source_target_len_ratio', 'avg_target_token_len', 'avg_source_token_len']
+        return ['target_phrase_len',
+                'source_phrase_len',
+                'source_target_len_ratio',
+                'target_source_len_ratio',
+                'avg_target_token_len',
+                'avg_source_token_len',
+                'avg_occurrence_of_target_word_within_sentence']
