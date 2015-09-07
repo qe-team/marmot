@@ -110,6 +110,7 @@ def create_context_phrase(repr_dict, order=None, test=False, only_target=False, 
             sys.exit()
     active_keys.remove('segmentation')
     for idx, (i, j) in enumerate(repr_dict['segmentation']):
+#        print("Segment #{}: ({}, {})".format(idx, i, j))
 
         c = {}
         c['token'] = repr_dict['target'][i:j]
@@ -122,27 +123,33 @@ def create_context_phrase(repr_dict, order=None, test=False, only_target=False, 
         # source phrase from the alignments
         elif 'alignments' in repr_dict:
             alignments = []
-            for i in range(c['index'][0], c['index'][1]):
-                alignments.extend(c['alignments'][i])
-            alignments = set(alignments)
+            for ii in range(c['index'][0], c['index'][1]):
+                alignments.extend(repr_dict['alignments'][ii])
+            # converted to set to remove duplicates
+            # converted back to list because set doesn't support indexing
+            alignments = list(set(alignments))
             if len(alignments) == 0:
                 c['source_token'] = []
                 c['index'] = []
             # source phrase -- substring between the 1st and the last word aligned to the target phrase
             # (unaligned words in between are included)
             else:
-                c['source_token'] = [repr_dict['source'][i] for i in alignments]
+                c['source_token'] = [repr_dict['source'][ii] for ii in alignments]
                 c['source_index'] = (alignments[0], alignments[-1] + 1)
 
         if len(c['token']) == 0:
             print("No token: from {} to {} in target: ".format(i, j), repr_dict['target'], repr_dict['source'], repr_dict['segmentation'])
         if j == 0:
             print("j==0!")
-            print("Target: '{}', segmentation: {}, {}".format(' '.join(repr_dict['target'], i, j)))
+            print("Target: '{}', segmentation: {}, {}".format(' '.join(repr_dict['target']), i, j))
         if i == j or len(repr_dict['tags'][i:j]) == 0 or len(repr_dict['target'][i:j]) == 0:
             print("i==j!")
             print("Target: '{}', tags: '{}' segmentation: {}, {}".format(' '.join([w.encode('utf-8') for w in repr_dict['target']]), ' '.join(repr_dict['tags']), i, j))
-            print("Target segment: '{}', tag segment: '{}'".format(' '.join([w.encode('utf-8') for w in repr_dict['target'][i:j]]), ' '.join(repr_dict['tags'][i:j])))
+#            print("Position: {}".format(idx))
+#            print(i, j)
+#            print(repr_dict['segmentation'])
+#            print(repr_dict['source'])
+#            print("Target segment: '{}', tag segment: '{}'".format(' '.join([w.encode('utf-8') for w in repr_dict['target'][i:j]]), ' '.join(repr_dict['tags'][i:j])))
         tags_cnt = Counter(repr_dict['tags'][i:j])
 
         # super-pessimistic tagging -- if BAD occurs any number of times - the final tag is BAD
