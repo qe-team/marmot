@@ -20,42 +20,31 @@ class PunctuationFeatureExtractor(FeatureExtractor):
                     tmp_source += 1
             punct_source.append(tmp_source)
             punct_target.append(tmp_target)
-        punct_source_norm = [p/len(context_obj['token']) for p in punct_source]
-        punct_target_norm = [p/len(context_obj['token']) for p in punct_target]
+        target_len = len(context_obj['token'])
+        punct_diff = [(src - tg) for (src, tg) in zip(punct_source, punct_target)]
+        punct_diff_norm = [(src - tg)/target_len for (src, tg) in zip(punct_source, punct_target)]
         other_features = []
         if len(context_obj['source_token']) > 0:
             other_features.append(sum(punct_source)/len(context_obj['source_token']))
         else:
             other_features.append(0)
         other_features.append(sum(punct_target)/len(context_obj['token']))
-        other_features.append((sum(punct_source) - sum(punct_target))/len(context_obj['token']))
-        return punct_source + punct_source_norm + punct_target + punct_target_norm + other_features
+        other_features.append((sum(punct_source) - sum(punct_target))/target_len)
+        return punct_diff + punct_diff_norm + other_features
 
     def get_feature_names(self):
-        return ['num_period_source',
-                'num_commas_source',
-                'num_colons_source',
-                'num_semicolons_source',
-                'num_question_source',
-                'num_exclamation_source',
-                'num_period_source_weighted',
-                'num_commas_source_weighted',
-                'num_colons_source_weighted',
-                'num_semicolons_source_weighted',
-                'num_question_source_weighted',
-                'num_exclamation_source_weighted',
-                'num_period_target',
-                'num_commas_target',
-                'num_colons_target',
-                'num_semicolons_target',
-                'num_question_target',
-                'num_exclamation_target',
-                'num_period_target_weighted',
-                'num_commas_target_weighted',
-                'num_colons_target_weighted',
-                'num_semicolons_target_weighted',
-                'num_question_target_weighted',
-                'num_exclamation_target_weighted',
-                'percentage_punctuation_source',
-                'percentage_punctuation_target',
-                'difference_num_punct_source_target']
+        return ['diff_periods',
+                'diff_commas',
+                'diff_colons',
+                'diff_semicolons',
+                'diff_questions',
+                'diff_exclamations',
+                'diff_periods_weighted',
+                'diff_commas_weighted',
+                'diff_colons_weighted',
+                'diff_semicolons_weighted',
+                'diff_questions_weighted',
+                'diff_exclamations_weighted',
+                'percentage_punct_source',
+                'percentage_punct_target',
+                'diff_punct']
