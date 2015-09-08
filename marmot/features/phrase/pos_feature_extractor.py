@@ -20,7 +20,7 @@ def get_tags(lang):
     nouns['spanish'] = ['NC', 'NMEA', 'NMON', 'NP']
     pronouns['english'] = ['PP', 'WP$']
     pronouns['spanish'] = ['DM', 'INT', 'PP', 'REL']
-    return content[lang], nouns[lang], verbs[lang]
+    return content[lang], nouns[lang], verbs[lang], pronouns[lang]
 
 
 class POSFeatureExtractor(FeatureExtractor):
@@ -40,12 +40,12 @@ class POSFeatureExtractor(FeatureExtractor):
             logger.warn("No POS lists for the language {}".format(lang_tg))
 
     def get_features(self, context_obj):
-        if len(self.content) == 0:
-            return []
+        if len(self.content_src) == 0 or len(self.content_tg) == 0:
+            logger.warn("One or more POS lists are empty")
 
         content_src, content_tg, verbs_src, verbs_tg, nouns_src, nouns_tg, pronouns_src, pronouns_tg = 0, 0, 0, 0, 0, 0, 0, 0
         source_idx = context_obj['source_index']
-        target_idx = context_obj['target_index']
+        target_idx = context_obj['index']
         # check if source words are nouns, verbs, content words
         if len(source_idx) > 0:
             for word in context_obj['source_pos'][source_idx[0]:source_idx[1]]:
@@ -85,26 +85,34 @@ class POSFeatureExtractor(FeatureExtractor):
                     content_tg += 1
         content_tg_percent = content_tg/len(context_obj['token'])
         verbs_tg_percent = verbs_tg/len(context_obj['token'])
-        nouns_tg_percent = nouns_tg/len(context_obj['token'])]
+        nouns_tg_percent = nouns_tg/len(context_obj['token'])
         pronouns_tg_percent = pronouns_tg/len(context_obj['token'])
         content_src_percent = 0
         verbs_src_percent = 0
         nouns_src_percent = 0
         pronouns_src_percent = 0
-       if len(context_obj['source_token']) > 0:
-            content_src_percent = ontent_src/len(context_obj['source_token'])
+        if len(context_obj['source_token']) > 0:
+            content_src_percent = content_src/len(context_obj['source_token'])
             verbs_src_percent = verbs_src/len(context_obj['source_token'])
             nouns_src_percent = nouns_src/len(context_obj['source_token'])
             pronouns_src_percent = pronouns_src/len(context_obj['source_token'])
+        ratio_content = content_src_percent/content_tg_percent if content_tg_percent > 0 else (1 if content_src_percent == 0 else 0)
+        ratio_verbs = verbs_src_percent/verbs_tg_percent if verbs_tg_percent > 0 else (1 if verbs_src_percent == 0 else 0)
+        ratio_nouns = nouns_src_percent/nouns_tg_percent if nouns_tg_percent > 0 else (1 if nouns_src_percent == 0 else 0)
+        ratio_pronouns = pronouns_src_percent/pronouns_tg_percent if pronouns_tg_percent > 0 else (1 if pronouns_src_percent == 0 else 0)
 
-        return [content_src_percent, content_tg_percent,
-                verbs_src_percent, verbs_tg_percent,
-                nouns_src_percent, nouns_tg_percent,
-                pronouns_src_percent, pronouns_tg_percent,
-                content_src_percent/content_tg_percent,
-                verbs_src_percent/verbs_tg_percent,
-                nouns_src_percent/nouns_tg_percent,
-                pronouns_src_percent/pronouns_tg_percent]
+        return [content_src_percent,
+                content_tg_percent,
+                verbs_src_percent,
+                verbs_tg_percent,
+                nouns_src_percent,
+                nouns_tg_percent,
+                pronouns_src_percent,
+                pronouns_tg_percent,
+                ratio_content,
+                ratio_verbs,
+                ratio_nouns,
+                ratio_pronouns]
 
     def get_feature_names(self):
         return ['percentage_content_words_src',
@@ -115,7 +123,7 @@ class POSFeatureExtractor(FeatureExtractor):
                 'percentage_nouns_tg',
                 'percentage_pronouns_src',
                 'percentage_pronouns_tg',
-                'ratio_content_words_src_tg', 
+                'ratio_content_words_src_tg',
                 'ratio_verbs_src_tg',
                 'ratio_nouns_src_tg',
                 'ratio_pronouns_src_tg']
