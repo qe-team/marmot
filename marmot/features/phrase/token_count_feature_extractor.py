@@ -22,10 +22,11 @@ class TokenCountFeatureExtractor(FeatureExtractor):
             target_occur.append(context_obj['target'].count(word))
         avg_occur = np.average(target_occur)
 
+        tg_src_ratio = target_len/source_len if source_len > 0 else 0
         return [target_len,
                 source_len,
                 source_len/target_len,
-                target_len/source_len,
+                tg_src_ratio,
                 target_tok_len,
                 source_tok_len,
                 avg_occur]
