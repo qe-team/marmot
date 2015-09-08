@@ -16,25 +16,23 @@ class AlphaNumericFeatureExtractor(FeatureExtractor):
         tg_numbers = 0
         tg_alphanumeric = 0
         for word in context_obj['token']:
-            if word.isalnum():
-                tg_alphanumeric += 1
             try:
                 float(word)
                 tg_numbers += 1
             except:
-                pass
+                if word.isalnum() and not word.isalpha():
+                    tg_alphanumeric += 1
         src_numbers = 0
         src_alphanumeric = 0
         if 'source_token' in context_obj and len(context_obj['source_token']) > 0:
             for word in context_obj['source_token']:
-                if word.isalnum():
-                    tg_alphanumeric += 1
                 try:
                     float(word)
-                    tg_numbers += 1
+                    src_numbers += 1
                 except:
-                    pass
-
+                    if word.isalnum() and not word.isalpha():
+                        src_alphanumeric += 1
+ 
         src_len = len(context_obj['source_token'])
         tg_len = len(context_obj['token'])
         src_num_percent = 0
@@ -43,9 +41,9 @@ class AlphaNumericFeatureExtractor(FeatureExtractor):
         src_tg_alnum_diff = 0
         if src_len > 0:
             src_num_percent = src_numbers/src_len
-            src_tg_num_diff = (src_numbers - tg_numbers)/src_len
+            src_tg_num_diff = abs(src_numbers - tg_numbers)/src_len
             src_alnum_percent = src_alphanumeric/src_len
-            src_tg_alnum_diff = (src_alphanumeric - tg_alphanumeric)/src_len
+            src_tg_alnum_diff = abs(src_alphanumeric - tg_alphanumeric)/src_len
  
         return [src_num_percent,
                 tg_numbers/tg_len,
