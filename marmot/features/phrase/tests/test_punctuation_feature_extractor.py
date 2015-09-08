@@ -6,7 +6,7 @@ from marmot.features.phrase.punctuation_feature_extractor import PunctuationFeat
 
 
 # test a class which extracts source and target token count features, and the source/target token count ratio
-class AlphaNumericFeatureExtractorTests(unittest.TestCase):
+class PunctuationFeatureExtractorTests(unittest.TestCase):
 
     def setUp(self):
         self.extractor = PunctuationFeatureExtractor()
