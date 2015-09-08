@@ -15,7 +15,7 @@ class NumTranslationsFeatureExtractor(FeatureExtractor):
         self.lex_prob = defaultdict(list)
         for line in open(lex_prob_file):
             chunks = line[:-1].split()
-            self.lex_prob[chunks[0]].append(float(chunks[2]))
+            self.lex_prob[chunks[1]].append(float(chunks[2]))
         corpus = TextCorpus(input=corpus_file)
         self.corpus_freq = FreqDist([word for line in corpus.get_texts() for word in line])
         self.thresholds = [0.01, 0.05, 0.1, 0.2, 0.5]
@@ -25,12 +25,13 @@ class NumTranslationsFeatureExtractor(FeatureExtractor):
             return [0.0 for i in range(len(self.thresholds)*2)]
 
         translations, translations_weighted = [], []
+#        print sorted(self.lex_prob['the'], reverse=True)
         for thr in self.thresholds:
             all_words, all_words_weighted = [], []
             for word in context_obj['source_token']:
-                translations = [fl for fl in self.lex_prob[word] if fl > thr]
-                all_words.append(len(translations))
-                all_words_weighted.append(len(translations)*self.corpus_freq.freq(word))
+                trans = [fl for fl in self.lex_prob[word] if fl >= thr]
+                all_words.append(len(trans))
+                all_words_weighted.append(len(trans)*self.corpus_freq.freq(word))
             translations.append(np.average(all_words))
             translations_weighted.append(np.average(all_words_weighted))
         return translations + translations_weighted
