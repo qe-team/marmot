@@ -28,7 +28,7 @@ def negative_window(my_list, start, end):
     return res
 
 
-def create_context_ngram(repr_dict, order, test=False, only_target=False, bad_tagging="pessimistic"):
+def create_context_ngram(repr_dict, order, bad_tagging="pessimistic"):
     '''
     :param repr_dict: a dict representing a 'line' or 'sentence' or a 'segment'
     :return: a list of context objects representing the data for each token in the sequence
@@ -76,7 +76,7 @@ def create_context_ngram(repr_dict, order, test=False, only_target=False, bad_ta
 # :only_target: -- True if only target sentence is segmented, needs to be processed without source segmentation
 # :bad_tagging: -- tag all phrases with at least one bad word as "BAD"
 #              if seg to False - only phrases with 50% or more bad words are tagged as "BAD"
-def create_context_phrase(repr_dict, order=None, test=False, only_target=False, bad_tagging="pessimistic"):
+def create_context_phrase(repr_dict, order=None, bad_tagging="pessimistic"):
     '''
     :param repr_dict: a dict representing a 'line' or 'sentence' or a 'segment'
     :return: a list of context objects representing the data for each token in the sequence
@@ -99,19 +99,19 @@ def create_context_phrase(repr_dict, order=None, test=False, only_target=False, 
     # in the training data we leave these sentences out
     # in the test data they are processed as normal
     # assuming that every target word is a separate segment
-    if ('source_segmentation' not in repr_dict or len(repr_dict['source_segmentation']) == 0) and not test and not only_target:
-        return []
+#    if ('source_segmentation' not in repr_dict or len(repr_dict['source_segmentation']) == 0) and not test and not only_target:
+#        return []
     active_keys = repr_dict.keys()
     active_keys.remove('tags')
     if 'source_segmentation' in repr_dict:
         active_keys.remove('source_segmentation')
-        if len(repr_dict['source_segmentation']) != len(repr_dict['segmentation']) and not test:
+        if len(repr_dict['source_segmentation']) != 0 and len(repr_dict['source_segmentation']) != len(repr_dict['segmentation']):
             print("Wrong segmentation lengths: ", repr_dict)
             sys.exit()
     active_keys.remove('segmentation')
     for idx, (i, j) in enumerate(repr_dict['segmentation']):
 #        print("Segment #{}: ({}, {})".format(idx, i, j))
-
+        no_alignments = False
         c = {}
         c['token'] = repr_dict['target'][i:j]
         c['index'] = [i, j]
@@ -129,8 +129,9 @@ def create_context_phrase(repr_dict, order=None, test=False, only_target=False, 
             # converted back to list because set doesn't support indexing
             alignments = list(set(alignments))
             if len(alignments) == 0:
+                no_alignments = True
                 c['source_token'] = []
-                c['index'] = []
+                c['source_index'] = []
             # source phrase -- substring between the 1st and the last word aligned to the target phrase
             # (unaligned words in between are included)
             else:
@@ -145,11 +146,6 @@ def create_context_phrase(repr_dict, order=None, test=False, only_target=False, 
         if i == j or len(repr_dict['tags'][i:j]) == 0 or len(repr_dict['target'][i:j]) == 0:
             print("i==j!")
             print("Target: '{}', tags: '{}' segmentation: {}, {}".format(' '.join([w.encode('utf-8') for w in repr_dict['target']]), ' '.join(repr_dict['tags']), i, j))
-#            print("Position: {}".format(idx))
-#            print(i, j)
-#            print(repr_dict['segmentation'])
-#            print(repr_dict['source'])
-#            print("Target segment: '{}', tag segment: '{}'".format(' '.join([w.encode('utf-8') for w in repr_dict['target'][i:j]]), ' '.join(repr_dict['tags'][i:j])))
         tags_cnt = Counter(repr_dict['tags'][i:j])
 
         # super-pessimistic tagging -- if BAD occurs any number of times - the final tag is BAD
@@ -175,6 +171,9 @@ def create_context_phrase(repr_dict, order=None, test=False, only_target=False, 
 
         for k in active_keys:
             c[k] = repr_dict[k]
+        if len(c['source_token']) == 0 and not no_alignments:
+            print("ERROR! Alignments exist, but source token is empty")
+            sys.exit()
         context_list.append(c)
     return context_list
 
@@ -184,7 +183,7 @@ def create_context_phrase(repr_dict, order=None, test=False, only_target=False, 
 # :order: -- order of ngram
 # :data_type: -- 'plain' - data is a flat list
 #                'sequential' - data is a list of sequences (used for dev and test)
-def create_contexts_ngram(data_obj, order=None, data_type='plain', test=False, only_target=False, bad_tagging="pessimistic"):
+def create_contexts_ngram(data_obj, order=None, data_type='plain', bad_tagging="pessimistic"):
     '''
     :param data_obj: an object representing a dataset consisting of files
     :param data_type:
@@ -213,19 +212,15 @@ def create_contexts_ngram(data_obj, order=None, data_type='plain', test=False, o
     if 'source_file' in data_obj:
         data_obj.pop('source_file')
     overall = 0
-#    for a_key in data_obj:
-#        if type(data_obj[a_key]) is not list:
     if data_type == 'plain':
         for s_idx, sents in enumerate(zip(*data_obj.values())):
-#            print("SENTENCE {}".format(s_idx))
-            cont = context_generator({data_obj.keys()[i]: sents[i] for i in range(len(sents))}, order, test=test, only_target=only_target, bad_tagging=bad_tagging)
+            cont = context_generator({data_obj.keys()[i]: sents[i] for i in range(len(sents))}, order, bad_tagging=bad_tagging)
             overall += len(cont)
             contexts.extend(cont)
             print("Contexts: {}".format(overall))
-#            print(contexts)
     elif data_type == 'sequential':
         for s_idx, sents in enumerate(zip(*data_obj.values())):
-            contexts.append(context_generator({data_obj.keys()[i]: sents[i] for i in range(len(sents))}, order, test=test, only_target=only_target, bad_tagging=bad_tagging))
+            contexts.append(context_generator({data_obj.keys()[i]: sents[i] for i in range(len(sents))}, order, bad_tagging=bad_tagging))
 
     return contexts
 
