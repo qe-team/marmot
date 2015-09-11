@@ -6,7 +6,7 @@ from marmot.features.phrase.pos_feature_extractor import POSFeatureExtractor
 
 
 # test a class which extracts source and target token count features, and the source/target token count ratio
-class PhraseAlignmentFeatureExtractorTests(unittest.TestCase):
+class POSFeatureExtractorTests(unittest.TestCase):
 
     def setUp(self):
         self.extractor = POSFeatureExtractor('english', 'spanish')
