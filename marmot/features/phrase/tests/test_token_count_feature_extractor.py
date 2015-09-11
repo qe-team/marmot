@@ -19,13 +19,31 @@ class TokenCountFeatureExtractorTests(unittest.TestCase):
                'index': (0, 2), 
                'source_token': ['un', 'garcon'], 
                'source_index':(0, 2)}
-        (tg_ph_len, src_ph_len, src_tg_ratio, tg_src_ratio, tg_token_len, src_token_len, token_occ) = self.extractor.get_features(obj)
+        (tg_ph_len, src_ph_len, src_tg_ratio, tg_src_ratio, src_tg_diff, tg_token_len, src_token_len, token_occ) = self.extractor.get_features(obj)
         self.assertEqual(tg_ph_len, 2)
         self.assertEqual(src_ph_len, 2)
         self.assertEqual(src_tg_ratio, 1)
         self.assertEqual(tg_src_ratio, 1)
+        self.assertEqual(src_tg_diff, 0)
         self.assertEqual(tg_token_len, 2)
         self.assertEqual(src_token_len, 4)
+        self.assertAlmostEqual(token_occ, 1.5)
+
+    def test_get_features_no_src(self):
+        obj = {'target':['a', 'boy', 'hits', 'a', 'dog'], 
+               'source':['un', 'garcon', 'bate', 'un', 'chien'], 
+               'token':['a', 'boy'], 
+               'index': (0, 2), 
+               'source_token': [], 
+               'source_index':()}
+        (tg_ph_len, src_ph_len, src_tg_ratio, tg_src_ratio, src_tg_diff, tg_token_len, src_token_len, token_occ) = self.extractor.get_features(obj)
+        self.assertEqual(tg_ph_len, 2)
+        self.assertEqual(src_ph_len, 0)
+        self.assertEqual(src_tg_ratio, 0)
+        self.assertEqual(tg_src_ratio, -1)
+        self.assertEqual(src_tg_diff, -1)
+        self.assertEqual(tg_token_len, 2)
+        self.assertEqual(src_token_len, 0)
         self.assertAlmostEqual(token_occ, 1.5)
 
 
