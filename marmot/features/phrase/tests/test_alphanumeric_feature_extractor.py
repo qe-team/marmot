@@ -28,6 +28,7 @@ class AlphaNumericFeatureExtractorTests(unittest.TestCase):
         self.assertAlmostEqual(tg_alnum, 0.6)
         self.assertAlmostEqual(alnum_ratio, 0.4)
 
+    def test_get_features_no_src(self):
         obj_no_src = {'target':['a', 'boy', 'hits', '3', 'dogs', 'a11i', 'o8', 'www1'], 
                'source':['un', 'garcon', 'bate', '3', 'ou', '4', 'chiens', 'b2b'], 
                'token':['3', 'dogs', 'a11i', 'o8', 'www1'], 
@@ -38,10 +39,10 @@ class AlphaNumericFeatureExtractorTests(unittest.TestCase):
         (src_num, tg_num, num_ratio, src_alnum, tg_alnum, alnum_ratio) = self.extractor.get_features(obj_no_src)
         self.assertAlmostEqual(src_num, 0)
         self.assertAlmostEqual(tg_num, 0.2)
-        self.assertAlmostEqual(num_ratio, 0)
+        self.assertAlmostEqual(num_ratio, 0.2)
         self.assertAlmostEqual(src_alnum, 0)
         self.assertAlmostEqual(tg_alnum, 0.6)
-        self.assertAlmostEqual(alnum_ratio, 0)
+        self.assertAlmostEqual(alnum_ratio, 0.6)
 
 
 

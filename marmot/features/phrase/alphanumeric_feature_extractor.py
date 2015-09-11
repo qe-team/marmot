@@ -35,15 +35,13 @@ class AlphaNumericFeatureExtractor(FeatureExtractor):
  
         src_len = len(context_obj['source_token'])
         tg_len = len(context_obj['token'])
+        src_tg_num_diff = abs(src_numbers - tg_numbers)/tg_len
+        src_tg_alnum_diff = abs(src_alphanumeric - tg_alphanumeric)/tg_len
         src_num_percent = 0
-        src_tg_num_diff = 0
         src_alnum_percent = 0
-        src_tg_alnum_diff = 0
         if src_len > 0:
             src_num_percent = src_numbers/src_len
-            src_tg_num_diff = abs(src_numbers - tg_numbers)/src_len
             src_alnum_percent = src_alphanumeric/src_len
-            src_tg_alnum_diff = abs(src_alphanumeric - tg_alphanumeric)/src_len
  
         return [src_num_percent,
                 tg_numbers/tg_len,
@@ -55,7 +53,7 @@ class AlphaNumericFeatureExtractor(FeatureExtractor):
     def get_feature_names(self):
         return ['percentage_src_numbers',
                 'percentage_tg_numbers',
-                'src_tg_numbers_normalized_ratio',
+                'src_tg_numbers_normalized_diff',
                 'percentage_src_alphanumeric',
                 'percentage_tg_alphanumeric',
-                'src_tg_alphanumeric_normalized_ratio']
+                'src_tg_alphanumeric_normalized_diff']
