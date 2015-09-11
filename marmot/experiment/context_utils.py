@@ -28,7 +28,7 @@ def negative_window(my_list, start, end):
     return res
 
 
-def create_context_ngram(repr_dict, order, bad_tagging="pessimistic"):
+def create_context_ngram(repr_dict, order, test=False, unambiguous=False, bad_tagging="pessimistic"):
     '''
     :param repr_dict: a dict representing a 'line' or 'sentence' or a 'segment'
     :return: a list of context objects representing the data for each token in the sequence
@@ -59,7 +59,7 @@ def create_context_ngram(repr_dict, order, bad_tagging="pessimistic"):
         c = {}
         #logger.info("Negative window from {} to {}, length {}".format(i - order + 1, i + 1, len(repr_dict['target'])))
         c['token'] = negative_window(repr_dict['target'], i - order + 1, i + 1)
-        c['index'] = [i - order + 1, i + 1]
+        c['index'] = (i - order + 1, i + 1)
         # we take only tags for the existing tags
         # i.e. for the sequence "_START_ _START_ it" the tag will be the tag for "it" only
         tags = [tag_map[t] for t in repr_dict['tags'][max(0, i-order+1):min(len(repr_dict['tags']), i+1)]]
@@ -70,13 +70,34 @@ def create_context_ngram(repr_dict, order, bad_tagging="pessimistic"):
         return context_list
 
 
+# create a new segmentation that divides only "GOOD" segments
+# and keeps "BAD" segments unchanged
+# TODO: add new ways of segmenting? (e.g. keep BAD segments untouched)
+def error_based_segmentation(repr_dict):
+    # borders between segments with different labels
+    score_borders = [(i, i+1) for i in range(len(repr_dict['tags'])-1) if repr_dict['tags'][i] != repr_dict['tags'][i+1]]
+    # borders of phrases provided by Moses
+    segmentation_borders = [(j-1, j) for (i, j) in repr_dict['segmentation']][:-1]
+    # join both border types so that all phrases have unambiguous scores
+    # and there are no too long segments
+    new_borders = sorted(set(score_borders + segmentation_borders))
+    new_segments = []
+    prev = 0
+    # convert new borders to segments
+    for border in new_borders:
+        new_segments.append((prev, border[1]))
+        prev = border[1]
+    new_segments.append((new_borders[-1][1], len(repr_dict['target'])))
+    return new_segments
+
+
 # we don't really need the order here, it should always be None
 # or anything else
 # :test: -- True if data is test data, False if training -- test sentences can have empty source-segmentation field (if Moses failed to produce constrained reference for them)
 # :only_target: -- True if only target sentence is segmented, needs to be processed without source segmentation
 # :bad_tagging: -- tag all phrases with at least one bad word as "BAD"
 #              if seg to False - only phrases with 50% or more bad words are tagged as "BAD"
-def create_context_phrase(repr_dict, order=None, bad_tagging="pessimistic"):
+def create_context_phrase(repr_dict, order=None, unambiguous=False, test=False, bad_tagging="pessimistic"):
     '''
     :param repr_dict: a dict representing a 'line' or 'sentence' or a 'segment'
     :return: a list of context objects representing the data for each token in the sequence
@@ -95,12 +116,15 @@ def create_context_phrase(repr_dict, order=None, bad_tagging="pessimistic"):
         print("No 'segmentation' label in data representations")
         return []
 
+    if unambiguous:
+        assert('source_segmentation' not in repr_dict or len(repr_dict['source_segmentation']) == 0), "Error-based segmentation of target can't be performed if source segmentation exists -- after re-segmentation source and target segments won't match"
+        assert(not test), "Error-based segmentation can't be applied to the test set"
+        repr_dict['segmentation'] = error_based_segmentation(repr_dict)
+
     # no source segmentation means that no Moses segmentation was produced
     # in the training data we leave these sentences out
     # in the test data they are processed as normal
     # assuming that every target word is a separate segment
-#    if ('source_segmentation' not in repr_dict or len(repr_dict['source_segmentation']) == 0) and not test and not only_target:
-#        return []
     active_keys = repr_dict.keys()
     active_keys.remove('tags')
     if 'source_segmentation' in repr_dict:
@@ -110,11 +134,10 @@ def create_context_phrase(repr_dict, order=None, bad_tagging="pessimistic"):
             sys.exit()
     active_keys.remove('segmentation')
     for idx, (i, j) in enumerate(repr_dict['segmentation']):
-#        print("Segment #{}: ({}, {})".format(idx, i, j))
         no_alignments = False
         c = {}
         c['token'] = repr_dict['target'][i:j]
-        c['index'] = [i, j]
+        c['index'] = (i, j)
         # source phrase from the phrase segmentation
         if 'source_segmentation' in repr_dict and len(repr_dict['source_segmentation']) != 0:
             src_seg = repr_dict['source_segmentation'][idx]
@@ -131,12 +154,15 @@ def create_context_phrase(repr_dict, order=None, bad_tagging="pessimistic"):
             if len(alignments) == 0:
                 no_alignments = True
                 c['source_token'] = []
-                c['source_index'] = []
+                c['source_index'] = ()
             # source phrase -- substring between the 1st and the last word aligned to the target phrase
             # (unaligned words in between are included)
             else:
                 c['source_token'] = [repr_dict['source'][ii] for ii in alignments]
                 c['source_index'] = (alignments[0], alignments[-1] + 1)
+        else:
+            c['source_token'] = []
+            c['source_index'] = ()
 
         if len(c['token']) == 0:
             print("No token: from {} to {} in target: ".format(i, j), repr_dict['target'], repr_dict['source'], repr_dict['segmentation'])
@@ -171,9 +197,9 @@ def create_context_phrase(repr_dict, order=None, bad_tagging="pessimistic"):
 
         for k in active_keys:
             c[k] = repr_dict[k]
-        if len(c['source_token']) == 0 and not no_alignments:
-            print("ERROR! Alignments exist, but source token is empty")
-            sys.exit()
+#        if len(c['source_token']) == 0 and not no_alignments:
+#            print("ERROR! Alignments exist, but source token is empty")
+#            sys.exit()
         context_list.append(c)
     return context_list
 
@@ -183,7 +209,7 @@ def create_context_phrase(repr_dict, order=None, bad_tagging="pessimistic"):
 # :order: -- order of ngram
 # :data_type: -- 'plain' - data is a flat list
 #                'sequential' - data is a list of sequences (used for dev and test)
-def create_contexts_ngram(data_obj, order=None, data_type='plain', bad_tagging="pessimistic"):
+def create_contexts_ngram(data_obj, order=None, data_type='plain', test=False, unambiguous=False, bad_tagging="pessimistic"):
     '''
     :param data_obj: an object representing a dataset consisting of files
     :param data_type:
@@ -214,13 +240,13 @@ def create_contexts_ngram(data_obj, order=None, data_type='plain', bad_tagging="
     overall = 0
     if data_type == 'plain':
         for s_idx, sents in enumerate(zip(*data_obj.values())):
-            cont = context_generator({data_obj.keys()[i]: sents[i] for i in range(len(sents))}, order, bad_tagging=bad_tagging)
+            cont = context_generator({data_obj.keys()[i]: sents[i] for i in range(len(sents))}, order, test=test, unambiguous=unambiguous, bad_tagging=bad_tagging)
             overall += len(cont)
             contexts.extend(cont)
             print("Contexts: {}".format(overall))
     elif data_type == 'sequential':
         for s_idx, sents in enumerate(zip(*data_obj.values())):
-            contexts.append(context_generator({data_obj.keys()[i]: sents[i] for i in range(len(sents))}, order, bad_tagging=bad_tagging))
+            contexts.append(context_generator({data_obj.keys()[i]: sents[i] for i in range(len(sents))}, order, test=test, unambiguous=unambiguous, bad_tagging=bad_tagging))
 
     return contexts
 
