@@ -1,7 +1,6 @@
 from __future__ import division
 import os
 import sys
-import numpy as np
 from subprocess import call
 from collections import defaultdict
 from marmot.features.feature_extractor import FeatureExtractor
@@ -50,45 +49,33 @@ class NgramFrequenciesFeatureExtractor(FeatureExtractor):
                                            3: {i: j for (i, j) in sorted_ngrams[q2:q3]},
                                            4: {i: j for (i, j) in sorted_ngrams[q3:]}}
 
-    def get_quartiles_count(self, order, source_token):
-        quartiles = {1: [], 2: [], 3: [], 4: []}
-        for ngram in [' '.join(source_token[i:i+order]) for i in range(len(source_token) - order + 1)]:
-            for quart in [1, 2, 3, 4]:
-                if ngram in self.ngram_quartiles[1][quart]:
-                    quartiles[quart].append(self.ngram_quartiles[1][quart][ngram])
-                    break
-        return quartiles
+    def get_quartiles_frequency(self, order, source_token):
+        quart_frequencies = []
+        ngram_list = [' '.join(source_token[i:i+order]) for i in range(len(source_token) - order + 1)]
+        for quart in [1, 2, 3, 4]:
+            quart_count = 0
+            for ngram in ngram_list:
+                if ngram in self.ngram_quartiles[order][quart]:
+                    quart_count += 1
+            quart_frequencies.append(quart_count/len(ngram_list))
+        return quart_frequencies
 
     def get_features(self, context_obj):
         if len(context_obj['source_token']) == 0:
             return [0 for i in range(15)]
 
         source_token = context_obj['source_token']
-        unigram_quart = self.get_quartiles_count(1, source_token)
-        bigram_quart = self.get_quartiles_count(2, source_token)
-        trigram_quart = self.get_quartiles_count(3, source_token)
+        unigram_quart = self.get_quartiles_frequency(1, source_token)
+        bigram_quart = self.get_quartiles_frequency(2, source_token)
+        trigram_quart = self.get_quartiles_frequency(3, source_token)
 
         bigram_list = [' '.join(source_token[i:i+2]) for i in range(len(source_token) - 1)]
         trigram_list = [' '.join(source_token[i:i+3]) for i in range(len(source_token) - 2)]
         percent_unigram = sum([1 for word in source_token if word in self.ngrams[1]])/len(source_token)
         percent_bigram = sum([1 for word in bigram_list if word in self.ngrams[2]])/len(source_token)
         percent_trigram = sum([1 for word in trigram_list if word in self.ngrams[3]])/len(source_token)
- 
-        return [np.average(unigram_quart[1]),
-                np.average(unigram_quart[2]),
-                np.average(unigram_quart[3]),
-                np.average(unigram_quart[4]),
-                np.average(bigram_quart[1]),
-                np.average(bigram_quart[2]),
-                np.average(bigram_quart[3]),
-                np.average(bigram_quart[4]),
-                np.average(trigram_quart[1]),
-                np.average(trigram_quart[2]),
-                np.average(trigram_quart[3]),
-                np.average(trigram_quart[4]),
-                percent_unigram,
-                percent_bigram,
-                percent_trigram]
+
+        return unigram_quart + bigram_quart + trigram_quart + [percent_unigram, percent_bigram, percent_trigram]
 
     def get_feature_names(self):
         return ['avg_unigram_quart_1',
