@@ -62,6 +62,7 @@ class SegmentationSimpleRepresentationGenerator(RepresentationGenerator):
                     # seg_list == [(3, 5), (0, 2), (2, 3), (5, 6)]
                     # sorted(seg_list) == [(0, 2), (2, 3), (3, 5), (5, 6)]
                     segments.append(sorted(seg_list))
+                return {'target': target_lines, 'source': source_lines, 'tags': tags_lines, 'segmentation': segments}
             elif segmentation_numbers == 'source':
                 for line in segmentation:
                     seg_strings = seg_regexp.split(line[:-1])
@@ -84,10 +85,10 @@ class SegmentationSimpleRepresentationGenerator(RepresentationGenerator):
                     segments.append(seg_list)
                     # here segments mustn't be sorted, to keep the correspondence between the source and the target
                     source_segments.append(source_seg_list)
+                return {'target': target_lines, 'source': source_lines, 'tags': tags_lines, 'segmentation': segments, 'source_segmentation': source_segments}
             else:
                 print("Unknown segmentation numbers value: {}".format(segmentation_numbers))
 
-        return {'target': target_lines, 'source': source_lines, 'tags': tags_lines, 'segmentation': segments, 'source_segmentation': source_segments}
 
     def generate(self, data_obj=None):
         return self.data
