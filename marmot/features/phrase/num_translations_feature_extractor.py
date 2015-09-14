@@ -25,7 +25,6 @@ class NumTranslationsFeatureExtractor(FeatureExtractor):
             return [0.0 for i in range(len(self.thresholds)*2)]
 
         translations, translations_weighted = [], []
-#        print sorted(self.lex_prob['the'], reverse=True)
         for thr in self.thresholds:
             all_words, all_words_weighted = [], []
             for word in context_obj['source_token']:

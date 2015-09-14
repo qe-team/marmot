@@ -52,6 +52,8 @@ class NgramFrequenciesFeatureExtractor(FeatureExtractor):
     def get_quartiles_frequency(self, order, source_token):
         quart_frequencies = []
         ngram_list = [' '.join(source_token[i:i+order]) for i in range(len(source_token) - order + 1)]
+        if len(ngram_list) == 0:
+            return [0.0, 0.0, 0.0, 0.0]
         for quart in [1, 2, 3, 4]:
             quart_count = 0
             for ngram in ngram_list:
