@@ -65,6 +65,10 @@ class SegmentationSimpleRepresentationGenerator(RepresentationGenerator):
                 return {'target': target_lines, 'source': source_lines, 'tags': tags_lines, 'segmentation': segments}
             elif segmentation_numbers == 'source':
                 for line in segmentation:
+                    if line == '\n':
+                        segments.append([])
+                        source_segments.append([])
+                        continue
                     seg_strings = seg_regexp.split(line[:-1])
                     source_seg_strings = seg_regexp.findall(line)
                     seg_lengths = [len(a_seg.strip().split()) for a_seg in seg_strings if len(a_seg.split()) > 0]

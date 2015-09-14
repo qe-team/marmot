@@ -113,8 +113,13 @@ def create_context_phrase(repr_dict, order=None, unambiguous=False, test=False, 
         print(repr_dict)
         return []
     if 'segmentation' not in repr_dict or len(repr_dict['segmentation']) == 0:
-        print("No 'segmentation' label in data representations")
-        return []
+        # for the test data assuming that sentences without segmentation consist of one-word segments
+        if test:
+            repr_dict['segmentation'] = [(i, i+1) for i in range(len(repr_dict['target']))]
+        # for the training data omitting sentences without segmentation
+        else:
+            print("No 'segmentation' label in data representations")
+            return []
 
     if unambiguous:
         assert('source_segmentation' not in repr_dict or len(repr_dict['source_segmentation']) == 0), "Error-based segmentation of target can't be performed if source segmentation exists -- after re-segmentation source and target segments won't match"
@@ -134,9 +139,10 @@ def create_context_phrase(repr_dict, order=None, unambiguous=False, test=False, 
             sys.exit()
     active_keys.remove('segmentation')
     for idx, (i, j) in enumerate(repr_dict['segmentation']):
-        no_alignments = False
+        print("Segment {}, ({}, {})".format(idx, i, j))
         c = {}
         c['token'] = repr_dict['target'][i:j]
+        print("Token: {}".format(c['token']))
         c['index'] = (i, j)
         # source phrase from the phrase segmentation
         if 'source_segmentation' in repr_dict and len(repr_dict['source_segmentation']) != 0:
@@ -147,12 +153,17 @@ def create_context_phrase(repr_dict, order=None, unambiguous=False, test=False, 
         elif 'alignments' in repr_dict:
             alignments = []
             for ii in range(c['index'][0], c['index'][1]):
-                alignments.extend(repr_dict['alignments'][ii])
+                try:
+                    alignments.extend(repr_dict['alignments'][ii])
+                except IndexError:
+                    print("Indices: {} to {}, current: {}".format(c['index'][0], c['index'][1], ii))
+                    print("Alignments: ", repr_dict['alignments'])
+                    print("Representation: ", repr_dict)
+                    sys.exit()
             # converted to set to remove duplicates
             # converted back to list because set doesn't support indexing
             alignments = list(set(alignments))
             if len(alignments) == 0:
-                no_alignments = True
                 c['source_token'] = []
                 c['source_index'] = ()
             # source phrase -- substring between the 1st and the last word aligned to the target phrase
@@ -215,6 +226,7 @@ def create_contexts_ngram(data_obj, order=None, data_type='plain', test=False, u
     :param data_type:
     :return:
     '''
+    print("ENTER CONTEXTS CREATOR")
     contexts = []
     if 'target' not in data_obj:
         print("No 'target' label in data representations")
@@ -239,7 +251,13 @@ def create_contexts_ngram(data_obj, order=None, data_type='plain', test=False, u
         data_obj.pop('source_file')
     overall = 0
     if data_type == 'plain':
+        print("DATATYPE: PLAIN")
+        print(len(data_obj.values()))
+        for r_key in data_obj:
+            print("{} --  {} values".format(r_key, len(data_obj[r_key])))
+#        print(zip(*data_obj.values())[0])
         for s_idx, sents in enumerate(zip(*data_obj.values())):
+#            print("SENTENCE {}".format(s_idx))
             cont = context_generator({data_obj.keys()[i]: sents[i] for i in range(len(sents))}, order, test=test, unambiguous=unambiguous, bad_tagging=bad_tagging)
             overall += len(cont)
             contexts.extend(cont)
@@ -256,8 +274,9 @@ def create_contexts_ngram(data_obj, order=None, data_type='plain', test=False, u
 def get_contexts_words_number(contexts):
     numbers_list = []
     for c in contexts:
-        if type(c['token']) is not list and type(c['token']) is not np.ndarray:
-            numbers_list.append(1)
-        else:
+        try:
             numbers_list.append(len(c['token']))
+        except TypeError:
+            print("The 'token' field has to be of type 'list', is actually {}".format(type(c['token'])))
+            sys.exit()
     return numbers_list
