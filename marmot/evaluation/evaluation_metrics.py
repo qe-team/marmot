@@ -2,11 +2,12 @@ from __future__ import division
 # return the f1 for (y_predicted, y_actual)
 
 # use sklearn.metrics.f1_score with average='weighted' for evaluation
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, accuracy_score
 import logging
 import numpy as np
 
 from marmot.experiment.import_utils import list_of_lists
+from marmot.experiment.preprocessing_utils import flatten
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 logger = logging.getLogger('experiment_logger')
@@ -183,3 +184,89 @@ def sequence_correlation_weighted(y_true, y_pred, good_label=1, bad_label=0, out
     if verbose:
         out_file.close()
     return sentence_pred, np.average(sentence_pred)
+
+
+# sequence correlation based on full (not restricted) accuracy score
+# accuracy score weighted by the importance of tags times ratio of numbers of spans in the hypothesis and the reference
+def sequence_correlation_simple(true_tags, test_tags):
+    seq_corr_all = []
+    for true_seq, test_seq in zip(true_tags, test_tags):
+        n_spans_1_true, n_spans_0_true = 0, 0
+        n_spans_pred = 0
+        prev_true = None
+        for tag in true_seq:
+            if tag == 1 and prev_true == 0:
+                n_spans_0_true += 1
+            elif tag == 0 and prev_true == 1:
+                n_spans_1_true += 1
+            prev_true = tag
+        if true_seq[-1] == 0:
+            n_spans_0_true += 1
+        elif true_seq[-1] == 1:
+            n_spans_1_true += 1
+        prev_pred = None
+        for tag in test_seq:
+            if tag != prev_pred:
+                n_spans_pred += 1
+            prev_pred = tag
+        n_spans_pred -= 1
+        lambda_0 = len(test_tags)/n_spans_0_true if n_spans_0_true != 0 else 0
+        lambda_1 = len(test_tags)/n_spans_1_true if n_spans_1_true != 0 else 0
+        weights = []
+        for t in true_seq:
+            if t == 1:
+                weights.append(lambda_1)
+            elif t == 0:
+                weights.append(lambda_0)
+            else:
+                print("Unknown reference tag: {}".format(t))
+        assert(len(weights) == len(true_seq)), "Expected weights array len {}, got {}".format(len(weights), len(true_tags))
+        acc = accuracy_score(true_seq, test_seq, sample_weight=weights)
+        # penalises any difference in the number of spans between the reference and the hypothesis
+        n_spans_true = n_spans_1_true + n_spans_0_true - 1
+        if n_spans_true == 0 and n_spans_pred == 0:
+            seq_corr_all.append(1)
+        else:
+            if n_spans_true == 0 or n_spans_pred == 0:
+                seq_corr_all.append(0)
+            else:
+                ratio = min(n_spans_pred/n_spans_true, n_spans_true/n_spans_pred)
+                seq_corr_all.append(acc*ratio)
+    return seq_corr_all, np.average(seq_corr_all)
+
+
+def cohens_kappa(true_tags, test_tags, verbose=False):
+    # true positive, true negative, false positive, false negative
+    tp, tn, fp, fn = 0, 0, 0, 0
+    flat_true = flatten(true_tags)
+    flat_test = flatten(test_tags)
+    n_tags = len(flat_true)
+    for true, test in zip(flat_true, flat_test):
+        if true == 0:
+            if test == 0:
+                tn += 1
+            elif test == 1:
+                fp += 1
+        elif true == 1:
+            if test == 0:
+                fn += 1
+            elif test == 1:
+                tp += 1
+    # observed agreement, expected agreement
+    po = (tp + tn)/n_tags
+    prob_1_true = (tp + fn)/n_tags
+    prob_1_test = (tp + fp)/n_tags
+    pe = prob_1_true*prob_1_test + (1 - prob_1_true)*(1 - prob_1_test)
+    if verbose:
+        print('''
+                 Pred   |          |
+                        |    OK    |   BAD     
+              True      |          |       
+              ---------------------------
+                OK      |   %d  |   %d
+              ---------------------------
+                BAD     |   %d  |   %d
+              ---------------------------
+              ''' % (tp, fn, fp, tn))
+        print("Tp %d, fp %d, tn %d, fn %d" % (tp, fp, tn, fn))
+    return (po - pe)/(1 - pe)
