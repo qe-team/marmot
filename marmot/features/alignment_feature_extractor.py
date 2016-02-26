@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import os
+import sys
 import errno
 
 from marmot.features.feature_extractor import FeatureExtractor
@@ -43,23 +44,29 @@ class AlignmentFeatureExtractor(FeatureExtractor):
             raise NoDataError('target', context_obj, 'AlignmentFeatureExtractor')
 
         if 'alignments' not in context_obj:
-            if self.model == '':
-                raise NoDataError('alignments', context_obj, 'AlignmentFeatureExtractor')
-            context_obj['alignments'] = align_sentence(context_obj['source'], context_obj['target'], self.model)
+            raise NoDataError('alignments', context_obj, 'AlignmentFeatureExtractor')
+#            if self.model == '':
+#                raise NoDataError('alignments', context_obj, 'AlignmentFeatureExtractor')
+#            context_obj['alignments'] = align_sentence(context_obj['source'], context_obj['target'], self.model)
 
         # source word(s)
-        source_nums = sorted(context_obj['alignments'][context_obj['index']])
+        try:
+            align_idx = context_obj['alignments'][context_obj['index']]
+        except IndexError:
+            print("{} items in the alignment, needed {}-th".format(len(context_obj['alignments']), context_obj['index']))
+            print(context_obj['alignments'], context_obj['target'], context_obj['source'])
+            sys.exit()
         # if word is unaligned - no source and no source contexts
-        if source_nums == []:
+        if align_idx == None:
             return ['__unaligned__', '|'.join(['__unaligned__' for i in range(self.context_size)]), '|'.join(['__unaligned__' for i in range(self.context_size)])]
 
         # TODO: find contexts for all words aligned to the token (now only 1st word)
         else:
-            left = '|'.join(left_context(context_obj['source'], context_obj['source'][source_nums[0]], context_size=self.context_size, idx=source_nums[0]))
-            right = '|'.join(right_context(context_obj['source'], context_obj['source'][source_nums[-1]], context_size=self.context_size, idx=source_nums[-1]))
+            left = '|'.join(left_context(context_obj['source'], context_obj['source'][align_idx], context_size=self.context_size, idx=align_idx))
+            right = '|'.join(right_context(context_obj['source'], context_obj['source'][align_idx], context_size=self.context_size, idx=align_idx))
 
-        aligned_to = '|'.join([context_obj['source'][i] for i in source_nums])
+        aligned_to = context_obj['source'][align_idx]
         return [aligned_to, left, right]
 
     def get_feature_names(self):
-        return ['first_aligned_token', 'left_alignment', 'right_alignment']
+        return ['aligned_token', 'src_left_context', 'src_right_context']

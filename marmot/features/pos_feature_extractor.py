@@ -49,13 +49,13 @@ class POSFeatureExtractor(FeatureExtractor):
         tg_pos = context_obj['target_pos'][context_obj['index']] if context_obj['target_pos'] != [] else ''
         src_pos = []
         if 'source_pos' in context_obj and context_obj['source_pos'] != [] and 'alignments' in context_obj:
-            src_pos = [context_obj['source_pos'][i] for i in context_obj['alignments'][context_obj['index']]]
-            if src_pos == []:
-                src_pos = '__unaligned__'
+            align_idx = context_obj['alignments'][context_obj['index']]
+            if align_idx is not None:
+                src_pos = context_obj['source_pos'][align_idx]
             else:
-                src_pos = '|'.join(src_pos)
+                src_pos = '__unaligned__'
 
         return [tg_pos, src_pos]
 
     def get_feature_names(self):
-        return ['target_pos', 'aligned_source_pos_list']
+        return ['target_pos', 'aligned_source_pos']

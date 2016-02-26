@@ -37,10 +37,10 @@ class WordnetFeatureExtractor(FeatureExtractor):
 
     def get_features(self, context_obj):
         # TODO: should it throw an error when src or alignments don't exist?
-        if self.src_lang == '' or 'alignments' not in context_obj or 'source' not in context_obj or context_obj['alignments'][context_obj['index']] == []:
+        if self.src_lang == '' or 'alignments' not in context_obj or 'source' not in context_obj or context_obj['alignments'][context_obj['index']] == None:
             src_count = 0
         else:
-            src_align = context_obj['alignments'][context_obj['index']][0]
+            src_align = context_obj['alignments'][context_obj['index']]
             src_token = context_obj['source'][src_align]
             src_count = len(wn.wordnet.synsets(src_token, lang=self.src_lang))
         if self.tg_lang == '':
