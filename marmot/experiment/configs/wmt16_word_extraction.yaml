@@ -1,0 +1,102 @@
+workers: 1
+tmp_dir: &tmp_dir /export/data/varvara/corpora/wmt16/en-de-good/word_level/features
+
+datasets:
+  training:
+    - module: marmot.representations.word_qe_additional_representation_generator.WordQEAdditionalRepresentationGenerator
+      args:
+        - /export/data/varvara/corpora/wmt16/en-de-good/word_level/train/train.src
+        - /export/data/varvara/corpora/wmt16/en-de-good/word_level/train/train.mt
+        - /export/data/varvara/corpora/wmt16/en-de-good/word_level/train/train.tags
+        - ['/export/data/varvara/corpora/wmt16/en-de-good/word_level/train/train.alignments']
+        - ['alignments_file']
+  dev:
+    - module: marmot.representations.word_qe_additional_representation_generator.WordQEAdditionalRepresentationGenerator
+      args:
+        - /export/data/varvara/corpora/wmt16/en-de-good/word_level/dev/dev.src
+        - /export/data/varvara/corpora/wmt16/en-de-good/word_level/dev/dev.mt
+        - /export/data/varvara/corpora/wmt16/en-de-good/word_level/dev/dev.tags
+        - ['/export/data/varvara/corpora/wmt16/en-de-good/word_level/dev/dev.alignments']
+        - ['alignments_file']
+  test:
+    - module: marmot.representations.word_qe_additional_representation_generator.WordQEAdditionalRepresentationGenerator
+      args:
+        - /export/data/varvara/corpora/wmt16/en-de-good/word_level/test/test.src
+        - /export/data/varvara/corpora/wmt16/en-de-good/word_level/test/test.mt
+        - /export/data/varvara/corpora/wmt16/en-de-good/word_level/test/test.tags
+        - ['/export/data/varvara/corpora/wmt16/en-de-good/word_level/test/test.alignments']
+        - ['alignments_file']
+
+representations:
+  - module: marmot.representations.alignment_file_representation_generator.AlignmentFileRepresentationGenerator
+    args:
+      - /export/data/varvara/corpora/wmt16/en-de-good/resources/lex.1.f2e
+  - module: marmot.representations.pos_representation_generator.POSRepresentationGenerator
+    args:
+      - /export/data/varvara/marmot/marmot/experiment/resources/tree-tagger
+      - /export/data/varvara/corpora/wmt16/en-de-good/resources/german-utf8.par
+      - 'target'
+      - *tmp_dir
+  - module: marmot.representations.pos_representation_generator.POSRepresentationGenerator
+    args:
+      - /export/data/varvara/marmot/marmot/experiment/resources/tree-tagger
+      - /export/data/varvara/corpora/wmt16/en-de-good/resources/english-utf8.par
+      - 'source'
+      - *tmp_dir
+#  - module: marmot.representations.google_translate_representation_generator.GoogleTranslateRepresentationGenerator
+#    args:
+#      - 'es'
+
+# if 'sequential', contexts are generated as lists of lists (lists of sequences)
+# if 'plain', a single list of contexts is generated
+# if 'token', a separate list of contexts for every token
+# TODO: change the contexts param name to 'data_type' for clarity
+contexts: sequential
+filters:
+  - min_count: 100
+  - min_label_count: 30
+  - proportion: 2
+
+features:
+  binarize: False
+  persist: True
+  persist_dir: /export/data/varvara/corpora/wmt16/en-de-good/word_level/features
+  persist_format: crf++
+
+svm_params:
+  kernel: 1
+
+feature_extractors:
+  - module: marmot.features.token_count_feature_extractor.TokenCountFeatureExtractor
+  - module: marmot.features.target_token_feature_extractor.TargetTokenFeatureExtractor
+  - module: marmot.features.alignment_feature_extractor.AlignmentFeatureExtractor
+    args:
+      - ''                                               # alignment model
+      - ''     # parallel corpus - source
+      - ''     # parallel corpus - target
+  - module: marmot.features.dictionary_feature_extractor.DictionaryFeatureExtractor
+    args:
+      - 'spanish'              # target language for stopwords extraction
+  - module: marmot.features.lm_feature_extractor.LMFeatureExtractor
+    args:
+      - /export/data/varvara/corpora/wmt16/en-de-good/resources/ngram_count.de
+      -                           # file for LM
+      -                           # srilm
+      -                           # tmp_dir
+      - 5                         # LM order
+  - module: marmot.features.source_lm_feature_extractor.SourceLMFeatureExtractor
+    args:
+      - /export/data/varvara/corpora/wmt16/en-de-good/resources/ngram_count.en
+      - 
+      - 
+      - 
+      - 5                                            # LM order
+  - module: marmot.features.pos_feature_extractor.POSFeatureExtractor
+    args:
+      - /export/data/varvara/marmot/marmot/experiment/resources/tree-tagger
+      - /export/data/varvara/corpora/wmt16/en-de-good/resources/english-utf8.par
+      - /export/data/varvara/corpora/wmt16/en-de-good/resources/german-utf8.par
+
+learning:
+  classifier:
+     module: sklearn.ensemble.RandomForestClassifier
