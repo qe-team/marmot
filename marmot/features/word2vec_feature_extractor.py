@@ -12,11 +12,13 @@ logger = logging.getLogger('experiment_logger')
 def left_context(token_list, token, context_size, idx):
     left_window = []
     if idx <= 0:
-        return ['_START_' for i in range(context_size)]
+        #return ['_START_' for i in range(context_size)]
+        return ['<s>' for i in range(context_size)]
     assert(token_list[idx] == token)
     for i in range(idx-context_size, idx):
         if i < 0:
-            left_window.append('_START_')
+            #left_window.append('_START_')
+            left_window.append('<s>')
         else:
             left_window.append(token_list[i])
     return left_window
@@ -25,11 +27,13 @@ def left_context(token_list, token, context_size, idx):
 def right_context(token_list, token, context_size, idx):
     right_window = []
     if idx >= len(token_list):
-        return ['_END_' for i in range(context_size)]
+        #return ['_END_' for i in range(context_size)]
+        return ['</s>' for i in range(context_size)]
     assert(token_list[idx] == token), "Token in token list: {}, index: {}, token provided in parameters: {}".format(token_list[idx], idx, token)
     for i in range(idx+1, idx+context_size+1):
         if i > len(token_list)-1:
-            right_window.append('_END_')
+            #right_window.append('_END_')
+            right_window.append('</s>')
         else:
             right_window.append(token_list[i])
     return right_window
@@ -60,7 +64,8 @@ class Word2VecFeatureExtractor(FeatureExtractor):
     def extract_word2vec_vector(self, token):
         if token in self.model.vocab:
             return self.model[token]
-        elif token == '_START_' or token == '_END_':
+        #elif token == '_START_' or token == '_END_':
+        elif token == '<s>' or token == '</s>':
             return self.zero_vector
         else:
             return self.default_vector
