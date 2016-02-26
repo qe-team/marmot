@@ -4,6 +4,7 @@
 # if it's an list of lists, write to crf++ format, with a separate file containing the feature names
 # if it's a dict, write to .json or pickle the object(?), write the feature names to a separate file
 import os
+import sys
 import errno
 import pandas as pd
 import numpy as np
@@ -26,13 +27,23 @@ def write_lofl(lofl, filename):
     a_file.close()
 
 
+# convert an arbitrary feature value to string
+def val_to_str(f_val):
+    if type(f_val) is str:
+        return f_val
+    elif type(f_val) is unicode:
+        return f_val.encode('utf-8')
+    else:
+        return str(f_val)
+
+
 # <word_tags> -- list of sequences of word-level tags
 #    if specified - should be saved to a separate file in CRF++ format
 # <phrase_lengths> -- list of phrase lengths
 #    needed to be able to restore word-level tags from phrase-level
 #    if specified - should be saved to a separate file in CRF++ format
 #    TODO: check if matches the number of phrases
-def persist_features(dataset_name, features, persist_dir, tags=None, feature_names=None, word_tags=None, phrase_lengths=None, file_format='crf++'):
+def persist_features(dataset_name, features, persist_dir, tags=None, feature_names=None, phrase_lengths=None, file_format='crf++'):
     '''
     persist the features to persist_dir -- use dataset_name as the prefix for the persisted files
     :param dataset_name: prefix of the output file
@@ -40,7 +51,7 @@ def persist_features(dataset_name, features, persist_dir, tags=None, feature_nam
     :param persist_dir: directory of output file(s)
     :param tags: tags for the dataset
     :param feature_names: names of features in the dataset
-    :param file_format: format of the output file for sequences. Values -- 'crf++' or 'crf_suite'
+    :param file_format: format of the output file for sequences. Values -- 'crf++', 'crf_suite', 'svm_light'
     :return:
     '''
     try:
@@ -52,10 +63,18 @@ def persist_features(dataset_name, features, persist_dir, tags=None, feature_nam
             raise
 
     if file_format == 'crf_suite' and feature_names is None:
-        print("Feature names are required to save features in CRFSuite format")
+        print("Feature names are required to save features in CRFSuite and SVMLight formats")
+        return
     # for the 'plain' datatype
     if type(features) == np.ndarray and features.shape[1] == len(feature_names):
-#    if type(features) == np.ndarray
+#        if file_format == 'svm_light':
+#            output_path = os.path.join(persist_dir, dataset_name + '.svm')
+#            output = open(output_path, 'w')
+#            tags_map = {'OK': '+1', 'BAD': '-1'}
+#            for a_tag, feat_seq, feat_name_seq in zip(tags, features, feature_names):
+#                feat_list = [f_name + ':' + f_val for f_name, f_val in zip(feat_name_seq, feat_seq)]
+#                output.write("%s %s\n" % (tags_map[a_tag], ' '.join(feat_list)))
+#        else:
         output_df = pd.DataFrame(data=features, columns=feature_names)
         output_path = os.path.join(persist_dir, dataset_name + '.csv')
         output_df.to_csv(output_path, index=False)
@@ -63,6 +82,26 @@ def persist_features(dataset_name, features, persist_dir, tags=None, feature_nam
 
     # for the 'sequential' datatype
     elif list_of_lists(features):
+        if file_format == 'svm_light':
+            feature_names = range(1, len(features[0]) + 1)
+            output_path = os.path.join(persist_dir, dataset_name + '.svm')
+            output = open(output_path, 'w')
+            tags_map = {'OK': '+1', 'BAD': '-1'}
+            for a_tag, feat_seq in zip(tags, features):
+                feat_list = []
+                for f_name, f_val in zip(feature_names, feat_seq):
+                    try:
+                        if float(f_val) != 0.0:
+                            feat_list.append(str(f_name) + ':' + val_to_str(f_val))
+                    except ValueError:
+                        feat_list.append(str(f_name) + ':' + val_to_str(f_val))
+#                feat_list = [str(f_name) + ':' + val_to_str(f_val) for f_name, f_val in zip(feature_names, feat_seq)]
+                output.write("%s %s\n" % (tags_map[a_tag], ' '.join(feat_list)))
+            return
+#        if file_format == 'svm_light':
+#            print("SVMLight format cannot encode sequences (change the parameter 'contexts' in config from 'sequential' into 'plain')")
+#            print("Example of features:", features[0])
+#            return
         output_path = os.path.join(persist_dir, dataset_name + '.crf')
         output = open(output_path, 'w')
         if tags is not None:
@@ -70,7 +109,11 @@ def persist_features(dataset_name, features, persist_dir, tags=None, feature_nam
             for s_idx, (seq, tag_seq) in enumerate(zip(features, tags)):
                 assert(len(seq) == len(tag_seq)), "Lengths of tag and feature sequences don't match in sequence {}: {} and {} ({} and {})".format(s_idx, len(seq), len(tag_seq), seq, tag_seq)
                 for w_idx, (feature_list, tag) in enumerate(zip(seq, tag_seq)):
-                    assert(len(feature_list) == len(feature_names)), "Wrong number of features in sequence %d, word %d: %d features, %d names" % (s_idx, w_idx, len(feature_list), len(feature_names))
+#                    assert(len(feature_list) == len(feature_names)), "Wrong number of features in sequence %d, word %d: %d features, %d names" % (s_idx, w_idx, len(feature_list), len(feature_names))
+                    if len(feature_list) != len(feature_names):
+                        print(feature_list)
+                        print(feature_names)
+                        sys.exit()
                     tag = str(tag)
                     feature_str = []
                     for f in feature_list:
@@ -132,9 +175,6 @@ def persist_features(dataset_name, features, persist_dir, tags=None, feature_nam
             output_features.close()
         output.close()
 
-        # write word-level tags
-        if word_tags is not None:
-            write_lofl(word_tags, os.path.join(persist_dir, dataset_name + '.word-tags'))
         # write phrase lengths
         if phrase_lengths is not None:
             write_lofl(phrase_lengths, os.path.join(persist_dir, dataset_name + '.phrase-lengths'))
