@@ -61,7 +61,18 @@ class SegmentationSimpleRepresentationGenerator(RepresentationGenerator):
                     # he is |3-4| a good |0-1| ukulele player |2-2| . |5-5|
                     # seg_list == [(3, 5), (0, 2), (2, 3), (5, 6)]
                     # sorted(seg_list) == [(0, 2), (2, 3), (3, 5), (5, 6)]
-                    segments.append(sorted(seg_list))
+                    seg_list = sorted(seg_list)
+                    new_seg_list = []
+                    prev = 0
+                    for s in seg_list:
+                        # end of previous segment doesn't match the beginning of the current segment
+                        # this means that one or more of the words wasn't included into the segmentation
+                        # have to be added as a separate segment
+                        if s[0] != prev:
+                            new_seg_list.append((prev, s[0]))
+                        new_seg_list.append(s)
+                        prev = s[1]
+                    segments.append(sorted(new_seg_list))
                 return {'target': target_lines, 'source': source_lines, 'tags': tags_lines, 'segmentation': segments}
             elif segmentation_numbers == 'source':
                 for line in segmentation:
