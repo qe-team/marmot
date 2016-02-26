@@ -1,3 +1,4 @@
+from __future__ import print_function
 # we need numpy to check the type of objects in list_of_lists
 import numpy
 import os
@@ -62,6 +63,7 @@ def function_tree(func, args):
 
 # load and build object - universal
 def build_object(obj_info, root_element='module'):
+    print("Building extractor: ", obj_info[root_element])
     klass = import_class(obj_info[root_element])
     input_args = obj_info['args'] if 'args' in obj_info else []
 

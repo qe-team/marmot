@@ -131,30 +131,17 @@ def map_feature_extractor((context, extractor)):
 def contexts_to_features(contexts, feature_extractors, workers=1):
     # single thread
     if workers == 1:
-#        print("Extractors:", type(feature_extractors))
-#        print("Contexts:", type(contexts))
-        #context = contexts[0]
-#        all_return = []
-#        for context in contexts:
-#            aaa = [map_feature_extractor((context, extractor)) for extractor in feature_extractors]
-#            all_return.append(x for a_list in aaa for x in a_list)
-#            print("Context:", type(aaa[0][0]))
-#        print("One context:", aaa[0])
-#        return all_return
-#        return [[x for a_list in [map_feature_extractor((context, extractor)) for extractor in feature_extractors] for x in a_list] for context in contexts]
         return [[x for a_list in [map_feature_extractor((context, extractor)) for extractor in feature_extractors] for x in a_list] for context in contexts]
 
     # multiple threads
     else:
         # resulting object
         res_list = []
-        #ipdb.set_trace()
         pool = multi.Pool(workers)
         logger.info('Multithreaded - Extracting the features for: ' + str(len(contexts)) + ' contexts...')
         # each context is paired with all feature extractors
         for extractor in feature_extractors:
             context_list = [(cont, extractor) for cont in contexts]
-            #ipdb.set_trace()
             features = pool.map(map_feature_extractor, context_list)
             res_list.append(features)
         # np.hstack and np.vstack can't be used because lists have objects of different types
