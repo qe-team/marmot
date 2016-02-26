@@ -58,6 +58,7 @@ class NgramFrequenciesFeatureExtractor(FeatureExtractor):
             quart_count = 0
             for ngram in ngram_list:
                 if ngram in self.ngram_quartiles[order][quart]:
+#                    print("Yes!")
                     quart_count += 1
             quart_frequencies.append(quart_count/len(ngram_list))
         return quart_frequencies

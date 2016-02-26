@@ -14,12 +14,16 @@ def get_tags(lang):
     content, verbs, nouns, pronouns = defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list)
     content['english'] = ['JJ', 'RB', 'NN', 'VB']
     content['spanish'] = ['ADJ', 'ADV', 'NC', 'NMEA', 'NMON', 'NP', 'VL']
+    content['german'] = ['ADJ', 'ADV', 'NN', 'NE', 'VA', 'VV', 'VM']
     verbs['english'] = ['VB']
     verbs['spanish'] = ['VL']
+    verbs['german'] = ['VA', 'VV', 'VM']
     nouns['english'] = ['NN']
     nouns['spanish'] = ['NC', 'NMEA', 'NMON', 'NP']
+    nouns['german'] = ['NN', 'NE']
     pronouns['english'] = ['PP', 'WP$']
     pronouns['spanish'] = ['DM', 'INT', 'PP', 'REL']
+    pronouns['german'] = ['PPOS', 'PD', 'PI', 'PREL', 'PW', 'PAV']
     return content[lang], nouns[lang], verbs[lang], pronouns[lang]
 
 

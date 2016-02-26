@@ -47,15 +47,17 @@ class PhraseAlignmentFeatureExtractor(FeatureExtractor):
         if 'target' not in context_obj or context_obj['source'] is None or context_obj['target'] is None:
             raise NoDataError('target', context_obj, 'AlignmentFeatureExtractor')
 
-        if 'alignments' not in context_obj:
-            if self.model == '':
-                raise NoDataError('alignments', context_obj, 'AlignmentFeatureExtractor')
-            context_obj['alignments'] = align_sentence(context_obj['source'], context_obj['target'], self.model)
+        if 'alignments_all' not in context_obj:
+            raise NoDataError('alignments_all', context_obj, 'AlignmentFeatureExtractor')
+#        if self.model == '':
+#            raise NoDataError('alignments', context_obj, 'AlignmentFeatureExtractor')
+        # we have to extract new alignments because we need the number of aligned words per target word
+#        local_alignments = align_sentence(context_obj['source'], context_obj['target'], self.model)
         n_unaligned, n_multiple = 0, 0
         n_alignments = []
         for i in range(context_obj['index'][0], context_obj['index'][1]):
             assert(all([w == ww for (w, ww) in zip(context_obj['token'], [context_obj['target'][j] for j in range(context_obj['index'][0], context_obj['index'][1])])]))
-            cur_alignments = len(context_obj['alignments'][i])
+            cur_alignments = len(context_obj['alignments_all'][i])
             if cur_alignments == 0:
                 n_unaligned += 1
             elif cur_alignments > 1:
