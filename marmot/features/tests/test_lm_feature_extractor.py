@@ -14,19 +14,20 @@ class LMFeatureExtractorTests(unittest.TestCase):
         module_path = os.path.dirname(os.path.realpath(__file__))
         self.module_path = module_path
         self.tmp_dir = os.path.join(module_path, 'tmp_dir')
-        self.lm3Extractor = LMFeatureExtractor(os.path.join(module_path, 'test_data/training.txt'), srilm=os.environ['SRILM'], tmp_dir=self.tmp_dir)
-        self.lm5Extractor = LMFeatureExtractor(os.path.join(module_path, 'test_data/training.txt'), srilm=os.environ['SRILM'], tmp_dir=self.tmp_dir, order=5)
+        self.lm3Extractor = LMFeatureExtractor(corpus_file=os.path.join(module_path, 'test_data/training.txt'), srilm=os.environ['SRILM'], tmp_dir=self.tmp_dir)
+#        self.lm5Extractor = LMFeatureExtractor(corpus_file=os.path.join(module_path, 'test_data/training.txt'), srilm=os.environ['SRILM'], tmp_dir=self.tmp_dir, order=5)
+        self.lm5Extractor = LMFeatureExtractor(ngram_file=os.path.join(module_path, 'test_data/training.ngram'), srilm=os.environ['SRILM'], tmp_dir=self.tmp_dir, order=5)
 
 
     def test_get_features(self):
-        # { 'token': <token>, index: <idx>, 'source': [<source toks>]', 'target': [<target toks>], 'tag': <tag>}
+#        { 'token': <token>, index: <idx>, 'source': [<source toks>]', 'target': [<target toks>], 'tag': <tag>}
         (left3, right3, back_l, back_m, back_r) = self.lm3Extractor.get_features({'token': 'for', 'index': 6, 'source': [u'c',u'\'',u'est',u'un',u'garçon'], 'target': [u'It', u'becomes', u'more', u'and', u'more', u'difficult', u'for', u'us', u'to', u'protect', u'her', u'brands', u'in', u'China', '.'], 'tag':'G'})
         (left5, right5, back_l, back_m, back_r) = self.lm5Extractor.get_features({'token':'for', 'index':6, 'source':[u'c',u'\'',u'est',u'un',u'garçon'], 'target':[u'It', u'becomes', u'more', u'and', u'more', u'difficult', u'for', u'us', u'to', u'protect', u'her', u'brands', u'in', u'China', '.'], 'tag':'G'})
-        # TODO: this is not a test
         self.assertEqual(left3, 3)
         self.assertEqual(right3, 2)
         self.assertEqual(left5, 5)
         self.assertEqual(right5, 2)
+        pass
 
     def test_backoff(self):
         context_obj = {'token':'more', 'index':2, 'source':[u'c',u'\'',u'est',u'un',u'garçon'], 'target':[u'It', u'becomes', u'more', u'more', u'difficult', u'for', u'us', u'to', u'protect', u'her', u'brands', u'in', u'China', '.'], 'tag':'G'}
@@ -51,8 +52,8 @@ class LMFeatureExtractorTests(unittest.TestCase):
         self.assertAlmostEqual(back_m, 0.3)
         self.assertAlmostEqual(back_r, 0.3)
 
-    def tearDown(self):
-        shutil.rmtree(self.tmp_dir, ignore_errors=True)
+#    def tearDown(self):
+#        shutil.rmtree(self.tmp_dir, ignore_errors=True)
 
 
 if __name__ == '__main__':

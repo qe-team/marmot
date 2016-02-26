@@ -1,3 +1,4 @@
+from __future__ import print_function
 import codecs
 from subprocess import call
 import os
@@ -12,7 +13,7 @@ from marmot.experiment.import_utils import mk_tmp_dir
 # Calling an external LM is very slow, so a new lm is constructed with nltk
 class LMFeatureExtractor(FeatureExtractor):
 
-    def __init__(self, ngram_file=None, corpus_file=None, srilm=None, tmp_dir=None, order=3):
+    def __init__(self, ngram_file=None, corpus_file=None, srilm=None, tmp_dir=None, order=5):
         # generate ngram counts
         if ngram_file is None:
             if srilm is None:
@@ -36,7 +37,9 @@ class LMFeatureExtractor(FeatureExtractor):
         for line in codecs.open(ngram_file, encoding='utf-8'):
             chunks = line[:-1].split('\t')
             if len(chunks) == 2:
-                self.lm[chunks[0]] == chunks[1]
+                new_tuple = tuple(chunks[0].split())
+                new_number = int(chunks[1])
+                self.lm[new_tuple] = new_number
             else:
                 print("Wrong ngram-counts file format at line '", line[:-1], "'")
 
@@ -58,18 +61,25 @@ class LMFeatureExtractor(FeatureExtractor):
     def get_backoff(self, ngram):
         assert(len(ngram) == 3)
         ngram = tuple(ngram)
+        # trigram (1, 2, 3)
         if ngram in self.lm:
             return 1.0
+        # two bigrams (1, 2) and (2, 3)
         elif ngram[:2] in self.lm and ngram[1:] in self.lm:
             return 0.8
+        # bigram (2, 3)
         elif ngram[1:] in self.lm:
             return 0.6
-        elif ngram[:2] in self.lm and ngram[2] in self.lm:
+        # bigram (1, 2) and unigram (3)
+        elif ngram[:2] in self.lm and ngram[2:] in self.lm:
             return 0.4
-        elif ngram[1] in self.lm and ngram[2] in self.lm:
+        # unigrams (2) and (3)
+        elif ngram[1:2] in self.lm and ngram[2:] in self.lm:
             return 0.3
-        elif ngram[2] in self.lm:
+        # unigram (3)
+        elif ngram[2:] in self.lm:
             return 0.2
+        # all words unknown
         else:
             return 0.1
 
@@ -88,6 +98,7 @@ class LMFeatureExtractor(FeatureExtractor):
         left_trigram = left_context(context_obj['target'], context_obj['token'], context_size=2, idx=idx) + [context_obj['token']]
         middle_trigram = extract_window(context_obj['target'], context_obj['token'], idx=idx)
         right_trigram = [context_obj['token']] + right_context(context_obj['target'], context_obj['token'], context_size=2, idx=idx)
+        # TODO: instead of _START_ there should be <s>
 
         backoff_left = self.get_backoff(left_trigram)
         backoff_middle = self.get_backoff(middle_trigram)
