@@ -3,10 +3,10 @@ Representation generators (get input data, return data objects):
 	module: marmot.representations.word_qe_additional_representation_generator.WordQEAdditionalRepresentationGenerator
 	arguments:
 		- source text
-        - machine-translated text
-        - labels
-        - list of files with additional representations (e.g. alignments)
-        - list of names of additional representations (one per file)
+		- machine-translated text
+		- labels
+		- list of files with additional representations (e.g. alignments)
+		- list of names of additional representations (one per file)
 	all files should be sentence-aligned
 
 Additional representation generators (get data object, return data object with a new representation added):
@@ -17,7 +17,7 @@ Additional representation generators (get data object, return data object with a
 	NB: this representation generator requires that a data object has 'alignment_file' field
 
 	module: marmot.representations.pos_representation_generator.POSRepresentationGenerator
-    arguments:
+	arguments:
 		- TreeTagger binary (/path-to-tree-tagger/bin/tree-tagger)
 		- TreeTagger parameters file for the language
 		- language label ('target' or 'source')
@@ -26,17 +26,17 @@ Additional representation generators (get data object, return data object with a
 Feature extractors (get context objects, return lists of features):
 
 	module: marmot.features.alignment_feature_extractor.AlignmentFeatureExtractor
-    arguments:
+	arguments:
 		- alignment model (not needed if AlignmentFileRepresentationGenerator was specified before)
 		- source data for alignment model training (not needed if alignment model is provided or AlignmentFileRepresentationGenerator was specified before)
 		- target data for alignment model training (not needed if alignment model is provided or AlignmentFileRepresentationGenerator was specified before)
 	
 	module: marmot.features.dictionary_feature_extractor.DictionaryFeatureExtractor
-    arguments:
+	arguments:
 		- target language (e.g. 'spanish', 'german')
 	
 	module: marmot.features.lm_feature_extractor.LMFeatureExtractor
-    arguments:
+	arguments:
 		- ngram counts for the target language
 		- corpus for LM training (not needed if ngram counts file is provided)
 		- path to SRILM ngram-count binary (not needed if ngram counts file is provided)
@@ -46,7 +46,7 @@ Feature extractors (get context objects, return lists of features):
 		./ngram-count -text corpus-file -lm lm-file -order 5 -write ngram-count-file
 
 	module: marmot.features.source_lm_feature_extractor.SourceLMFeatureExtractor
-    arguments:
+	arguments:
 		- ngram counts for the source language
 		- corpus for LM training (not needed if ngram counts file is provided)
 		- path to SRILM ngram-count binary (not needed if ngram counts file is provided)
@@ -54,7 +54,7 @@ Feature extractors (get context objects, return lists of features):
 		- LM order (default 5)
 
 	module: marmot.features.pos_feature_extractor.POSFeatureExtractor
-    arguments:
+	arguments:
 		- path to TreeTagger binary
 		- path to TreeTagger parameters for the source
 		- path to TreeTagger parameters for the target
