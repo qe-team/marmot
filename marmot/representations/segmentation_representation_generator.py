@@ -106,8 +106,6 @@ class SegmentationRepresentationGenerator(RepresentationGenerator):
         target_segments = []
         with codecs.open(segmentation_file, encoding='utf-8') as segmentation:
             for idx, line in enumerate(segmentation):
-                print("REAL string: ", ' '.join([w.encode('utf-8') for w in data_obj['target'][idx]]))
-                print("SEGMENTED: ", line[:-1].encode('utf-8'))
                 # no Moses output for this line - every word is a separate segment
                 if line == "\n":
                     source_segments.append([])
