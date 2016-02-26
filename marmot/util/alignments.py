@@ -1,8 +1,10 @@
 import os
 import sys
+import shutil
 from subprocess import Popen
 
 from marmot.util.force_align import Aligner
+from marmot.experiment.import_utils import mk_tmp_dir
 
 
 def train_alignments(src_train, tg_train, tmp_dir, align_model='align_model'):
@@ -14,7 +16,10 @@ def train_alignments(src_train, tg_train, tmp_dir, align_model='align_model'):
         sys.stderr.write('No parallel corpus for training\n')
         return ''
     # join source and target files
-    joint_name = tmp_dir + '/' + os.path.basename(src_train) + '_' + os.path.basename(tg_train)
+    tmp_dir = mk_tmp_dir(tmp_dir)
+    shutil.copy(src_train, tmp_dir)
+    shutil.copy(tg_train, tmp_dir)
+    joint_name = os.path.join(tmp_dir, os.path.basename(src_train) + '_' + os.path.basename(tg_train))
     src_tg_file = open(joint_name, 'w')
     get_corp = Popen([cdec+'/corpus/paste-files.pl', src_train, tg_train], stdout=src_tg_file)
     get_corp.wait()
