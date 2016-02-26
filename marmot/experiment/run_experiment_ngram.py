@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 import yaml
 import logging
 import os
+import sys
 import time
 from subprocess import call
 
@@ -33,47 +34,38 @@ def label_test(flat_labels, new_test_name, text_file, method_name):
             new_test_ext.write('%s\t%d\t%d\t%s\t%s\n' % (method_name, s_idx, t_idx, word.encode('utf-8'), tag))
 
 
+# write both hypothesis and reference
+def label_test_hyp_ref(flat_labels, flat_true_labels, new_test_name, text_file):
+    tag_map = {0: 'BAD', 1: 'OK'}
+    new_test = open(new_test_name, 'w')
+    new_test_plain = open(new_test_name+'.plain', 'w')
+
+    start = 0
+    for s_idx, txt in enumerate(open(text_file)):
+        words = txt[:-1].decode('utf-8').strip().split()
+        tag_seq = [tag_map[flat_labels[i]] for i in range(start, start+len(words))]
+        true_tag_seq = [tag_map[flat_true_labels[i]] for i in range(start, start+len(words))]
+        new_test_plain.write('%s\n' % ' '.join(tag_seq))
+        start += len(words)
+        for t_idx, (tag, true_tag, word) in enumerate(zip(tag_seq, true_tag_seq, words)):
+            new_test.write('%d\t%d\t%s\t%s\t%s\n' % (s_idx, t_idx, word.encode('utf-8'), true_tag, tag))
+
+
 # check that everything in a data_obj matches:
 #  - all source and target sentences exist
 #  - alignments don't hit out of bounds
 #  - target tokens really exist and are in their places
-#def check_data_objects(data_obj):
-#    # all representations have the same number of sentences
-#    right_len = data_obj['target']
-#    for a_key in data_obj:
-#        assert(len(data_obj[a_key] == right_len), "Wrong number of sentences for the representation {}: expected {}, got {}".format(a_key, right_len, len(data_obj[a_key])))
-#
-#    # all source and target sentences exist
-#    for i in range(right_len):
- #       # target sentence exists
-#        assert(len(data_obj['target'][i]) > 0), "Target sentence doesn't exist for the object #{}".format(i)
-#        # source sentence exists
-#        assert(len(data_obj['source'][i]) > 0), "Source sentence doesn't exist for the object #{}".format(i)
-#        # alignments match the target side
-#        assert(len(data_obj['alignments'][i]) == len(data_obj['target'][i])), "Wrong alignments number at line #{}: expected {}, got {}".format(i, len(data_obj['target'][i]), len(data_obj['alignments'][i]))
-#        # alignments match the source
-#        for tok_list in data_obj['alignments'][i]:
-#            for c in tok_list:
-#                assert(c < len(data_obj['source'][i])), "Alignment goes out of source side bounds at line #{}: len is {}, got {}".format(i, len(data_obj['source'][i]), c)
-#
+def main(config, stamp):
+    # the data_type is the format corresponding to the model of the data that the user wishes to learn
 
-def main(config):
-    time_stamp = str(time.time())
+    data_type = config['data_type'] if 'data_type' in config else (config['contexts'] if 'contexts' in config else 'plain')
+    bad_tagging = config['bad_tagging'] if 'bad_tagging' in config else 'pessimistic'
+    logger.info("data_type -- {}, bad_tagging -- {}".format(data_type, bad_tagging))
+#    time_stamp = str(time.time())
+    time_stamp = stamp
     workers = config['workers']
     tmp_dir = config['tmp_dir']
 
-    # REPRESENTATION GENERATION
-    # main representations (source, target, tags)
-    # training
-    # many generators
-#    train_data_generators = build_objects(config['datasets']['training'])
-#    train_data = {}
-#    for gen in train_data_generators:
-#        data = gen.generate()
-#        for key in data:
-#            if key not in train_data:
-#                train_data[key] = []
-#            train_data[key].extend(data[key])
     # one generator
     train_data_generator = build_object(config['datasets']['training'][0])
     train_data = train_data_generator.generate()
@@ -95,34 +87,38 @@ def main(config):
         train_data = r.generate(train_data)
         test_data = r.generate(test_data)
 
-    #check_data_objects(train_data)
-    #check_data_objects(test_data)
-
     borders = config['borders'] if 'borders' in config else False
-
     logger.info('here are the keys in your representations: {}'.format(train_data.keys()))
 
-    # the data_type is the format corresponding to the model of the data that the user wishes to learn
-    data_type = config['contexts'] if 'contexts' in config else 'plain'
-
-    test_contexts = create_contexts_ngram(test_data, data_type=data_type, test=True)
-#    test_contexts_seq = create_contexts_ngram(test_data, data_type='sequential')
+    bad_tagging = config['bad_tagging'] if 'bad_tagging' in config else 'pessimistic'
+    test_contexts = create_contexts_ngram(test_data, data_type=data_type, test=True, bad_tagging=bad_tagging)
     print("Objects in the train data: {}".format(len(train_data['target'])))
 
-    print("\tTraining data")
-    for i in range(len(train_data['target'])):
-        print("\ttarget {}, source {}, segmentation {}, source segmentation {}, alignments {}".format(len(train_data['target'][i]), len(train_data['source'][i]), len(train_data['segmentation'][i]), len(train_data['source_segmentation'][i]), len(train_data['alignments'][i])))
-
-    train_contexts = create_contexts_ngram(train_data, data_type=data_type)
-    print("Train contexts: {}".format(len(train_contexts)))
-    print("1st context:", train_contexts[0])
+    print("UNAMBIGUOUS: ", config['unambiguous'])
+    train_contexts = create_contexts_ngram(train_data, data_type=data_type, bad_tagging=bad_tagging, unambiguous=config['unambiguous'])
+    #print("Train contexts: {}".format(len(train_contexts)))
+    #print("1st context:", train_contexts[0])
 
     # the list of context objects' 'target' field lengths
     # to restore the word-level tags from the phrase-level
     #test_context_correspondence = get_contexts_words_number(test_contexts)
-    test_context_correspondence = call_for_each_element(test_contexts, get_contexts_words_number, [], data_type=data_type)
     if data_type == 'sequential':
-        test_context_correspondence = flatten(test_context_correspondence)
+        test_context_correspondence = flatten([get_contexts_words_number(cont) for cont in test_contexts])
+        #print(test_context_correspondence)
+        for idx, cont in enumerate(test_contexts):
+            get_cont = get_contexts_words_number(cont)
+            count_cont = [len(c['token']) for c in cont]
+            assert(all([get_cont[i] == count_cont[i] for i in range(len(cont))])), "Sum doesn't match at line {}:\n{}\n{}".format(idx, ' '.join([str(c) for c in get_cont]), ' '.join([str(c) for c in count_cont]))
+
+        assert(sum(test_context_correspondence) == sum([len(c['token']) for cont in test_contexts for c in cont])), "Sums don't match: {} and {}".format(sum(test_context_correspondence) == sum([len(c['token']) for cont in test_contexts for c in cont]))
+    else:
+        test_context_correspondence = get_contexts_words_number(test_contexts)
+        assert(sum(test_context_correspondence) == sum([len(c['token']) for c in test_contexts])), "Sums don't match: {} and {}".format(sum(test_context_correspondence), sum([len(c['token']) for c in test_contexts]))
+#    print("Token lengths:", sum([len(c['token']) for c in test_contexts]))
+#    assert(sum(test_context_correspondence) == 9613), "GOLAKTEKO OPASNOSTE!!!, {}".format(sum(test_context_correspondence))
+#    sys.exit()
+#    if data_type == 'sequential':
+#        test_context_correspondence = flatten(test_context_correspondence)
 
     logger.info('Vocabulary comparison -- coverage for each dataset: ')
     logger.info(compare_vocabulary([train_data['target'], test_data['target']]))
@@ -132,7 +128,37 @@ def main(config):
     # FEATURE EXTRACTION
     train_tags = call_for_each_element(train_contexts, tags_from_contexts, data_type=data_type)
     test_tags = call_for_each_element(test_contexts, tags_from_contexts, data_type=data_type)
-#    test_tags_seq = call_for_each_element(test_contexts_seq, tags_from_contexts, data_type='sequential')
+    test_tags_true = test_data['tags']
+    tag_idx = 0
+    seg_idx = 0
+#    test_context_correspondence_seq = [get_contexts_words_number(cont) for cont in test_contexts]
+#    for idx, (tag_seq, phr_seq) in enumerate(zip(test_data['tags'], test_context_correspondence_seq)):
+#        assert(len(tag_seq) == sum(phr_seq)),"Something wrong in line {}:\n{}\n{}".format(idx, ' '.join(tag_seq), ' '.join([str(p) for p in phr_seq]))
+#        tag_idx = 0
+#        for d in phr_seq:
+#            first_tag = tag_seq[tag_idx]
+#            assert(all([t == first_tag for t in tag_seq[tag_idx:tag_idx+d]])), "Something wrong in line {}:\n{}\n{}".format(idx, ' '.join(tag_seq), ' '.join([str(p) for p in phr_seq]))
+#        try:
+#            indicator = [t == first_tag for t in test_data['tags'][seg_idx][tag_idx:tag_idx+d]]
+#            assert(all(indicator))
+#            tags_cnt += d
+#            if tags_cnt == len(test_data['tags'][seg_idx]):
+#                tags_cnt = 0
+#                seg_idx += 1
+#            elif tags_cnt > len(test_data['tags'][seg_idx]):
+#                raise
+#        except:
+#            print("No correspondence in line {}, tag {}: \n{}\n{}".format(seg_idx, tag_idx, ' '.join(test_data['tags'][seg_idx]), d))
+#            sys.exit()
+    assert(sum(test_context_correspondence) == len(flatten(test_data['tags']))), "Sums don't match for phrase contexts and test data object: {} and {}".format(sum(test_context_correspondence), len(flatten(test_data['tags'])))
+                    
+#    flat_cont = flatten(test_contexts)
+#    flat_tags = flatten(test_data['tags'])
+#    for ii in range(len(flat_cont)):
+        
+    if data_type == 'plain':
+        assert(len(test_context_correspondence) == len(test_tags)), "Lengths don't match for phrase contexts and test tags: {} and {}".format(len(test_context_correspondence), len(test_tags))
+#     test_tags_seq = call_for_each_element(test_contexts_seq, tags_from_contexts, data_type='sequential')
 
     logger.info('creating feature extractors...')
     feature_extractors = build_objects(config['feature_extractors'])
@@ -217,7 +243,10 @@ def main(config):
 
     else:
         train_tags = [tag_map[tag] for tag in train_tags]
+        #print(test_tags)
         test_tags = [tag_map[tag] for tag in test_tags]
+        #print(test_tags)
+        #sys.exit()
 
        # data_type is 'token' or 'plain'
         logger.info('start training...')
@@ -235,14 +264,19 @@ def main(config):
 
         # restoring the word-level tags
         test_predictions_word, test_tags_word = [], []
+        logger.info("Test predictions lenght: {}".format(len(test_predictions)))
         for idx, n in enumerate(test_context_correspondence):
             for i in range(n):
                 test_predictions_word.append(test_predictions[idx])
                 test_tags_word.append(test_tags[idx])
 
-        print(f1_score(test_tags_word, test_predictions_word, average=None))
-        print(f1_score(test_tags_word, test_predictions_word, average='weighted', pos_label=None))
-        print("Precision: {}, recall: {}".format(precision_score(test_predictions_word, test_tags_word, average=None), recall_score(test_predictions_word, test_tags_word, average=None)))
+        test_tags_true_flat = flatten(test_tags_true)
+        test_tags_true_flat = [tag_map[t] for t in test_tags_true_flat]
+#        print(f1_score(test_tags_word, test_predictions_word, average=None))
+#        print(f1_score(test_tags_word, test_predictions_word, average='weighted', pos_label=None))
+        print(f1_score(test_tags_true_flat, test_predictions_word, average=None))
+        print(f1_score(test_tags_true_flat, test_predictions_word, average='weighted', pos_label=None))
+        print("Precision: {}, recall: {}".format(precision_score(test_tags_true_flat, test_predictions_word, average=None), recall_score(test_tags_true_flat, test_predictions_word, average=None)))
         # TODO: remove the hard coding of the tags here
         bad_count = sum(1 for t in test_tags if t == u'BAD' or t == 0)
         good_count = sum(1 for t in test_tags if t == u'OK' or t == 1)
@@ -262,11 +296,11 @@ def main(config):
                 for i in range(n):
                     random_tags.append(random_tags_phrase[idx])
             # random_tags = [u'GOOD' for i in range(total)]
-            random_class_f1 = f1_score(test_tags_word, random_tags, average=None)
+            random_class_f1 = f1_score(test_tags_true_flat, random_tags, average=None)
             random_class_results.append(random_class_f1)
             logger.info('two class f1 random score ({}): {}'.format(i, random_class_f1))
             # random_average_f1 = f1_score(random_tags, test_tags, average='weighted')
-            random_average_f1 = f1_score(test_tags_word, random_tags, average='weighted', pos_label=None)
+            random_average_f1 = f1_score(test_tags_true_flat, random_tags, average='weighted', pos_label=None)
             random_weighted_results.append(random_average_f1)
             # logger.info('average f1 random score ({}): {}'.format(i, random_average_f1))
             
@@ -281,6 +315,7 @@ def main(config):
 #        logger.info("Sequence correlation: ")
 #        print(sequence_correlation_weighted(test_tags_seq_num, test_predictions_seq, verbose=True)[1])
 
+        label_test_hyp_ref(test_predictions_word, test_tags_true_flat, os.path.join(tmp_dir, config['output_name']), config["output_test"])
 #        label_test(test_predictions, '/export/data/varvara/marmot/marmot/experiment/final_submissions/baseline', '/export/data/varvara/corpora/wmt15_corrected/test.target', 'BASELINE')
 
 
@@ -288,6 +323,10 @@ if __name__ == '__main__':
 
     parser = ArgumentParser()
     parser.add_argument("configuration_file", action="store", help="path to the config file (in YAML format).")
+    parser.add_argument("--data_type", help="data type - sequential or plain")
+    parser.add_argument("--bad_tagging", help="tagging -- optimistic, pessimistic or super-pessimistic")
+    parser.add_argument("--unambiguous", default=0, help="make the tagging unambiguous -- no segmentation for spans of BAD tag (values - 0 or 1, default 0)")
+    parser.add_argument("--output_name", default="output", help="file to store the test set tagging")
     args = parser.parse_args()
     experiment_config = {}
 
@@ -296,4 +335,13 @@ if __name__ == '__main__':
     # read configuration file
     with open(cfg_path, "r") as cfg_file:
         experiment_config = yaml.load(cfg_file.read())
-    main(experiment_config)
+    if args.data_type is not None:
+        experiment_config['data_type'] = args.data_type
+    if args.bad_tagging is not None:
+        experiment_config['bad_tagging'] = args.bad_tagging
+    experiment_config['unambiguous'] = True if int(args.unambiguous) == 1 else False
+    experiment_config['output_name'] = args.output_name
+    stamp = os.path.basename(cfg_path).replace('config', '').replace('.yaml', '') + '_' + experiment_config['bad_tagging'] + '_' + experiment_config['data_type']
+    if experiment_config['unambiguous']:
+        stamp += '_un'
+    main(experiment_config, stamp)
