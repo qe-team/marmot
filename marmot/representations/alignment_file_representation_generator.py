@@ -26,9 +26,9 @@ class AlignmentFileRepresentationGenerator(RepresentationGenerator):
 
     def get_alignments(self, align_file, target_lines):
         alignments = []
-        print(target_lines[0])
-        print(align_file)
+        cnt = 0
         for words, line in zip(target_lines, open(align_file)):
+            cnt += 1
             cur_align_dict = defaultdict(list)
             for pair in line.strip('\n').split():
                 pair = pair.split('-')
@@ -69,4 +69,6 @@ class AlignmentFileRepresentationGenerator(RepresentationGenerator):
             unique_alignments.append(seq_alignments)
         data_obj['alignments'] = unique_alignments
 
+        # remove alignments file, we don't need it any more
+        del data_obj['alignments_file']
         return data_obj
