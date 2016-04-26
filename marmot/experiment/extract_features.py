@@ -78,12 +78,11 @@ def main(config):
     train_contexts = create_contexts(train_data, data_type=data_type)
     if test:
         test_contexts = create_contexts(test_data, data_type=data_type)
+        logger.info('Vocabulary comparison -- coverage for test dataset: ')
+        logger.info(compare_vocabulary([train_data['target'], test_data['target']]))
     if dev:
         dev_contexts = create_contexts(dev_data, data_type=data_type)
-    print("TEST CONTEXT", test_contexts[0])
 
-    logger.info('Vocabulary comparison -- coverage for each dataset: ')
-    logger.info(compare_vocabulary([train_data['target'], test_data['target']]))
 
     # END REPRESENTATION GENERATION
 
