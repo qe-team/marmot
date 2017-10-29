@@ -1,0 +1,99 @@
+workers: 1
+tmp_dir: &tmp_dir /export/data/varvara/corpora/wmt17/de_en/phrase_level/features
+
+datasets:
+  training:
+    - module: marmot.representations.segmentation_double_representation_generator.SegmentationDoubleRepresentationGenerator
+      args:
+        - /export/data/varvara/corpora/wmt17/de_en/phrase_level/train.phrases.src
+        - /export/data/varvara/corpora/wmt17/de_en/phrase_level/train.phrases.mt
+        - /export/data/varvara/corpora/wmt17/de_en/phrase_level/train.phrases.tags
+        - /export/data/varvara/corpora/wmt17/de_en/phrase_level/train.align.reordered
+  test:
+    - module: marmot.representations.segmentation_double_representation_generator.SegmentationDoubleRepresentationGenerator
+      args:
+        - /export/data/varvara/corpora/wmt17/de_en/phrase_level/test.2017.phrases.src
+        - /export/data/varvara/corpora/wmt17/de_en/phrase_level/test.2017.phrases.mt
+        - /export/data/varvara/corpora/wmt17/de_en/phrase_level/test.2017.phrases.tags
+        - /export/data/varvara/corpora/wmt17/de_en/phrase_level/test.2017.align.reordered
+  dev:
+    - module: marmot.representations.segmentation_double_representation_generator.SegmentationDoubleRepresentationGenerator
+      args:
+        - /export/data/varvara/corpora/wmt17/de_en/phrase_level/dev.phrases.src
+        - /export/data/varvara/corpora/wmt17/de_en/phrase_level/dev.phrases.mt
+        - /export/data/varvara/corpora/wmt17/de_en/phrase_level/dev.phrases.tags
+        - /export/data/varvara/corpora/wmt17/de_en/phrase_level/dev.align.reordered
+
+representations:
+  - module: marmot.representations.alignment_file_representation_generator.AlignmentFileRepresentationGenerator
+    args:
+      - /export/data/varvara/corpora/wmt17/de_en/lang_resources/giza/lex.0-0.f2n
+  - module: marmot.representations.alignment_double_representation_generator.AlignmentDoubleRepresentationGenerator
+    args:
+      - /export/data/varvara/corpora/wmt17/de_en/lang_resources/giza/lex.0-0.f2n
+      - /export/data/varvara/corpora/wmt17/de_en/lang_resources/align_model/align_model
+      - 
+      - 
+      - *tmp_dir
+  - module: marmot.representations.pos_representation_generator.POSRepresentationGenerator
+    args:
+      - /export/tools/tree-tagger/bin/tree-tagger
+      - /export/data/varvara/corpora/wmt17/en_de/lang_resources/english/english-utf8.par
+      - 'target'
+      - *tmp_dir
+  - module: marmot.representations.pos_representation_generator.POSRepresentationGenerator
+    args:
+      - /export/tools/tree-tagger/bin/tree-tagger
+      - /export/data/varvara/corpora/wmt17/en_de/lang_resources/german/german-utf8.par
+      - 'source'
+      - *tmp_dir
+
+# if 'sequential', contexts are generated as lists of lists (lists of sequences)
+# if 'plain', a single list of contexts is generated
+# if 'token', a separate list of contexts for every token
+data_type: sequential
+# tags_format: 'word' (one per word) or 'phrase' (one per phrase)
+tags_format: phrase
+filters:
+  - min_count: 100
+  - min_label_count: 30
+  - proportion: 2
+
+#multiply_data: duplicate
+#long_test: False
+persist_format: crf++
+bad_tagging: super_pessimistic
+features:
+  binarize: False
+  persist: False
+  persist_dir: *tmp_dir
+
+feature_extractors:
+  - module: marmot.features.phrase.alphanumeric_feature_extractor.AlphaNumericFeatureExtractor
+  - module: marmot.features.phrase.ngram_frequencies_feature_extractor.NgramFrequenciesFeatureExtractor
+    args:
+      - *tmp_dir
+      - /export/data/varvara/corpora/wmt17/de_en/lang_resources/german/ngram_counts.de
+  - module: marmot.features.phrase.lm_feature_extractor.LMFeatureExtractor
+    args:
+      - /export/data/varvara/corpora/wmt17/de_en/lang_resources/english/lm.en
+  - module: marmot.features.phrase.num_translations_feature_extractor.NumTranslationsFeatureExtractor
+    args:
+      - /export/data/varvara/corpora/wmt17/de_en/lang_resources/giza/lex.0-0.f2n
+      - /export/data/varvara/corpora/wmt17/de_en/lang_resources/german/corpus.de
+  - module: marmot.features.phrase.punctuation_feature_extractor.PunctuationFeatureExtractor
+  - module: marmot.features.phrase.source_lm_feature_extractor.SourceLMFeatureExtractor
+    args:
+      - /export/data/varvara/corpora/wmt17/de_en/lang_resources/german/lm.de
+  - module: marmot.features.phrase.token_count_feature_extractor.TokenCountFeatureExtractor
+  - module: marmot.features.phrase.phrase_alignment_feature_extractor.PhraseAlignmentFeatureExtractor
+    args:
+      - /export/data/varvara/corpora/wmt17/de_en/lang_resources/align_model/align_model
+  - module: marmot.features.phrase.pos_feature_extractor.POSFeatureExtractor
+    args:
+      - english
+      - german
+
+learning:
+  classifier:
+     module: sklearn.ensemble.RandomForestClassifier
