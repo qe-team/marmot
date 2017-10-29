@@ -30,7 +30,7 @@ def train_alignments(src_train, tg_train, tmp_dir, align_model='align_model'):
     clean_corp.wait()
     src_tg_clean.close()
 
-    align_model_full = tmp_dir + '/' + align_model
+    align_model_full = os.path.join(tmp_dir, align_model)
     # train the alignment model
     fwd_align = open(align_model_full+'.fwd_align', 'w')
     rev_align = open(align_model_full+'.rev_align', 'w')

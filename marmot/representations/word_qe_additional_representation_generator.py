@@ -1,3 +1,4 @@
+from __future__ import print_function
 import codecs
 import sys
 from marmot.representations.representation_generator import RepresentationGenerator
@@ -29,6 +30,7 @@ class WordQEAdditionalRepresentationGenerator(RepresentationGenerator):
             for add_file, add_name in zip(additional_files, additional_names):
                 data_obj[add_name] = add_file
 
+        print("Alignments file: ", data_obj['alignments_file'])
         return data_obj
 
     def generate(self, data_obj=None):

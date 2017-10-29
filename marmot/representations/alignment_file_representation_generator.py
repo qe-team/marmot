@@ -27,6 +27,9 @@ class AlignmentFileRepresentationGenerator(RepresentationGenerator):
     def get_alignments(self, align_file, target_lines):
         alignments = []
         cnt = 0
+        print(type(target_lines))
+        print(target_lines[:10])
+        print(align_file)
         for words, line in zip(target_lines, open(align_file)):
             cnt += 1
             cur_align_dict = defaultdict(list)
@@ -43,6 +46,8 @@ class AlignmentFileRepresentationGenerator(RepresentationGenerator):
         self.lex_prob = self.get_align_prob(lex_file)
 
     def generate(self, data_obj):
+        print("generate procedure, start")
+        print(data_obj["alignments_file"])
         all_alignments = self.get_alignments(data_obj['alignments_file'], data_obj['target'])
 
         unique_alignments = []

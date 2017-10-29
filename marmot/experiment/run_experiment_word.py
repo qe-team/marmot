@@ -13,6 +13,7 @@ from marmot.evaluation.evaluation_metrics import weighted_fmeasure, sequence_cor
 from marmot.evaluation.evaluation_utils import compare_vocabulary
 from marmot.util.persist_features import persist_features
 from marmot.evaluation.evaluation_utils import write_res_to_file
+from marmot.experiment.preprocessing_utils_old import multiply_data, multiply_data_ngrams, multiply_data_all, multiply_data_base
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 logger = logging.getLogger('experiment_logger')
@@ -38,14 +39,15 @@ def main(config):
     # REPRESENTATION GENERATION
     # main representations (source, target, tags)
     # training
-    train_data_generators = build_objects(config['datasets']['training'])
-    train_data = {}
-    for gen in train_data_generators:
-        data = gen.generate()
-        for key in data:
-            if key not in train_data:
-                train_data[key] = []
-            train_data[key].extend(data[key])
+    train_data_generator = build_object(config['datasets']['training'][0])
+    train_data = train_data_generator.generate()
+#    train_data = {}
+#    for gen in train_data_generators:
+#        data = gen.generate()
+#        for key in data:
+#            if key not in train_data:
+#                train_data[key] = []
+#            train_data[key].extend(data[key])
     # test
     test_data_generator = build_object(config['datasets']['test'][0])
     test_data = test_data_generator.generate()
@@ -55,6 +57,8 @@ def main(config):
     logger.info("Sample sequence: {}".format([w.encode('utf-8') for w in train_data['target'][0]]))
 #    logger.info("Sample sequence: {}".format(train_data['similarity'][0]))
 #    sys.exit()
+    #logger.info("Alignment file: {}".format(train_data['alignments_file']))
+    #logger.info("Alignment file: {}".format(test_data['alignments_file']))
 
     # additional representations
     if 'representations' in config:
@@ -70,8 +74,11 @@ def main(config):
     if 'multiply_data_train' not in config:
         pass
     elif config['multiply_data_train'] == 'ngrams':
+        logger.info("Multiply data: {} and {}".format(config['multiply_data_train'], config['multiply_data_test']))
         train_data = multiply_data_ngrams(train_data, borders=borders)
+        logger.info("Sequences: {}, tag sequences: {}".format(len(train_data['target']), len(train_data['tags'])))
     elif config['multiply_data_train'] == '1ton':
+        logger.info("Multiply data: {} and {}".format(config['multiply_data_train'], config['multiply_data_test']))
         train_data = multiply_data(train_data, borders=borders)
     elif config['multiply_data_train'] == 'duplicate':
         train_data = multiply_data_base(train_data)
@@ -79,6 +86,8 @@ def main(config):
         train_data = multiply_data_all(train_data, borders=borders)
     else:
         print("Unknown 'multiply data train' value: {}".format(config['multiply_data_train']))
+    logger.info("Train data example: {}".format(train_data['target'][:10]))
+    logger.info("Train tags example: {}".format(train_data['tags'][:10]))
     logger.info("Extended train representations: {}".format(len(train_data['target'])))
     #    print(train_data[:2])
     logger.info("Simple test representations: {}".format(len(test_data['target'])))
@@ -95,7 +104,8 @@ def main(config):
     logger.info('here are the keys in your representations: {}'.format(train_data.keys()))
 
     # the data_type is the format corresponding to the model of the data that the user wishes to learn
-    data_type = config['contexts'] if 'contexts' in config else 'plain'
+#    data_type = config['contexts'] if 'contexts' in config else 'plain'
+    data_type = config['data_type'] if 'data_type' in config else 'sequential'
 
     test_contexts = create_contexts(test_data, data_type=data_type)
     test_contexts_seq = create_contexts(test_data, data_type='sequential')
@@ -120,6 +130,8 @@ def main(config):
 
     logger.info('number of training instances: {}'.format(len(train_features)))
     logger.info('number of testing instances: {}'.format(len(test_features)))
+    logger.info('train features sample: {}'.format(train_features[:5]))
+    logger.info('train tags sample: {}'.format(train_tags[:5]))
 
     logger.info('All of your features now exist in their raw representation, but they may not be numbers yet')
     # END FEATURE EXTRACTION
@@ -162,14 +174,15 @@ def main(config):
         experiment_datasets = [{'name': 'test', 'features': test_features, 'tags': test_tags}, {'name': 'train', 'features': train_features, 'tags': train_tags}]
         feature_names = [f for extractor in feature_extractors for f in extractor.get_feature_names()]
 
-        if config['features']['persist_dir']:
-            persist_dir = config['features']['persist_dir']
+        if config['persist_dir']:
+            persist_dir = config['persist_dir']
         else:
             persist_dir = os.path.getcwd()
         logger.info('persisting your features to: {}'.format(persist_dir))
         # for each dataset, write a file and persist the features
         for dataset_obj in experiment_datasets:
             persist_features(dataset_obj['name'], dataset_obj['features'], persist_dir, feature_names=feature_names, tags=dataset_obj['tags'], file_format=persist_format)
+    sys.exit()
 
     # BEGIN LEARNING
 

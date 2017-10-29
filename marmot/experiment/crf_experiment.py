@@ -5,13 +5,17 @@ import yaml
 import logging
 import copy
 import sys
+import os
+import time
+from subprocess import call
 
-from marmot.experiment.import_utils import *
-from marmot.experiment.preprocessing_utils import *
+from marmot.experiment.import_utils import call_for_each_element, build_object, build_objects, mk_tmp_dir
+from marmot.experiment.preprocessing_utils import create_contexts, flatten, contexts_to_features, tags_from_contexts, fit_binarizers, binarize
 from marmot.experiment.learning_utils import map_classifiers, predict_all
 from marmot.evaluation.evaluation_metrics import weighted_fmeasure, sequence_correlation, sequence_correlation_weighted
 from marmot.evaluation.evaluation_utils import compare_vocabulary
 from marmot.util.persist_features import persist_features
+from marmot.util.generate_crf_template import generate_crf_template
 from marmot.evaluation.evaluation_utils import write_res_to_file
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
@@ -45,6 +49,9 @@ def get_crfpp_output(out_file):
 
 def main(config):
     workers = config['workers']
+    tmp_dir = config['tmp_dir'] if 'tmp_dir' in config else None
+    tmp_dir = mk_tmp_dir(tmp_dir)
+    time_stamp = str(time.time())
 
     # REPRESENTATION GENERATION
     # main representations (source, target, tags)
@@ -76,31 +83,31 @@ def main(config):
         train_data = r.generate(train_data)
         test_data = r.generate(test_data)
 
-    borders = config['borders'] if 'borders' in config else False
+#    borders = config['borders'] if 'borders' in config else False
 
-    if 'multiply_data_train' not in config:
-        pass
-    elif config['multiply_data_train'] == 'ngrams':
-        train_data = multiply_data_ngrams(train_data, borders=borders)
-    elif config['multiply_data_train'] == '1ton':
-        train_data = multiply_data(train_data, borders=borders)
-    elif config['multiply_data_train'] == 'duplicate':
-        train_data = multiply_data_base(train_data)
-    elif config['multiply_data_train'] == 'all':
-        train_data = multiply_data_all(train_data, borders=borders)
-    else:
-        print("Unknown 'multiply data train' value: {}".format(config['multiply_data_train']))
-    logger.info("Extended train representations: {}".format(len(train_data['target'])))
-    logger.info("Simple test representations: {}".format(len(test_data['target'])))
-    if 'multiply_data_test' not in config:
-        pass
-    elif config['multiply_data_test'] == 'ngrams':
-        test_data = multiply_data_ngrams(test_data, borders=borders)
-    elif config['multiply_data_test'] == '1ton':
-        test_data = multiply_data(test_data, borders=borders)
-    else:
-        print("Unknown 'multiply data test' value: {}".format(config['multiply_data_test']))
-    logger.info("Extended test representations: {}".format(len(test_data['target'])))
+#    if 'multiply_data_train' not in config:
+#        pass
+#    elif config['multiply_data_train'] == 'ngrams':
+#        train_data = multiply_data_ngrams(train_data, borders=borders)
+#    elif config['multiply_data_train'] == '1ton':
+#        train_data = multiply_data(train_data, borders=borders)
+#    elif config['multiply_data_train'] == 'duplicate':
+#        train_data = multiply_data_base(train_data)
+#    elif config['multiply_data_train'] == 'all':
+#        train_data = multiply_data_all(train_data, borders=borders)
+#    else:
+#        print("Unknown 'multiply data train' value: {}".format(config['multiply_data_train']))
+#    logger.info("Extended train representations: {}".format(len(train_data['target'])))
+#    logger.info("Simple test representations: {}".format(len(test_data['target'])))
+#    if 'multiply_data_test' not in config:
+#        pass
+#    elif config['multiply_data_test'] == 'ngrams':
+#        test_data = multiply_data_ngrams(test_data, borders=borders)
+#    elif config['multiply_data_test'] == '1ton':
+#        test_data = multiply_data(test_data, borders=borders)
+#    else:
+#        print("Unknown 'multiply data test' value: {}".format(config['multiply_data_test']))
+#    logger.info("Extended test representations: {}".format(len(test_data['target'])))
     
     logger.info('here are the keys in your representations: {}'.format(train_data.keys()))
 
@@ -209,11 +216,11 @@ def main(config):
         # generate a template for CRF++ feature extractor
         generate_crf_template(feature_num, 'template', tmp_dir)
         # train a CRF++ model
-        call(['crf_learn', os.path.join(tmp_dir, 'template'), train_file, os.path.join(tmp_dir, 'crfpp_model_file'+time_stamp)])
+        call(['crf_learn', '-a', 'MIRA', os.path.join(tmp_dir, 'template'), train_file, os.path.join(tmp_dir, 'crfpp_model_file'+time_stamp)])
         # tag a test set
         call(['crf_test', '-m', os.path.join(tmp_dir, 'crfpp_model_file'+time_stamp), '-o', test_file+'.tagged', test_file])
     elif config['persist_format'] == 'crf_suite':
-        crfsuite_algorithm = config['crfsuite_algorithm'] if 'crfsuite_algorithm' in config else 'arow'
+        crfsuite_algorithm = config['crfsuite_algorithm']
         call(['crfsuite', 'learn', '-a', crfsuite_algorithm, '-m', os.path.join(tmp_dir, 'crfsuite_model_file'+time_stamp), train_file])
         test_out = open(test_file+'.tagged', 'w')
         call(['crfsuite', 'tag', '-tr', '-m', os.path.join(tmp_dir, 'crfsuite_model_file'+time_stamp), test_file], stdout=test_out)
@@ -221,18 +228,34 @@ def main(config):
     else:
         print("Unknown persist format: {}".format(config['persist_format']))
 
+    # parse CRFSuite output
+    flattened_ref, flattened_hyp = [], []
+    tag_map = {'OK': 1, 'BAD': 0}
+    for line in open(test_file+'.tagged'):
+        if line == "\n":
+            continue
+        chunks = line.strip('\n').split('\t')
+        if len(chunks) != 2:
+            continue
+        try:
+            flattened_ref.append(tag_map[chunks[-2]])
+            flattened_hyp.append(tag_map[chunks[-1]])
+        except KeyError:
+            continue
+
     print("Ref, hyp: ", len(flattened_ref), len(flattened_hyp))
     logger.info('Structured prediction f1: ')
     print(f1_score(flattened_ref, flattened_hyp, average=None))
     print(f1_score(flattened_ref, flattened_hyp, average='weighted', pos_label=None))
     logger.info("Sequence correlation: ")
-    print(sequence_correlation_weighted(y_test, structured_hyp, verbose=True)[1])
+#    print(sequence_correlation_weighted(y_test, structured_hyp, verbose=True)[1])
 
 
 if __name__ == '__main__':
 
     parser = ArgumentParser()
     parser.add_argument("configuration_file", action="store", help="path to the config file (in YAML format).")
+    parser.add_argument("-a", help="crfsuite algorithm")
     args = parser.parse_args()
     experiment_config = {}
 
@@ -241,4 +264,5 @@ if __name__ == '__main__':
     # read configuration file
     with open(cfg_path, "r") as cfg_file:
         experiment_config = yaml.load(cfg_file.read())
+    experiment_config['crfsuite_algorithm'] = args.a
     main(experiment_config)

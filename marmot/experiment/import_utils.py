@@ -2,12 +2,18 @@ from __future__ import print_function
 # we need numpy to check the type of objects in list_of_lists
 import numpy
 import os
+import sys
 import errno
 
+
 def import_class(module_name):
+    #sys.stderr.write("Importing class %s\n" % module_name)
     mod_name, class_name = module_name.rsplit('.', 1)
+    #sys.stderr.write("Got module name\n")
     mod = __import__(mod_name, fromlist=[class_name])
+    #sys.stderr.write("Imported module\n")
     klass = getattr(mod, class_name)
+    #sys.stderr.write("Imported class\n")
     return klass
 
 
@@ -63,9 +69,11 @@ def function_tree(func, args):
 
 # load and build object - universal
 def build_object(obj_info, root_element='module'):
-    print("Building extractor: ", obj_info[root_element])
+    #sys.stderr.write("Building extractor: %s\n" % obj_info[root_element])
     klass = import_class(obj_info[root_element])
+    #sys.stderr.write("Class imported\n")
     input_args = obj_info['args'] if 'args' in obj_info else []
+    #sys.stderr.write("Arguments extracted\n")
 
     # map args to function outputs where requested
     for idx, arg in enumerate(input_args):
@@ -75,6 +83,19 @@ def build_object(obj_info, root_element='module'):
 
     # init the object
     obj = klass(*input_args)
+    #sys.stderr.write('Object instance created\n')
+    return obj
+
+
+# load and build object - universal
+def build_object_light(class_name, input_args):
+    #sys.stderr.write("Building object: %s\n" % class_name)
+    klass = import_class(class_name)
+    #sys.stderr.write("Class imported\n")
+
+    # init the object
+    obj = klass(*input_args)
+    #sys.stderr.write('Object instance created\n')
     return obj
 
 

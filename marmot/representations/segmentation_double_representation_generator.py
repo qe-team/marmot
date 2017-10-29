@@ -18,7 +18,7 @@ class SegmentationDoubleRepresentationGenerator(RepresentationGenerator):
             cur_pos += len(seg_split)
         return cur_words, cur_seg
 
-    def parse_files(self, source_file, target_file, tags_file, phrase_align_file, word_align_file):
+    def parse_files(self, source_file, target_file, tags_file, word_align_file):
         # extract source segments
         with codecs.open(source_file, encoding='utf8') as source:
             source_words, source_segments = [], []
@@ -26,16 +26,6 @@ class SegmentationDoubleRepresentationGenerator(RepresentationGenerator):
                 cur_words, cur_seg = self.get_segments_from_line(line)
                 source_words.append(cur_words)
                 source_segments.append(cur_seg)
-
-        # reorder source segments
-        with codecs.open(phrase_align_file, encoding='utf8') as align:
-            source_segments_order = []
-            for idx, line in enumerate(align):
-                cur_seg = []
-                seg_num = [int(s) for s in line.strip('\n').split()]
-                for s in seg_num:
-                    cur_seg.append(source_segments[idx][s])
-                source_segments_order.append(cur_seg)
 
         # extract target segments
         with codecs.open(target_file, encoding='utf8') as target:
@@ -50,8 +40,8 @@ class SegmentationDoubleRepresentationGenerator(RepresentationGenerator):
 
         return {'segmentation': target_segments, 'source_segmentation': source_segments, 'source': source_words, 'target': target_words, 'alignments_file': word_align_file, 'tags': phrase_tags}
 
-    def __init__(self, source_file, target_file, tags_file, phrase_align_file, word_align_file):
-        self.data = self.parse_files(source_file, target_file, tags_file, phrase_align_file, word_align_file)
+    def __init__(self, source_file, target_file, tags_file, word_align_file):
+        self.data = self.parse_files(source_file, target_file, tags_file, word_align_file)
 
     def generate(self, data_obj=None):
         return self.data

@@ -43,7 +43,7 @@ def val_to_str(f_val):
 #    needed to be able to restore word-level tags from phrase-level
 #    if specified - should be saved to a separate file in CRF++ format
 #    TODO: check if matches the number of phrases
-def persist_features(dataset_name, features, persist_dir, tags=None, feature_names=None, phrase_lengths=None, file_format='crf++'):
+def persist_features(dataset_name, features, persist_dir, tags=None, feature_names=None, phrase_lengths=None, file_format='crf_suite'):
     '''
     persist the features to persist_dir -- use dataset_name as the prefix for the persisted files
     :param dataset_name: prefix of the output file
@@ -67,14 +67,6 @@ def persist_features(dataset_name, features, persist_dir, tags=None, feature_nam
         return
     # for the 'plain' datatype
     if type(features) == np.ndarray and features.shape[1] == len(feature_names):
-#        if file_format == 'svm_light':
-#            output_path = os.path.join(persist_dir, dataset_name + '.svm')
-#            output = open(output_path, 'w')
-#            tags_map = {'OK': '+1', 'BAD': '-1'}
-#            for a_tag, feat_seq, feat_name_seq in zip(tags, features, feature_names):
-#                feat_list = [f_name + ':' + f_val for f_name, f_val in zip(feat_name_seq, feat_seq)]
-#                output.write("%s %s\n" % (tags_map[a_tag], ' '.join(feat_list)))
-#        else:
         output_df = pd.DataFrame(data=features, columns=feature_names)
         output_path = os.path.join(persist_dir, dataset_name + '.csv')
         output_df.to_csv(output_path, index=False)
@@ -95,13 +87,8 @@ def persist_features(dataset_name, features, persist_dir, tags=None, feature_nam
                             feat_list.append(str(f_name) + ':' + val_to_str(f_val))
                     except ValueError:
                         feat_list.append(str(f_name) + ':' + val_to_str(f_val))
-#                feat_list = [str(f_name) + ':' + val_to_str(f_val) for f_name, f_val in zip(feature_names, feat_seq)]
                 output.write("%s %s\n" % (tags_map[a_tag], ' '.join(feat_list)))
             return
-#        if file_format == 'svm_light':
-#            print("SVMLight format cannot encode sequences (change the parameter 'contexts' in config from 'sequential' into 'plain')")
-#            print("Example of features:", features[0])
-#            return
         output_path = os.path.join(persist_dir, dataset_name + '.crf')
         output = open(output_path, 'w')
         if tags is not None:
@@ -109,7 +96,6 @@ def persist_features(dataset_name, features, persist_dir, tags=None, feature_nam
             for s_idx, (seq, tag_seq) in enumerate(zip(features, tags)):
                 assert(len(seq) == len(tag_seq)), "Lengths of tag and feature sequences don't match in sequence {}: {} and {} ({} and {})".format(s_idx, len(seq), len(tag_seq), seq, tag_seq)
                 for w_idx, (feature_list, tag) in enumerate(zip(seq, tag_seq)):
-#                    assert(len(feature_list) == len(feature_names)), "Wrong number of features in sequence %d, word %d: %d features, %d names" % (s_idx, w_idx, len(feature_list), len(feature_names))
                     if len(feature_list) != len(feature_names):
                         print(feature_list)
                         print(feature_names)
@@ -129,10 +115,10 @@ def persist_features(dataset_name, features, persist_dir, tags=None, feature_nam
                     elif file_format == 'crf_suite':
                         feature_str_all = []
                         for i in range(len(feature_str)):
-                            if isinstance(feature_str[i], (int, float, np.float32, np.float64, np.int32, np.int64)):
-                                feature_str_all.append(feature_names[i] + '=1:' + str(feature_str[i]))
-                            else:
-                                feature_str_all.append(feature_names[i] + '=' + str(feature_str[i]))
+#                            if isinstance(feature_str[i], (int, float, np.float32, np.float64, np.int32, np.int64)):
+#                                feature_str_all.append(feature_names[i] + '=1:' + str(feature_str[i]))
+#                            else:
+                            feature_str_all.append(feature_names[i] + '=' + str(feature_str[i]))
 #                        feature_str = [feature_names[i] + '=' + feature_str[i] for i in range(len(feature_str))]
                         feature_str = '\t'.join(feature_str_all)
                         output.write("%s\t%s\n" % (tag, feature_str))
@@ -158,10 +144,10 @@ def persist_features(dataset_name, features, persist_dir, tags=None, feature_nam
 #                        feature_str = [feature_names[i] + '=' + feature_str[i] for i in range(len(feature_str))]
                         feature_str_all = []
                         for i in range(len(feature_str)):
-                            if isinstance(feature_str[i], (int, float, np.float32, np.float64, np.int32, np.int64)):
-                                feature_str_all.append(feature_names[i] + '=1:' + str(feature_str[i]))
-                            else:
-                                feature_str_all.append(feature_names[i] + '=' + str(feature_str[i]))
+#                            if isinstance(feature_str[i], (int, float, np.float32, np.float64, np.int32, np.int64)):
+#                                feature_str_all.append(feature_names[i] + '=1:' + str(feature_str[i]))
+#                            else:
+                            feature_str_all.append(feature_names[i] + '=' + str(feature_str[i]))
                         feature_str = '\t'.join(feature_str_all)
                     else:
                         print("Unknown data format:", file_format)
@@ -183,3 +169,4 @@ def persist_features(dataset_name, features, persist_dir, tags=None, feature_nam
         if file_format == 'crf++':
             feature_num = len(features[0][0])
             generate_crf_template(feature_num, tmp_dir=persist_dir)
+    return output_path

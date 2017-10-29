@@ -1,0 +1,86 @@
+workers: 1
+tmp_dir: &tmp /export/data/varvara/marmot/marmot/experiment/tmp1511
+
+datasets:
+  train:
+    - module: marmot.representations.word_qe_representation_generator.WordQERepresentationGenerator
+      args:
+        - /export/data/varvara/corpora/wmt16/en-de-good/word_level/train/train.src
+        - /export/data/varvara/corpora/wmt16/en-de-good/word_level/train/train.mt
+        - /export/data/varvara/corpora/wmt16/en-de-good/word_level/train/train.tags
+  test:
+    - module: marmot.representations.word_qe_representation_generator.WordQERepresentationGenerator
+      args:
+        - /export/data/varvara/corpora/wmt16/en-de-good/word_level/test/test.src
+        - /export/data/varvara/corpora/wmt16/en-de-good/word_level/test/test.mt
+        - /export/data/varvara/corpora/wmt16/en-de-good/word_level/test/test.tags
+
+representations:
+    # requires alignment model trained with FastAlign
+    # if model is provided, the parallel corpus (arguments 3 and 4) is not needed
+  - module: marmot.representations.alignment_representation_generator.AlignmentRepresentationGenerator
+    args:
+      - /export/data/varvara/corpora/wmt16/en-de-good/resources/lex.1.f2e                               # lex file
+      - /export/data/varvara/marmot/marmot/experiment/tmp0111/align_model                               # align model prefix
+      - /export/data/varvara/thesis_experiments/mt_systems/en_de_wmt16/corpus/kit.truecased.1.en        # src text for alignment model training
+      - /export/data/varvara/thesis_experiments/mt_systems/en_de_wmt16/corpus/kit.truecased.1.de        # tg text
+      - *tmp
+    # requires: 
+    #  - TreeTagger binary, 
+    #  - parameter file for TreeTagger
+    #  - data marker ('source' or 'target')
+    #  - tmp dir
+  - module: marmot.representations.pos_representation_generator.POSRepresentationGenerator
+    args:
+      - /export/data/varvara/marmot/marmot/experiment/resources/tree-tagger
+      - /export/data/varvara/corpora/wmt16/en-de-good/resources/german-utf8.par
+      - 'target'
+      - *tmp
+  - module: marmot.representations.pos_representation_generator.POSRepresentationGenerator
+    args:
+      - /export/data/varvara/marmot/marmot/experiment/resources/tree-tagger
+      - /export/data/varvara/corpora/wmt16/en-de-good/resources/english-utf8.par
+      - 'source'
+      - *tmp
+
+data_type: sequential
+
+features:
+  binarize: False
+  persist: True
+  persist_dir: *tmp
+  persist_format: crf++
+
+feature_extractors:
+  - module: marmot.features.token_count_feature_extractor.TokenCountFeatureExtractor
+  - module: marmot.features.target_token_feature_extractor.TargetTokenFeatureExtractor
+    # neither alignment model nor parallel corpus are required if AlignmentRepresentationGenerator was defined above
+  - module: marmot.features.alignment_feature_extractor.AlignmentFeatureExtractor
+    args:
+      - ''     # alignment model
+      - ''     # parallel corpus - source
+      - ''     # parallel corpus - target
+  - module: marmot.features.dictionary_feature_extractor.DictionaryFeatureExtractor
+    args:
+      - 'german'              # target language for stopwords extraction
+    # requires ngram count file (generated with SRILM)
+  - module: marmot.features.lm_feature_extractor.LMFeatureExtractor
+    args:
+      - /export/data/varvara/corpora/wmt16/en-de-good/resources/ngram_count.de
+      -                           # file for LM
+      -                           # srilm
+      -                           # tmp_dir
+      - 5                         # LM order
+    # same as LMFeatureExtractor
+  - module: marmot.features.source_lm_feature_extractor.SourceLMFeatureExtractor
+    args:
+      - /export/data/varvara/corpora/wmt16/en-de-good/resources/ngram_count.en
+      - 
+      - 
+      - 
+      - 5                                            # LM order
+  - module: marmot.features.pos_feature_extractor.POSFeatureExtractor
+    args:
+      - /export/data/varvara/marmot/marmot/experiment/resources/tree-tagger
+      - /export/data/varvara/corpora/wmt16/en-de-good/resources/english-utf8.par
+      - /export/data/varvara/corpora/wmt16/en-de-good/resources/german-utf8.par        

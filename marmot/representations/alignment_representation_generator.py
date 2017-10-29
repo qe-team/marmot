@@ -1,4 +1,6 @@
 from __future__ import print_function
+import os
+import time
 import numpy as np
 from collections import defaultdict
 
@@ -13,9 +15,11 @@ class AlignmentRepresentationGenerator(RepresentationGenerator):
     def __init__(self, lex_file, align_model=None, src_file=None, tg_file=None, tmp_dir=None):
 
         tmp_dir = mk_tmp_dir(tmp_dir)
+        self.tmp = tmp_dir
 
         if align_model is None:
             if src_file is not None and tg_file is not None:
+                align_model = 'align_model'
                 self.align_model = train_alignments(src_file, tg_file, tmp_dir, align_model=align_model)
             else:
                 print("Alignment model not defined, no files for training")
@@ -26,16 +30,19 @@ class AlignmentRepresentationGenerator(RepresentationGenerator):
 
     # src, tg - lists of lists
     # each inner list is a sentence
-    def get_alignments(self, src, tg, align_model):
+    def get_alignments(self, src, tg, out, align_model):
+        out_file = open(out, 'w')
         alignments = [[[] for j in range(len(tg[i]))] for i in range(len(tg))]
         aligner = Aligner(align_model+'.fwd_params', align_model+'.fwd_err', align_model+'.rev_params', align_model+'.rev_err')
         for idx, (src_list, tg_list) in enumerate(zip(src, tg)):
             align_string = aligner.align(' '.join(src_list) + ' ||| ' + ' '.join(tg_list))
+            out_file.write('%s\n' % align_string)
             pairs = align_string.split()
             for p_str in pairs:
                 p = p_str.split('-')
                 alignments[idx][int(p[1])].append(int(p[0]))
-        aligner.close() 
+        aligner.close()
+        out_file.close()
         return alignments
 
     # parse lex.f2e file
@@ -57,7 +64,8 @@ class AlignmentRepresentationGenerator(RepresentationGenerator):
             print("No target or source")
         assert(len(data_obj['target']) == len(data_obj['source']))
 
-        all_alignments = self.get_alignments(data_obj['source'], data_obj['target'], self.align_model)
+        output = os.path.join(self.tmp, 'data' + str(time.time()) + '.align')
+        all_alignments = self.get_alignments(data_obj['source'], data_obj['target'], output, self.align_model)
 #        print("All alignments: ", all_alignments)
         unique_alignments = []
         for seq_idx, al_sequence in enumerate(all_alignments):

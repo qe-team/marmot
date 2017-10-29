@@ -124,7 +124,7 @@ def main(config):
                          persist_dir,
                          feature_names=feature_names,
                          phrase_lengths=dataset_obj['phrase_lengths'],
-                         tags=None,
+                         tags=dataset_obj['tags'],
                          file_format=persist_format)
     # generate a template for CRF++ feature extractor
     feature_num = len(feature_names)

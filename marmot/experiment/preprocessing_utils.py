@@ -50,6 +50,9 @@ def create_context(repr_dict, sentence_id=None):
 
     active_keys = repr_dict.keys()
     active_keys.remove('tags')
+    #if 'alignments_file':
+#        print("OGOGO!!! ALIGNMENTS REMOVED")
+    #    active_keys.remove('alignments_file')
     for idx, word in enumerate(repr_dict['target']):
         c = {}
         c['token'] = word
@@ -65,6 +68,7 @@ def create_context(repr_dict, sentence_id=None):
             print("Unknown type of tags representation:", type(repr_dict['tags']))
             return []
         for k in active_keys:
+            #print("Current key: ", k)
             c[k] = repr_dict[k]
         context_list.append(c)
     return context_list

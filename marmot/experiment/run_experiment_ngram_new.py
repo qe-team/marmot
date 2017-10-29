@@ -152,7 +152,7 @@ def main(config, stamp):
 #        except:
 #            print("No correspondence in line {}, tag {}: \n{}\n{}".format(seg_idx, tag_idx, ' '.join(test_data['tags'][seg_idx]), d))
 #            sys.exit()
-    #assert(sum(test_context_correspondence) == len(flatten(test_data['tags']))), "Sums don't match for phrase contexts and test data object: {} and {}".format(sum(test_context_correspondence), len(flatten(test_data['tags'])))
+    assert(sum(test_context_correspondence) == len(flatten(test_data['tags']))), "Sums don't match for phrase contexts and test data object: {} and {}".format(sum(test_context_correspondence), len(flatten(test_data['tags'])))
                     
 #    flat_cont = flatten(test_contexts)
 #    flat_tags = flatten(test_data['tags'])
@@ -214,7 +214,6 @@ def main(config, stamp):
             test_out.close()
         else:
             print("Unknown persist format: {}".format(config['persist_format']))
-        sys.exit()
 
         sequential_true = [[]]
         sequential_predictions = [[]]
