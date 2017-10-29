@@ -1,4 +1,5 @@
 from __future__ import division
+import sys
 from marmot.features.feature_extractor import FeatureExtractor
 
 
@@ -13,6 +14,7 @@ class AlphaNumericFeatureExtractor(FeatureExtractor):
     '''
 
     def get_features(self, context_obj):
+        #sys.stderr.write("Start AlphaNumericFeatureExtractor\n")
         tg_numbers = 0
         tg_alphanumeric = 0
         for word in context_obj['token']:
@@ -43,12 +45,14 @@ class AlphaNumericFeatureExtractor(FeatureExtractor):
             src_num_percent = src_numbers/src_len
             src_alnum_percent = src_alphanumeric/src_len
  
-        return [src_num_percent,
-                tg_numbers/tg_len,
-                src_tg_num_diff,
-                src_alnum_percent,
-                tg_alphanumeric/tg_len,
-                src_tg_alnum_diff]
+        all_out = [str(src_num_percent),
+                str(tg_numbers/tg_len),
+                str(src_tg_num_diff),
+                str(src_alnum_percent),
+                str(tg_alphanumeric/tg_len),
+                str(src_tg_alnum_diff)]
+        #sys.stderr.write("Finish AlphaNumericFeatureExtractor\n")
+        return all_out
 
     def get_feature_names(self):
         return ['percentage_src_numbers',

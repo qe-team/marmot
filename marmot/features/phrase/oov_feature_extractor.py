@@ -1,3 +1,4 @@
+import sys
 from marmot.features.feature_extractor import FeatureExtractor
 from gensim.corpora import TextCorpus
 
@@ -15,15 +16,19 @@ class OOVFeatureExtractor(FeatureExtractor):
         self.words = corpus.dictionary.values()
 
     def get_features(self, context_obj):
+        #sys.stderr.write("Start OOVFeatureExtractor\n")
         # no source -- no OOVs
         if 'source_token' not in context_obj or len(context_obj['source_token']) == 0:
-            return [0]
+            #sys.stderr.write("Finish OOVFeatureExtractor\n")
+            return ['0']
 
         for word in context_obj['source_token']:
             if word not in self.words:
-                return [1]
+                #sys.stderr.write("Finish OOVFeatureExtractor\n")
+                return ['1']
 
-        return [0]
+        #sys.stderr.write("Finish OOVFeatureExtractor\n")
+        return ['0']
 
     def get_feature_names(self):
         return ['OOV_words']

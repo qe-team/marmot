@@ -7,7 +7,7 @@ from marmot.util.ngram_window_extractor import left_context, right_context
 from marmot.experiment.import_utils import mk_tmp_dir
 
 
-class LMFeatureExtractor(FeatureExtractor):
+class ContextLMFeatureExtractor(FeatureExtractor):
     '''
     '''
 
@@ -96,7 +96,7 @@ class LMFeatureExtractor(FeatureExtractor):
         backoff_left = self.get_backoff(left_trigram)
         backoff_right = self.get_backoff(right_trigram)
 
-        return [left_ngram_order, right_ngram_order, backoff_left, backoff_right]
+        return [str(left_ngram_order), str(right_ngram_order), str(backoff_left), str(backoff_right)]
 
     def get_feature_names(self):
         return ['highest_order_ngram_left', 'highest_order_ngram_right', 'backoff_behavior_left', 'backoff_behavior_right']

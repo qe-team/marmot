@@ -1,5 +1,6 @@
 from __future__ import division
 
+import sys
 import numpy as np
 from collections import defaultdict
 from nltk import FreqDist
@@ -21,8 +22,9 @@ class NumTranslationsFeatureExtractor(FeatureExtractor):
         self.thresholds = [0.01, 0.05, 0.1, 0.2, 0.5]
 
     def get_features(self, context_obj):
+        #sys.stderr.write("Start NumTranslationsFeatureExtractor\n")
         if 'source_token' not in context_obj or len(context_obj['source_token']) == 0:
-            return [0.0 for i in range(len(self.thresholds)*2)]
+            return ['0.0' for i in range(len(self.thresholds)*2)]
 
         translations, translations_weighted = [], []
         for thr in self.thresholds:
@@ -33,7 +35,8 @@ class NumTranslationsFeatureExtractor(FeatureExtractor):
                 all_words_weighted.append(len(trans)*self.corpus_freq.freq(word))
             translations.append(np.average(all_words))
             translations_weighted.append(np.average(all_words_weighted))
-        return translations + translations_weighted
+        #sys.stderr.write("Finish NumTranslationsFeatureExtractor\n")
+        return [str(t) for t in translations] + [str(t) for t in translations_weighted]
 
     def get_feature_names(self):
         return ['source_translations_001_freq',

@@ -1,5 +1,6 @@
 from __future__ import division
 from marmot.features.feature_extractor import FeatureExtractor
+import sys
 import logging
 import numpy as np
 
@@ -10,6 +11,8 @@ logger = logging.getLogger('testlogger')
 class TokenCountFeatureExtractor(FeatureExtractor):
 
     def get_features(self, context_obj):
+        #sys.stderr.write("Start TokenCountFeatureExtractor\n")
+
         target_len = len(context_obj['token'])
         target_tok_len = np.average([len(word) for word in context_obj['token']])
         source_len, source_tok_len = 0, 0
@@ -23,13 +26,14 @@ class TokenCountFeatureExtractor(FeatureExtractor):
         avg_occur = np.average(target_occur)
 
         tg_src_ratio = target_len/source_len if source_len > 0 else 0
-        return [target_len,
-                source_len,
-                source_len/target_len,
-                tg_src_ratio,
-                target_tok_len,
-                source_tok_len,
-                avg_occur]
+        #sys.stderr.write("Finish TokenCountFeatureExtractor\n")
+        return [str(target_len),
+                str(source_len),
+                str(source_len/target_len),
+                str(tg_src_ratio),
+                str(target_tok_len),
+                str(source_tok_len),
+                str(avg_occur)]
 
     def get_feature_names(self):
         return ['target_phrase_len',

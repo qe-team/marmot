@@ -105,18 +105,18 @@ class POSFeatureExtractor(FeatureExtractor):
         ratio_nouns = nouns_src_percent/nouns_tg_percent if nouns_tg_percent > 0 else (1 if nouns_src_percent == 0 else 0)
         ratio_pronouns = pronouns_src_percent/pronouns_tg_percent if pronouns_tg_percent > 0 else (1 if pronouns_src_percent == 0 else 0)
 
-        return [content_src_percent,
-                content_tg_percent,
-                verbs_src_percent,
-                verbs_tg_percent,
-                nouns_src_percent,
-                nouns_tg_percent,
-                pronouns_src_percent,
-                pronouns_tg_percent,
-                ratio_content,
-                ratio_verbs,
-                ratio_nouns,
-                ratio_pronouns]
+        return [str(content_src_percent),
+                str(content_tg_percent),
+                str(verbs_src_percent),
+                str(verbs_tg_percent),
+                str(nouns_src_percent),
+                str(nouns_tg_percent),
+                str(pronouns_src_percent),
+                str(pronouns_tg_percent),
+                str(ratio_content),
+                str(ratio_verbs),
+                str(ratio_nouns),
+                str(ratio_pronouns)]
 
     def get_feature_names(self):
         return ['percentage_content_words_src',

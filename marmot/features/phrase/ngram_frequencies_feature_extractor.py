@@ -64,8 +64,9 @@ class NgramFrequenciesFeatureExtractor(FeatureExtractor):
         return quart_frequencies
 
     def get_features(self, context_obj):
+        #sys.stderr.write("Start NgramFrequenciesFeatureExtractor\n")
         if len(context_obj['source_token']) == 0:
-            return [0 for i in range(15)]
+            return ['0' for i in range(15)]
 
         source_token = context_obj['source_token']
         unigram_quart = self.get_quartiles_frequency(1, source_token)
@@ -78,7 +79,8 @@ class NgramFrequenciesFeatureExtractor(FeatureExtractor):
         percent_bigram = sum([1 for word in bigram_list if word in self.ngrams[2]])/len(source_token)
         percent_trigram = sum([1 for word in trigram_list if word in self.ngrams[3]])/len(source_token)
 
-        return unigram_quart + bigram_quart + trigram_quart + [percent_unigram, percent_bigram, percent_trigram]
+        #sys.stderr.write("Finish NgramFrequenciesFeatureExtractor\n")
+        return [str(n) for n in unigram_quart] + [str(n) for n in bigram_quart] + [str(n) for n in trigram_quart] + [str(percent_unigram), str(percent_bigram), str(percent_trigram)]
 
     def get_feature_names(self):
         return ['avg_unigram_quart_1',

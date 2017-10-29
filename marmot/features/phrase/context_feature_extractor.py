@@ -1,3 +1,4 @@
+import sys
 from marmot.features.feature_extractor import FeatureExtractor
 from marmot.util.ngram_window_extractor import left_context, right_context
 
@@ -5,8 +6,14 @@ from marmot.util.ngram_window_extractor import left_context, right_context
 class ContextFeatureExtractor(FeatureExtractor):
 
     def get_features(self, context_obj):
-        if 'source_token' in context_obj:
-            left_src = left_context(context_obj['source'], context_obj['source_token'][0], context_size=1, idx=context_obj['source_index'][0])
+        if 'source_token' in context_obj and len(context_obj['source_token']) > 0 and len(context_obj['source_index']) > 1:
+            try:
+                left_src = left_context(context_obj['source'], context_obj['source_token'][0], context_size=1, idx=context_obj['source_index'][0])
+            except IndexError:
+                print(context_obj['source'])
+                print(context_obj['source_token'])
+                print(context_obj['source_index'])
+                sys.exit()
             right_src = right_context(context_obj['source'], context_obj['source_token'][-1], context_size=1, idx=context_obj['source_index'][1]-1)
         else:
             left_src = ""

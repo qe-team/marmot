@@ -1,5 +1,6 @@
 from __future__ import division
 
+import sys
 from marmot.features.feature_extractor import FeatureExtractor
 
 
@@ -9,6 +10,7 @@ class PunctuationFeatureExtractor(FeatureExtractor):
         self.punctuation = ['.', ',', ':', ';', '?', '!']
 
     def get_features(self, context_obj):
+        #sys.stderr.write("Start PunctuationFeatureExtractor\n")
         punct_source, punct_target = [], []
         for punct in self.punctuation:
             tmp_source, tmp_target = 0, 0
@@ -30,7 +32,8 @@ class PunctuationFeatureExtractor(FeatureExtractor):
             other_features.append(0)
         other_features.append(sum(punct_target)/len(context_obj['token']))
         other_features.append((sum(punct_source) - sum(punct_target))/target_len)
-        return punct_diff + punct_diff_norm + other_features
+        #sys.stderr.write("Finish PunctuationFeatureExtractor\n")
+        return [str(p) for p in punct_diff] + [str(p) for p in punct_diff_norm] + [str(p) for p in other_features]
 
     def get_feature_names(self):
         return ['diff_periods',
