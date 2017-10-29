@@ -71,16 +71,34 @@ def main(config):
     logger.info('here are the keys in your representations: {}'.format(train_data.keys()))
 
     # the data_type is the format corresponding to the model of the data that the user wishes to learn
-    data_type = config['contexts']
+    data_type = config['data_type']
     print("DATA TYPE:", data_type)
 #    sys.exit()
+    print("Train data: ", len(train_data['target']))
+    if dev:
+        print("Dev data: ", len(dev_data['target']))
+    if test:
+        print("Test data: ", len(test_data['target']))
+    print("In different representations: ")
 
+    for rep in train_data:
+        print(rep, len(train_data[rep]))
+#    print('Source dependencies: {}'.format(train_data['source_dependencies'][0]))
+#    print('Target dependencies: {}'.format(train_data['target_dependencies'][0]))
+#    print('Source root: {}'.format(train_data['source_root'][0]))
+#    print('Target root: {}'.format(train_data['target_root'][0]))
     train_contexts = create_contexts(train_data, data_type=data_type)
     if test:
         test_contexts = create_contexts(test_data, data_type=data_type)
     if dev:
         dev_contexts = create_contexts(dev_data, data_type=data_type)
-    print("TEST CONTEXT", test_contexts[0])
+#    print("TEST CONTEXT", test_contexts[0])
+    print("Train contexts: ", len(train_contexts))
+    if dev:
+        print("Dev contexts: ", len(dev_contexts))
+    if test:
+        print("Test contexts: ", len(test_contexts))
+    print('Train context example: {}'.format(train_contexts[0]))
 
     logger.info('Vocabulary comparison -- coverage for each dataset: ')
     logger.info(compare_vocabulary([train_data['target'], test_data['target']]))
@@ -93,6 +111,11 @@ def main(config):
         test_tags = call_for_each_element(test_contexts, tags_from_contexts, data_type=data_type)
     if dev:
         dev_tags = call_for_each_element(dev_contexts, tags_from_contexts, data_type=data_type)
+    print("Train tags: ", len(train_tags))
+    if dev:
+        print("Dev tags: ", len(dev_tags))
+    if test:
+        print("Test tags: ", len(test_tags))
 
     logger.info('creating feature extractors...')
     feature_extractors = build_objects(config['feature_extractors'])
@@ -108,7 +131,10 @@ def main(config):
     print("Train features sample: ", train_features[0])
 
     logger.info('number of training instances: {}'.format(len(train_features)))
-    logger.info('number of testing instances: {}'.format(len(test_features)))
+    if dev:
+        logger.info('number of development instances: {}'.format(len(dev_features)))
+    if test:
+        logger.info('number of testing instances: {}'.format(len(test_features)))
 
     logger.info('All of your features now exist in their raw representation, but they may not be numbers yet')
     # END FEATURE EXTRACTION
@@ -158,7 +184,7 @@ def main(config):
     # for each dataset, write a file and persist the features
     for dataset_obj in experiment_datasets:
 #        persist_features(dataset_obj['name'], dataset_obj['features'], persist_dir, feature_names=feature_names, tags=dataset_obj['tags'], file_format=persist_format)
-        persist_features(dataset_obj['name'], dataset_obj['features'], persist_dir, feature_names=feature_names, tags=None, file_format=persist_format)
+        persist_features(dataset_obj['name'], dataset_obj['features'], persist_dir, feature_names=feature_names, tags=dataset_obj['tags'], file_format=persist_format)
     # generate a template for CRF++ feature extractor
     feature_num = len(feature_names)
     if persist_format == 'crf++':
